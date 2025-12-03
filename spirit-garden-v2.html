@@ -636,6 +636,17 @@
                     </div>
                 </div>
 
+                <div style="margin-bottom: 12px;">
+                    <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">🏆 칭호 선택</label>
+                    <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
+                        <option value="none">없음 (기본)</option>
+                        <option value="hawk_eye">🦅 매의 눈 (모든 채집물 확률 1.5배)</option>
+                        <option value="gatherer">🍎 채집꾼 (먹이 확률 2배)</option>
+                        <option value="musician">🎵 음악가 (레코드 확률 2배)</option>
+                        <option value="collector">💎 수집가 (테라리움 물품 확률 2배)</option>
+                    </select>
+                </div>
+
                 <button class="walk-btn" onclick="goGather()">🌿 채집하기</button>
             </div>
 
@@ -797,6 +808,7 @@
         let pendingSpirit = null;
         let lastGatherTime = null;
         let currentTab = 'garden'; // 현재 활성 탭
+        let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
 
         const STAGE_REQUIREMENTS = {
             egg: 0,
@@ -865,7 +877,7 @@
             wind: '바람꿀',
             earth: '대지버섯',
             light: '빛나는 넥타',
-            dark: '어둠의 꽃가루'
+            dark: '검은 꽃가루'
         };
 
         // 상점 가격표
@@ -930,6 +942,13 @@
                 lightMode = data.lightMode !== undefined ? data.lightMode : true;
                 coins = data.coins || 0;
                 lastGatherTime = data.lastGatherTime || null;
+                currentTitle = data.currentTitle || 'none';
+
+                // 칭호 UI 반영
+                const titleSelect = document.getElementById('titleSelect');
+                if (titleSelect) {
+                    titleSelect.value = currentTitle;
+                }
 
                 // 설치된 장식물로 환경 재계산
                 if (installedDecorations.length > 0) {
@@ -950,7 +969,8 @@
                 installedDecorations,
                 lightMode,
                 coins,
-                lastGatherTime
+                lastGatherTime,
+                currentTitle
             }));
         }
 
@@ -1286,9 +1306,25 @@
             showNotification('쓰다듬었습니다 (애정 +1)');
         }
 
+        function changeTitle() {
+            const select = document.getElementById('titleSelect');
+            currentTitle = select.value;
+            
+            const titleNames = {
+                'none': '없음',
+                'hawk_eye': '🦅 매의 눈',
+                'gatherer': '🍎 채집꾼',
+                'musician': '🎵 음악가',
+                'collector': '💎 수집가'
+            };
+            
+            showNotification(`칭호를 ${titleNames[currentTitle]}(으)로 변경했습니다`);
+            saveGame();
+        }
+
         function goGather() {
             const now = Date.now();
-            const gatherCooldown = 30000; // 30초
+            const gatherCooldown = 15000; // 15초
 
             // 쿨다운 체크
             if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
@@ -1303,8 +1339,19 @@
 
             const discoveries = [];
             
+            // 칭호별 확률 보너스
+            const titleBonus = {
+                hawk_eye: 1.5,    // 매의 눈: 모든 확률 1.5배
+                gatherer: 1.0,    // 채집꾼: 먹이만 2배 (아래서 따로 처리)
+                musician: 1.0,    // 음악가: 레코드만 2배 (아래서 따로 처리)
+                collector: 1.0    // 수집가: 테라리움만 2배 (아래서 따로 처리)
+            };
+            
+            const baseBonus = currentTitle !== 'none' && titleBonus[currentTitle] ? titleBonus[currentTitle] : 1.0;
+            
             // 60% 확률로 일반 먹이 발견 (화수풍지)
-            if (Math.random() < 0.6) {
+            const foodBonus = currentTitle === 'gatherer' ? 2.0 : baseBonus;
+            if (Math.random() < (0.6 * foodBonus)) {
                 const foodTypes = ['fire', 'water', 'wind', 'earth'];
                 const randomFood = foodTypes[Math.floor(Math.random() * foodTypes.length)];
                 inventory.food.push(randomFood);
@@ -1312,7 +1359,7 @@
             }
 
             // 30% 확률로 희귀 먹이 발견 (빛암)
-            if (Math.random() < 0.3) {
+            if (Math.random() < (0.3 * foodBonus)) {
                 const rareFoodTypes = ['light', 'dark'];
                 const randomRareFood = rareFoodTypes[Math.floor(Math.random() * rareFoodTypes.length)];
                 inventory.food.push(randomRareFood);
@@ -1320,7 +1367,8 @@
             }
 
             // 40% 확률로 일반 장식물 발견 (화수풍지)
-            if (Math.random() < 0.4) {
+            const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
+            if (Math.random() < (0.4 * decoBonus)) {
                 const decoTypes = ['fire', 'water', 'wind', 'earth'];
                 const randomDeco = decoTypes[Math.floor(Math.random() * decoTypes.length)];
                 inventory.decorations.push(randomDeco);
@@ -1328,7 +1376,7 @@
             }
 
             // 20% 확률로 희귀 장식물 발견 (빛암)
-            if (Math.random() < 0.2) {
+            if (Math.random() < (0.2 * decoBonus)) {
                 const rareDecoTypes = ['light', 'dark'];
                 const randomRareDeco = rareDecoTypes[Math.floor(Math.random() * rareDecoTypes.length)];
                 inventory.decorations.push(randomRareDeco);
@@ -1336,7 +1384,8 @@
             }
 
             // 15% 확률로 음악 레코드 발견
-            if (Math.random() < 0.15) {
+            const musicBonus = currentTitle === 'musician' ? 2.0 : baseBonus;
+            if (Math.random() < (0.15 * musicBonus)) {
                 const musicKeys = Object.keys(MUSIC_TYPES);
                 const randomMusic = musicKeys[Math.floor(Math.random() * musicKeys.length)];
                 inventory.music.push(randomMusic);
@@ -1546,7 +1595,19 @@
                 completedAt: Date.now()
             });
             
-            showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!`);
+            // 애정도별 엔딩 메시지
+            let endingMessage = '';
+            const affection = spirit.parameters.affection || 0;
+            
+            if (affection >= 150) {
+                endingMessage = `\n\n${spirit.name}은(는) 당신에게 "ㅁㅁㅁㅁ"라는 말을 남기고 떠납니다.\n정령어 사전을 찾아보면 그 말은 "사랑해요"라는 의미입니다.`;
+            } else if (affection >= 100) {
+                endingMessage = `\n\n${spirit.name}은(는) 당신의 뺨에 입맞춤을 남기고 떠납니다.`;
+            } else if (affection >= 50) {
+                endingMessage = `\n\n${spirit.name}은(는) 당신에게 감사의 인사를 남기고 떠납니다.`;
+            }
+            
+            showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!${endingMessage}`);
 
             spirits = spirits.filter(s => s.id !== spirit.id);
             saveGame();
