@@ -1682,18 +1682,36 @@
             }
         }
 
+        function applyGrowth() {
+            spirits.forEach(spirit => {
+                if (spirit.isDead || spirit.isCompleted) return;
+
+                // 성장도 +1
+                const previousGrowth = spirit.growth;
+                spirit.growth += 1;
+
+                // 성충 체크
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(previousGrowth) !== 'adult') {
+                    completeSpirit(spirit);
+                }
+            });
+
+            saveGame();
+            updateAllSpiritCards();
+        }
+
         function applyTerrariumGrowth() {
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;  // 죽었거나 완성된 정령 제외
 
-                // 조명 누적 시간 추가 (60초 = 1분)
+                // 조명 누적 시간 추가 (300초 = 5분)
                 if (!spirit.lightTime) spirit.lightTime = 0;
                 if (!spirit.darkTime) spirit.darkTime = 0;
                 
                 if (lightMode) {
-                    spirit.lightTime += 60;
+                    spirit.lightTime += 300;
                 } else {
-                    spirit.darkTime += 60;
+                    spirit.darkTime += 300;
                 }
 
                 // 정령의 숨겨진 속성에 테라리움 환경값 추가
@@ -1712,15 +1730,6 @@
                         );
                     }
                 });
-
-                // 성장도 +1
-                const previousGrowth = spirit.growth;
-                spirit.growth += 1;
-
-                // 성충 체크
-                if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(previousGrowth) !== 'adult') {
-                    completeSpirit(spirit);
-                }
             });
 
             saveGame();
@@ -2539,10 +2548,15 @@
             updateGatherButton();
         }, 1000);
 
-        // 1분마다 테라리움 환경 효과 적용
+        // 1분마다 성장도 증가
+        setInterval(() => {
+            applyGrowth();
+        }, 60000);  // 60000ms = 1분
+
+        // 5분마다 테라리움 환경 효과 적용
         setInterval(() => {
             applyTerrariumGrowth();
-        }, 60000);  // 60000ms = 1분
+        }, 300000);  // 300000ms = 5분
 
         setInterval(updateTimeDisplay, 1000);
 
