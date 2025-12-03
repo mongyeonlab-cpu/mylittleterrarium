@@ -1560,22 +1560,16 @@
             // 노멀 진화 (모든 스탯이 10 미만)
             if (maxStat < 10) {
                 const evolution = EVOLUTION_TYPES['normal'];
-                
-                collection.push({
+                spirit.isCompleted = true;
+                spirit.evolutionData = {
                     type: 'normal',
                     name: evolution.name,
                     icon: evolution.icon,
-                    parameters: { ...spirit.parameters },
-                    originalName: spirit.name,
-                    wingType: null,
-                    completedAt: Date.now()
-                });
-                
-                showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!`);
-
-                spirits = spirits.filter(s => s.id !== spirit.id);
+                    wingType: null
+                };
                 saveGame();
                 renderSpirits();
+                showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
                 return;
             }
 
@@ -1606,21 +1600,16 @@
                 console.error(`Evolution type not found: ${evolutionKey}`);
                 evolutionKey = 'normal';
                 const fallbackEvolution = EVOLUTION_TYPES['normal'];
-                
-                collection.push({
+                spirit.isCompleted = true;
+                spirit.evolutionData = {
                     type: 'normal',
                     name: fallbackEvolution.name,
                     icon: fallbackEvolution.icon,
-                    parameters: { ...spirit.parameters },
-                    originalName: spirit.name,
-                    wingType: null,
-                    completedAt: Date.now()
-                });
-                
-                showNotification(`🎉 ${spirit.name}이(가) ${fallbackEvolution.name}(으)로 성장했습니다!`);
-                spirits = spirits.filter(s => s.id !== spirit.id);
+                    wingType: null
+                };
                 saveGame();
                 renderSpirits();
+                showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
                 return;
             }
             
@@ -1637,36 +1626,60 @@
                 wingType = 'butterfly'; // 동점이면 나비
             }
             
-            // 도감에 추가
-            collection.push({
+            // 정령을 완성 상태로 표시 (아직 제거하지 않음)
+            spirit.isCompleted = true;
+            spirit.evolutionData = {
                 type: evolutionKey,
                 name: evolution.name,
                 icon: evolution.icon,
-                parameters: { ...spirit.parameters },
-                originalName: spirit.name,
-                wingType: wingType,
-                lightTime: spirit.lightTime,
-                darkTime: spirit.darkTime,
-                completedAt: Date.now()
-            });
+                wingType: wingType
+            };
+            
+            saveGame();
+            renderSpirits();
+            showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
+        }
+        
+        function confirmEvolution(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit || !spirit.isCompleted) return;
+            
+            const evolutionData = spirit.evolutionData;
+            const affection = spirit.parameters.affection || 0;
             
             // 애정도별 엔딩 메시지
             let endingMessage = '';
-            const affection = spirit.parameters.affection || 0;
             
             if (affection >= 150) {
-                endingMessage = `\n\n${spirit.name}은(는) 당신에게 "ㅁㅁㅁㅁ"라는 말을 남기고 떠납니다.\n정령어 사전을 찾아보면 그 말은 "사랑해요"라는 의미입니다.`;
+                endingMessage = `${spirit.name}은(는) 당신에게 "ㅁㅁㅁㅁ"라는 말을 남기고 떠납니다.\n\n정령어 사전을 찾아보면 그 말은 "사랑해요"라는 의미입니다.`;
             } else if (affection >= 100) {
-                endingMessage = `\n\n${spirit.name}은(는) 당신의 뺨에 입맞춤을 남기고 떠납니다.`;
+                endingMessage = `${spirit.name}은(는) 당신의 뺨에 입맞춤을 남기고 떠납니다.`;
             } else if (affection >= 50) {
-                endingMessage = `\n\n${spirit.name}은(는) 당신에게 감사의 인사를 남기고 떠납니다.`;
+                endingMessage = `${spirit.name}은(는) 당신에게 감사의 인사를 남기고 떠납니다.`;
+            } else {
+                endingMessage = `${spirit.name}이(가) 떠나갑니다.`;
             }
             
-            showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!${endingMessage}`);
-
-            spirits = spirits.filter(s => s.id !== spirit.id);
-            saveGame();
-            renderSpirits();
+            if (confirm(endingMessage)) {
+                // 도감에 추가
+                collection.push({
+                    type: evolutionData.type,
+                    name: evolutionData.name,
+                    icon: evolutionData.icon,
+                    parameters: { ...spirit.parameters },
+                    originalName: spirit.name,
+                    wingType: evolutionData.wingType,
+                    lightTime: spirit.lightTime,
+                    darkTime: spirit.darkTime,
+                    completedAt: Date.now()
+                });
+                
+                // 정령 제거
+                spirits = spirits.filter(s => s.id !== spiritId);
+                saveGame();
+                renderSpirits();
+                showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 도감에 등록되었습니다`);
+            }
         }
 
         function applyTerrariumGrowth() {
@@ -1893,6 +1906,39 @@
                 }
                 if (!spirit.darkTime) {
                     spirit.darkTime = 0;
+                }
+                
+                // 완성된 정령인 경우 특별한 카드 표시
+                if (spirit.isCompleted && spirit.evolutionData) {
+                    return `
+                        <div class="spirit-card" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border: 3px solid #ffa500;">
+                            <div style="text-align: center; padding: 20px;">
+                                <div style="font-size: 4rem; margin-bottom: 15px;">${spirit.evolutionData.icon}</div>
+                                <div style="font-size: 1.3rem; font-weight: 700; color: #333; margin-bottom: 10px;">
+                                    🎉 번데기에서 정령이 부화했습니다! 🎉
+                                </div>
+                                <div style="font-size: 1rem; color: #555; margin-bottom: 8px;">
+                                    ${spirit.name} → ${spirit.evolutionData.name}
+                                </div>
+                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">
+                                    애정도: ${spirit.parameters.affection || 0}
+                                </div>
+                                <button onclick="confirmEvolution(${spirit.id})" style="
+                                    background: #ff6b6b;
+                                    color: white;
+                                    border: none;
+                                    padding: 15px 30px;
+                                    font-size: 1.1rem;
+                                    font-weight: 700;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                                ">
+                                    ✨ 확인하기 ✨
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 return `
