@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나의 작은 테라리움 - Spirit Garden</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #fafaf8;
+            --text: #2a2a2a;
+            --border: #e0e0dc;
+            --card: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.06);
+            
+            --fire: #ff6b4a;
+            --water: #4a9eff;
+            --wind: #7bdb8f;
+            --earth: #d4a574;
+            --light: #ffd94a;
+            --dark: #8e7cc3;
+        }
+
+        body {
+            font-family: 'Gowun Batang', serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-family: 'Gowun Batang', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--text);
+            border-bottom-color: var(--text);
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .inventory-panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .inventory-title {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .inventory-section {
+            margin-bottom: 20px;
+        }
+
+        .inventory-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inventory-item {
+            padding: 6px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .spirits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .spirit-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .spirit-card:hover {
+            box-shadow: 0 4px 20px var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .spirit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .spirit-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .spirit-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .spirit-name {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+
+        .spirit-name:hover {
+            color: var(--fire);
+        }
+
+        .spirit-stage {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--light), var(--fire));
+            transition: width 0.5s;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        .parameters {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .param {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .param-icon {
+            font-size: 1.1rem;
+        }
+
+        .environment {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+        }
+
+        .env-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .env-bars {
+            display: grid;
+            gap: 6px;
+        }
+
+        .env-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .env-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .env-bar-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .spirit-status {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 16px;
+            min-height: 40px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: var(--bg);
+            border-color: var(--text);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .new-spirit-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 20px;
+        }
+
+        .walk-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: var(--light);
+            border-color: var(--light);
+            color: #000 !important;
+        }
+
+        .walk-btn:hover {
+            background: var(--fire);
+            border-color: var(--fire);
+            color: #000 !important;
+        }
+
+        .walk-btn:disabled {
+            color: #666 !important;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            padding: 32px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .food-grid, .music-grid, .decor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 16px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-icon {
+            font-size: 1.5rem;
+        }
+
+        .option-info {
+            flex: 1;
+        }
+
+        .option-name {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .option-effect {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .close-btn {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .collection-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .collection-icon {
+            font-size: 4rem;
+            margin-bottom: 12px;
+        }
+
+        .collection-name {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .time-display {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px var(--shadow);
+            z-index: 999;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+            word-wrap: break-word;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 12px;
+            font-family: 'Gowun Batang', serif;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .decor-btn:disabled::after {
+            content: '재료 부족';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: #f44;
+            color: white;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .inventory-panel {
+                position: static;
+            }
+        }
+
+        .light-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 60px;
+            height: 32px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 0;
+        }
+
+        .light-toggle::before {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        body.dark-mode .light-toggle {
+            background: #666;
+        }
+
+        body.dark-mode .light-toggle::before {
+            transform: translateX(28px);
+        }
+
+        .light-toggle #lightIcon {
+            display: none;
+        }
+
+        body.dark-mode {
+            --bg: #1a1a1a;
+            --card: #2d2d2d;
+            --text: #e0e0e0;
+            --border: #404040;
+        }
+
+        body.dark-mode .spirit-name,
+        body.dark-mode .spirit-stage,
+        body.dark-mode .progress-text,
+        body.dark-mode .param,
+        body.dark-mode .spirit-status,
+        body.dark-mode .env-title,
+        body.dark-mode .modal-title,
+        body.dark-mode .option-name,
+        body.dark-mode .option-effect,
+        body.dark-mode .inventory-label,
+        body.dark-mode .collection-name,
+        body.dark-mode h1,
+        body.dark-mode h2,
+        body.dark-mode .subtitle,
+        body.dark-mode .time-display {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode button {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode button:disabled {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <button id="lightToggle" class="light-toggle" onclick="toggleLight()">
+        <span id="lightIcon">☀️</span>
+    </button>
+
+    <h1>나의 작은 테라리움</h1>
+    <div class="subtitle">Spirit Garden</div>
+
+    <div class="time-display" id="timeDisplay"></div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('garden')">육성</button>
+        <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
+        <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
+        <button class="tab" onclick="switchTab('collection')">도감</button>
+    </div>
+
+    <div id="gardenSection" class="section active">
+        <div class="main-layout">
+            <div class="inventory-panel">
+                <div class="inventory-title">내 소지품</div>
+                
+                <div class="inventory-section">
+                    <div class="inventory-label">🍎 먹이</div>
+                    <div class="inventory-items" id="foodInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+
+                <div class="inventory-section">
+                    <div class="inventory-label">🎵 음악</div>
+                    <div class="inventory-items" id="musicInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+
+                <div class="inventory-section">
+                    <div class="inventory-label">🌳 나무 & 장식물</div>
+                    <div class="inventory-items" id="decorInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+
+                <button class="walk-btn" onclick="goGather()">🌿 채집하기</button>
+            </div>
+
+            <div>
+                <div class="spirits-grid" id="spiritsGrid"></div>
+                <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="collectionSection" class="section">
+        <div class="collection-grid" id="collectionGrid"></div>
+    </div>
+
+    <div id="shopSection" class="section">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🏪 정령 상점</h2>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--fire);">보유 코인: <span id="shopCoinDisplay">0</span> 💰</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <!-- 판매 (소지품 → 코인) -->
+                <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
+                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--fire);">💸 판매하기</h3>
+                    <div id="sellList"></div>
+                </div>
+
+                <!-- 구매 (코인 → 아이템) -->
+                <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
+                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--water);">🛒 구매하기</h3>
+                    <div id="buyList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="terrariumSection" class="section">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">테라리움 환경</h2>
+                <div class="env-bars" style="display: grid; gap: 12px;">
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🔥</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrFireBar" style="height: 100%; background: var(--fire); width: 0%;"></div>
+                        </div>
+                        <span id="terrFireValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">💧</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrWaterBar" style="height: 100%; background: var(--water); width: 0%;"></div>
+                        </div>
+                        <span id="terrWaterValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🍃</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrWindBar" style="height: 100%; background: var(--wind); width: 0%;"></div>
+                        </div>
+                        <span id="terrWindValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🌱</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrEarthBar" style="height: 100%; background: var(--earth); width: 0%;"></div>
+                        </div>
+                        <span id="terrEarthValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">✨</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrLightBar" style="height: 100%; background: var(--light); width: 0%;"></div>
+                        </div>
+                        <span id="terrLightValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                    <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🌙</span>
+                        <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
+                            <div class="env-bar-fill" id="terrDarkBar" style="height: 100%; background: var(--dark); width: 0%;"></div>
+                        </div>
+                        <span id="terrDarkValue" style="min-width: 30px; text-align: right;">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 10px;">설치된 장식물</h2>
+                <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;" id="installedCount">0 / 20</div>
+                <div id="installedDecorList"></div>
+            </div>
+
+            <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">인벤토리 장식물</h2>
+                <div id="terrariumDecorList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Modal -->
+    <div class="modal" id="nameModal">
+        <div class="modal-content">
+            <div class="modal-title">정령의 이름을 지어주세요</div>
+            <input type="text" class="name-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="10">
+            <button onclick="confirmName()" style="width: 100%;">확인</button>
+        </div>
+    </div>
+
+    <!-- Feed Modal -->
+    <div class="modal" id="feedModal">
+        <div class="modal-content">
+            <div class="modal-title">무엇을 먹일까요?</div>
+            <div class="food-grid">
+                <!-- 초기 더미 버튼 (renderFeedOptions()로 동적 생성됨) -->
+            </div>
+            <button class="close-btn" onclick="closeModal('feedModal')">닫기</button>
+        </div>
+    </div>
+
+    <!-- Music Modal -->
+    <div class="modal" id="musicModal">
+        <div class="modal-content">
+            <div class="modal-title">어떤 음악을 들려줄까요?</div>
+            <div id="musicOptions"></div>
+            <button class="close-btn" onclick="closeModal('musicModal')">닫기</button>
+        </div>
+    </div>
+
+    <!-- Decorate Modal -->
+    <div class="modal" id="decorateModal">
+        <div class="modal-content">
+            <div class="modal-title">테라리움 꾸미기</div>
+            <div id="decorOptions"></div>
+            <button class="close-btn" onclick="closeModal('decorateModal')">닫기</button>
+        </div>
+    </div>
+
+    <script>
+        let spirits = [];
+        let collection = [];
+        let inventory = {
+            music: [],
+            decorations: [],
+            food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
+        };
+        let terrarium = {
+            fire: 0,
+            water: 0,
+            wind: 0,
+            earth: 0,
+            light: 0,
+            dark: 0
+        };
+        let installedDecorations = []; // 설치된 장식물 목록
+        let lightMode = true; // 조명 모드 (true: 빛, false: 어둠)
+        let coins = 0; // 화폐
+        let currentSpiritId = null;
+        let pendingSpirit = null;
+        let lastGatherTime = null;
+        let currentTab = 'garden'; // 현재 활성 탭
+
+        const STAGE_REQUIREMENTS = {
+            egg: 0,
+            larva1: 10,
+            larva2: 25,
+            larva3: 45,
+            pupa: 70,
+            adult: 100
+        };
+
+        const STAGE_ICONS = {
+            egg: '🥚',
+            larva1: '🐛',
+            larva2: '🐛',
+            larva3: '🐛',
+            pupa: '🦋',
+            adult: '🦋'
+        };
+
+        const STAGE_NAMES = {
+            egg: '알',
+            larva1: '애벌레 I',
+            larva2: '애벌레 II',
+            larva3: '애벌레 III',
+            pupa: '번데기',
+            adult: '성충'
+        };
+
+        const PARAM_ICONS = {
+            intelligence: '🧠',
+            strength: '💪',
+            charm: '💖',
+            affection: '❤️'
+        };
+
+        const ENV_ICONS = {
+            fire: '🔥',
+            water: '💧',
+            wind: '🍃',
+            earth: '🌱',
+            light: '✨',
+            dark: '🌙'
+        };
+
+        const MUSIC_TYPES = {
+            quest: { name: '탐험의 레코드', icon: '⚔️', effect: '체력 +3, 지력 +1' },
+            lullaby: { name: '자장가 레코드', icon: '🌙', effect: '매력 +2, 지력 +1' },
+            march: { name: '행진곡 레코드', icon: '🎺', effect: '체력 +3, 지력 +1' },
+            ballad: { name: '발라드 레코드', icon: '🎵', effect: '매력 +3, 체력 +1' },
+            classical: { name: '클래식 레코드', icon: '🎻', effect: '지력 +3, 매력 +1' },
+            dance: { name: '댄스 레코드', icon: '💃', effect: '체력 +2, 매력 +2' }
+        };
+
+        const DECORATION_TYPES = {
+            fire: { name: '용암석', icon: '🔥', effect: '불 +1' },
+            water: { name: '분수', icon: '💧', effect: '물 +1' },
+            wind: { name: '바람개비', icon: '🍃', effect: '바람 +1' },
+            earth: { name: '화분', icon: '🌱', effect: '땅 +1' },
+            light: { name: '수정', icon: '✨', effect: '빛 +1' },
+            dark: { name: '흑요석', icon: '🌙', effect: '어둠 +1' }
+        };
+
+        const FOOD_NAMES = {
+            fire: '불꽃열매',
+            water: '맑은이슬',
+            wind: '바람꿀',
+            earth: '대지버섯',
+            light: '빛나는 넥타',
+            dark: '어둠의 꽃가루'
+        };
+
+        // 상점 가격표
+        const SHOP_PRICES = {
+            // 판매 가격 (인벤토리 → 코인)
+            sell: {
+                food_common: 8,    // 일반 먹이 판매
+                food_rare: 15,     // 희귀 먹이 판매
+                decoration: 15,    // 장식물 1개 = 15코인
+                music: 25          // 음악 1개 = 25코인
+            },
+            // 구매 가격 (코인 → 인벤토리)
+            buy: {
+                food_common: 20,   // 일반 먹이 (화수풍지)
+                food_rare: 40,     // 희귀 먹이 (빛암)
+                music: 80,         // 음악 레코드
+                decoration: 50     // 장식물
+            }
+        };
+
+        const EVOLUTION_TYPES = {
+            // 노멀 (모든 스탭이 10 미만)
+            normal: { name: '백의 정령', icon: '🤍', desc: '순수한 빛을 간직한 정령. 모든 정령의 시작이자 근원.' },
+            
+            // 지적인 계열 (intelligence 최고)
+            'intelligent-basic': { name: '반짝이는 정령', icon: '✨', desc: '지적이고 총명한 정령. 호기심으로 가득하다.' },
+            'intelligent-advanced': { name: '찬란한 정령', icon: '💎', desc: '더욱 영리해진 정령. 예리한 통찰력을 지녔다.' },
+            'intelligent-master': { name: '눈부신 정령', icon: '🔮', desc: '지혜의 극치에 이른 정령. 모든 것을 꿰뚫어본다.' },
+            
+            // 강한 계열 (strength 최고)
+            'strong-basic': { name: '반짝이는 정령', icon: '✨', desc: '강하고 용맹한 정령. 힘이 넘친다.' },
+            'strong-advanced': { name: '찬란한 정령', icon: '💪', desc: '더욱 강해진 정령. 거침없는 힘을 자랑한다.' },
+            'strong-master': { name: '눈부신 정령', icon: '⚡', desc: '힘의 극치에 이른 정령. 무엇이든 이겨낸다.' },
+            
+            // 아름다운 계열 (charm 최고)
+            'beautiful-basic': { name: '반짝이는 정령', icon: '✨', desc: '아름답고 우아한 정령. 매력적이다.' },
+            'beautiful-advanced': { name: '찬란한 정령', icon: '🌸', desc: '더욱 아름다워진 정령. 모두가 반한다.' },
+            'beautiful-master': { name: '눈부신 정령', icon: '🌺', desc: '아름다움의 극치에 이른 정령. 황홀한 광채를 뿜는다.' }
+        };
+
+        function loadGame() {
+            const saved = localStorage.getItem('spiritGardenV2');
+            if (saved) {
+                const data = JSON.parse(saved);
+                spirits = data.spirits || [];
+                collection = data.collection || [];
+                
+                // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거
+                collection = collection.filter(item => {
+                    return EVOLUTION_TYPES[item.type] !== undefined;
+                });
+                
+                inventory = data.inventory || { 
+                    music: [], 
+                    decorations: [],
+                    food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
+                };
+                terrarium = data.terrarium || {
+                    fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                };
+                installedDecorations = data.installedDecorations || [];
+                lightMode = data.lightMode !== undefined ? data.lightMode : true;
+                coins = data.coins || 0;
+                lastGatherTime = data.lastGatherTime || null;
+
+                // 설치된 장식물로 환경 재계산
+                if (installedDecorations.length > 0) {
+                    recalculateTerrariumEnvironment();
+                }
+
+                // 조명 상태 적용
+                applyLightMode();
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('spiritGardenV2', JSON.stringify({
+                spirits,
+                collection,
+                inventory,
+                terrarium,
+                installedDecorations,
+                lightMode,
+                coins,
+                lastGatherTime
+            }));
+        }
+
+        const EGG_NAMES = [
+            '반짝이는 알', '매끈매끈한 알', '얼룩무늬 알', '보라색 알',
+            '투명한 알', '황금빛 알', '은빛 알', '검은색 알',
+            '하얀색 알', '무지개 알', '작은 알', '큰 알',
+            '따뜻한 알', '차가운 알', '부드러운 알', '단단한 알'
+        ];
+
+        function addLog(spirit, message) {
+            if (!spirit.logs) spirit.logs = [];
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            spirit.logs.unshift({ time: timestamp, message }); // 최신이 위로
+            if (spirit.logs.length > 50) spirit.logs.pop(); // 최대 50개 유지
+            
+            // 일지 추가 시에만 전체 렌더링
+            renderSpirits();
+        }
+
+        function createNewSpirit() {
+            if (spirits.length >= 6) {
+                showNotification('정원이 가득 찼습니다 (최대 6마리)');
+                return;
+            }
+
+            const randomName = EGG_NAMES[Math.floor(Math.random() * EGG_NAMES.length)];
+
+            const spirit = {
+                id: Date.now(),
+                name: randomName,
+                growth: 0,
+                // 공개 스탯
+                parameters: {
+                    intelligence: 0,  // 지력
+                    strength: 0,      // 체력
+                    charm: 0,         // 매력
+                    affection: 0      // 애정
+                },
+                // 숨겨진 속성 (진화 결정)
+                hiddenAttributes: {
+                    fire: 0,
+                    water: 0,
+                    wind: 0,
+                    earth: 0,
+                    light: 0,
+                    dark: 0
+                },
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                status: '배고파 보입니다...',
+                birthTime: Date.now(),
+                logs: [],  // 일지
+                lightTime: 0,  // 빛 모드 누적 시간 (초)
+                darkTime: 0    // 어둠 모드 누적 시간 (초)
+            };
+
+            spirits.push(spirit);
+            saveGame();
+            renderSpirits();
+            showNotification(`${randomName}이(가) 태어났습니다! 🥚`);
+        }
+
+        function changeName(spiritId) {
+            currentSpiritId = spiritId;
+            const spirit = spirits.find(s => s.id === spiritId);
+            document.getElementById('nameInput').value = spirit.name;
+            document.getElementById('nameModal').classList.add('active');
+            
+            // 이름 변경 모드로 전환
+            const confirmBtn = document.querySelector('#nameModal button');
+            const originalHandler = confirmBtn.onclick;
+            confirmBtn.onclick = function() {
+                const newName = document.getElementById('nameInput').value.trim();
+                if (!newName) {
+                    showNotification('이름을 입력해주세요');
+                    return;
+                }
+                spirit.name = newName;
+                closeModal('nameModal');
+                saveGame();
+                updateSpiritCard(spirit);
+                showNotification('이름을 변경했습니다');
+                
+                // 원래 함수로 복구
+                confirmBtn.onclick = originalHandler;
+            };
+        }
+
+        function getStage(growth) {
+            if (growth >= STAGE_REQUIREMENTS.adult) return 'adult';
+            if (growth >= STAGE_REQUIREMENTS.pupa) return 'pupa';
+            if (growth >= STAGE_REQUIREMENTS.larva3) return 'larva3';
+            if (growth >= STAGE_REQUIREMENTS.larva2) return 'larva2';
+            if (growth >= STAGE_REQUIREMENTS.larva1) return 'larva1';
+            return 'egg';
+        }
+
+        function getNextStageRequirement(growth) {
+            const stage = getStage(growth);
+            const stages = Object.keys(STAGE_REQUIREMENTS);
+            const currentIndex = stages.indexOf(stage);
+            if (currentIndex < stages.length - 1) {
+                return STAGE_REQUIREMENTS[stages[currentIndex + 1]];
+            }
+            return STAGE_REQUIREMENTS.adult;
+        }
+
+        function canDoAction(spirit, action) {
+            const now = Date.now();
+            const cooldown = 10000; // 10초
+
+            if (action === 'feed') {
+                return !spirit.lastFed || (now - spirit.lastFed > cooldown);
+            }
+            if (action === 'music') {
+                return !spirit.lastMusic || (now - spirit.lastMusic > cooldown);
+            }
+            if (action === 'pat') {
+                return !spirit.lastPat || (now - spirit.lastPat > cooldown);
+            }
+            if (action === 'decorate') {
+                return !spirit.lastDecorate || (now - spirit.lastDecorate > cooldown);
+            }
+            return false;
+        }
+
+        function openFeedModal(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!canDoAction(spirit, 'feed')) {
+                showNotification('아직 배가 부릅니다');
+                return;
+            }
+            if (!inventory.food) inventory.food = [];
+            if (inventory.food.length === 0) {
+                showNotification('먹이가 없습니다. 채집을 해보세요!');
+                return;
+            }
+            currentSpiritId = spiritId;
+            renderFeedOptions();
+            document.getElementById('feedModal').classList.add('active');
+        }
+
+        function renderFeedOptions() {
+            if (!inventory.food) inventory.food = [];
+            
+            const modal = document.getElementById('feedModal');
+            const foodCounts = {};
+            inventory.food.forEach(f => {
+                foodCounts[f] = (foodCounts[f] || 0) + 1;
+            });
+
+            const content = `
+                <div class="modal-title">무엇을 먹일까요?</div>
+                <div class="food-grid">
+                    ${Object.entries(foodCounts).map(([type, count]) => {
+                        const isRare = type === 'light' || type === 'dark';
+                        const gain = isRare ? 2 : 1;
+                        const growth = isRare ? 3 : 2;
+                        return `
+                            <button class="option-btn" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
+                                <span class="option-icon">${ENV_ICONS[type]}</span>
+                                <div class="option-info">
+                                    <div class="option-name">${FOOD_NAMES[type]} ×${count}</div>
+                                    <div class="option-effect">${ENV_ICONS[type]}+${gain} 성장+${growth}</div>
+                                </div>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                <button class="close-btn" onclick="closeModal('feedModal')">닫기</button>
+            `;
+            modal.querySelector('.modal-content').innerHTML = content;
+        }
+
+        function feedSpiritFromInventory(spiritId, foodType) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+
+            if (!inventory.food) inventory.food = [];
+            const foodIndex = inventory.food.indexOf(foodType);
+            if (foodIndex === -1) {
+                showNotification('먹이가 없습니다');
+                return;
+            }
+
+            // 먹이 소모
+            inventory.food.splice(foodIndex, 1);
+
+            const isRare = foodType === 'light' || foodType === 'dark';
+            const attrGain = isRare ? 6 : 3;  // 희귀 +6, 일반 +3
+            const growthGain = isRare ? 3 : 2;
+
+            // 정령의 숨겨진 속성 증가
+            if (!spirit.hiddenAttributes) {
+                spirit.hiddenAttributes = {
+                    fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                };
+            }
+            spirit.hiddenAttributes[foodType] += attrGain;
+
+            spirit.growth += growthGain;
+            spirit.lastFed = Date.now();
+            spirit.status = '맛있게 먹었습니다!';
+            spirit.parameters.affection += 1;
+
+            // 일지 추가
+            addLog(spirit, `${FOOD_NAMES[foodType]}를 먹었습니다`);
+
+            // 성충 체크
+            if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(spirit.growth - growthGain) !== 'adult') {
+                completeSpirit(spirit);
+            }
+
+            closeModal('feedModal');
+            saveGame();
+            updateSpiritCard(spirit);
+            renderInventory();
+            showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]}를 주었습니다`);
+        }
+
+        function openMusicModal(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!canDoAction(spirit, 'music')) {
+                showNotification('아직 음악을 듣고 있습니다');
+                return;
+            }
+            if (inventory.music.length === 0) {
+                showNotification('보유한 음악이 없습니다. 채집을 해보세요!');
+                return;
+            }
+            currentSpiritId = spiritId;
+            renderMusicOptions();
+            document.getElementById('musicModal').classList.add('active');
+        }
+
+        function renderMusicOptions() {
+            const container = document.getElementById('musicOptions');
+            container.innerHTML = '<div class="music-grid">' + 
+                inventory.music.map((music, index) => {
+                    const musicData = MUSIC_TYPES[music];
+                    return `
+                        <button class="option-btn" onclick="playMusic(${currentSpiritId}, '${music}', ${index})">
+                            <span class="option-icon">${musicData.icon}</span>
+                            <div class="option-info">
+                                <div class="option-name">${musicData.name}</div>
+                                <div class="option-effect">${musicData.effect}</div>
+                            </div>
+                        </button>
+                    `;
+                }).join('') + '</div>';
+        }
+
+        function playMusic(spiritId, musicType, inventoryIndex) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+
+            const musicData = MUSIC_TYPES[musicType];
+            
+            // 효과 적용
+            if (musicType === 'quest') {
+                spirit.parameters.strength += 3;
+                spirit.parameters.intelligence += 1;
+            } else if (musicType === 'lullaby') {
+                spirit.parameters.charm += 2;
+                spirit.parameters.intelligence += 1;
+            } else if (musicType === 'march') {
+                spirit.parameters.strength += 3;
+                spirit.parameters.intelligence += 1;
+            } else if (musicType === 'ballad') {
+                spirit.parameters.charm += 3;
+                spirit.parameters.strength += 1;
+            } else if (musicType === 'classical') {
+                spirit.parameters.intelligence += 3;
+                spirit.parameters.charm += 1;
+            } else if (musicType === 'dance') {
+                spirit.parameters.strength += 2;
+                spirit.parameters.charm += 2;
+            }
+
+            // 애정도 증가 (상호작용)
+            spirit.parameters.affection += 2;
+
+            spirit.lastMusic = Date.now();
+            spirit.status = `${musicData.name}을(를) 듣고 있습니다...`;
+
+            // 일지 추가
+            addLog(spirit, `${musicData.name}을(를) 들었습니다`);
+
+            // 음악 소모
+            inventory.music.splice(inventoryIndex, 1);
+
+            closeModal('musicModal');
+            saveGame();
+            updateSpiritCard(spirit);
+            renderInventory();
+            showNotification(`🎵 ${musicData.name}을(를) 들려주었습니다`);
+        }
+
+        function patSpirit(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+
+            if (!canDoAction(spirit, 'pat')) {
+                showNotification('아직 쓰다듬을 수 없습니다');
+                return;
+            }
+
+            spirit.parameters.affection += 1;
+            spirit.lastPat = Date.now();
+            
+            const messages = [
+                '정령이 기뻐합니다! 💕',
+                '정령이 당신을 따릅니다 ❤️',
+                '정령이 행복해 보입니다 ✨',
+                '정령이 편안해 보입니다 💖',
+                '정령이 당신을 좋아합니다 🥰'
+            ];
+            spirit.status = messages[Math.floor(Math.random() * messages.length)];
+
+            // 일지 추가
+            addLog(spirit, '쓰다듬었습니다');
+
+            saveGame();
+            updateSpiritCard(spirit);
+            showNotification('쓰다듬었습니다 (애정 +1)');
+        }
+
+        function goGather() {
+            const now = Date.now();
+            const gatherCooldown = 30000; // 30초
+
+            // 쿨다운 체크
+            if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
+                const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
+                showNotification(`${remainingTime}초 후에 다시 채집할 수 있습니다`);
+                return;
+            }
+
+            if (!inventory.food) inventory.food = [];
+            if (!inventory.music) inventory.music = [];
+            if (!inventory.decorations) inventory.decorations = [];
+
+            const discoveries = [];
+            
+            // 60% 확률로 일반 먹이 발견 (화수풍지)
+            if (Math.random() < 0.6) {
+                const foodTypes = ['fire', 'water', 'wind', 'earth'];
+                const randomFood = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+                inventory.food.push(randomFood);
+                discoveries.push(`🍎 ${FOOD_NAMES[randomFood]}`);
+            }
+
+            // 30% 확률로 희귀 먹이 발견 (빛암)
+            if (Math.random() < 0.3) {
+                const rareFoodTypes = ['light', 'dark'];
+                const randomRareFood = rareFoodTypes[Math.floor(Math.random() * rareFoodTypes.length)];
+                inventory.food.push(randomRareFood);
+                discoveries.push(`✨ ${FOOD_NAMES[randomRareFood]}`);
+            }
+
+            // 40% 확률로 일반 장식물 발견 (화수풍지)
+            if (Math.random() < 0.4) {
+                const decoTypes = ['fire', 'water', 'wind', 'earth'];
+                const randomDeco = decoTypes[Math.floor(Math.random() * decoTypes.length)];
+                inventory.decorations.push(randomDeco);
+                discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
+            }
+
+            // 20% 확률로 희귀 장식물 발견 (빛암)
+            if (Math.random() < 0.2) {
+                const rareDecoTypes = ['light', 'dark'];
+                const randomRareDeco = rareDecoTypes[Math.floor(Math.random() * rareDecoTypes.length)];
+                inventory.decorations.push(randomRareDeco);
+                discoveries.push(`${DECORATION_TYPES[randomRareDeco].icon} ${DECORATION_TYPES[randomRareDeco].name}`);
+            }
+
+            // 15% 확률로 음악 레코드 발견
+            if (Math.random() < 0.15) {
+                const musicKeys = Object.keys(MUSIC_TYPES);
+                const randomMusic = musicKeys[Math.floor(Math.random() * musicKeys.length)];
+                inventory.music.push(randomMusic);
+                discoveries.push(`🎵 ${MUSIC_TYPES[randomMusic].name}`);
+            }
+
+            if (discoveries.length === 0) {
+                showNotification('아무것도 발견하지 못했습니다...');
+            } else {
+                showNotification(`채집: ${discoveries.join(', ')}`);
+            }
+
+            lastGatherTime = now;
+            saveGame();
+            renderInventory();
+            updateGatherButton();
+        }
+
+        function updateGatherButton() {
+            const gatherBtn = document.querySelector('.walk-btn');
+            if (!gatherBtn) return;
+
+            const now = Date.now();
+            const gatherCooldown = 30000; // 30초
+
+            if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
+                gatherBtn.disabled = true;
+                const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
+                gatherBtn.textContent = `🌿 채집하기 (${remainingTime}초)`;
+            } else {
+                gatherBtn.disabled = false;
+                gatherBtn.textContent = '🌿 채집하기';
+            }
+        }
+
+        function confirmDeleteSpirit(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+
+            if (confirm(`정말로 ${spirit.name}을(를) 보내시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+                deleteSpirit(spiritId);
+            }
+        }
+
+        function deleteSpirit(spiritId) {
+            spirits = spirits.filter(s => s.id !== spiritId);
+            saveGame();
+            renderSpirits();
+            showNotification('정령을 떠나보냈습니다');
+        }
+
+        function renderInventory() {
+            // 먹이가 없으면 초기화
+            if (!inventory.food) {
+                inventory.food = [];
+            }
+
+            // 먹이 인벤토리
+            const foodContainer = document.getElementById('foodInventory');
+            if (inventory.food.length === 0) {
+                foodContainer.innerHTML = '<div class="inventory-item">없음</div>';
+            } else {
+                const foodCounts = {};
+                inventory.food.forEach(f => {
+                    foodCounts[f] = (foodCounts[f] || 0) + 1;
+                });
+                foodContainer.innerHTML = Object.entries(foodCounts)
+                    .map(([type, count]) => `
+                        <div class="inventory-item">
+                            ${ENV_ICONS[type]} ×${count}
+                        </div>
+                    `).join('');
+            }
+
+            // 음악 인벤토리
+            const musicContainer = document.getElementById('musicInventory');
+            if (!inventory.music) inventory.music = [];
+            if (inventory.music.length === 0) {
+                musicContainer.innerHTML = '<div class="inventory-item">없음</div>';
+            } else {
+                const musicCounts = {};
+                inventory.music.forEach(m => {
+                    musicCounts[m] = (musicCounts[m] || 0) + 1;
+                });
+                musicContainer.innerHTML = Object.entries(musicCounts)
+                    .map(([type, count]) => `
+                        <div class="inventory-item">
+                            ${MUSIC_TYPES[type].icon} ×${count}
+                        </div>
+                    `).join('');
+            }
+
+            // 장식물 인벤토리
+            const decorContainer = document.getElementById('decorInventory');
+            if (!inventory.decorations) inventory.decorations = [];
+            if (inventory.decorations.length === 0) {
+                decorContainer.innerHTML = '<div class="inventory-item">없음</div>';
+            } else {
+                const decorCounts = {};
+                inventory.decorations.forEach(d => {
+                    decorCounts[d] = (decorCounts[d] || 0) + 1;
+                });
+                decorContainer.innerHTML = Object.entries(decorCounts)
+                    .map(([type, count]) => `
+                        <div class="inventory-item">
+                            ${DECORATION_TYPES[type].icon} ×${count}
+                        </div>
+                    `).join('');
+            }
+        }
+
+        function completeSpirit(spirit) {
+            // 스탯으로 진화 결정
+            const params = spirit.parameters;
+            const maxStat = Math.max(params.intelligence, params.strength, params.charm);
+            
+            // 노멀 진화 (모든 스탯이 10 미만)
+            if (maxStat < 10) {
+                const evolution = EVOLUTION_TYPES['normal'];
+                
+                collection.push({
+                    type: 'normal',
+                    name: evolution.name,
+                    icon: evolution.icon,
+                    parameters: { ...spirit.parameters },
+                    originalName: spirit.name,
+                    wingType: null,
+                    completedAt: Date.now()
+                });
+                
+                showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!`);
+
+                spirits = spirits.filter(s => s.id !== spirit.id);
+                saveGame();
+                renderSpirits();
+                return;
+            }
+
+            // 최고 스탯 결정
+            let statType = '';
+            if (params.intelligence >= params.strength && params.intelligence >= params.charm) {
+                statType = 'intelligent';
+            } else if (params.strength >= params.intelligence && params.strength >= params.charm) {
+                statType = 'strong';
+            } else {
+                statType = 'beautiful';
+            }
+
+            // 진화 단계 결정
+            let evolutionKey = '';
+            if (maxStat >= 30) {
+                evolutionKey = `${statType}-master`;  // 30+ : 눈부신
+            } else if (maxStat >= 20) {
+                evolutionKey = `${statType}-advanced`;  // 20-29 : 찬란한
+            } else {
+                evolutionKey = `${statType}-basic`;  // 10-19 : 반짝이는
+            }
+
+            const evolution = EVOLUTION_TYPES[evolutionKey];
+            
+            // 진화 타입이 없으면 기본값 사용
+            if (!evolution) {
+                console.error(`Evolution type not found: ${evolutionKey}`);
+                evolutionKey = 'normal';
+                const fallbackEvolution = EVOLUTION_TYPES['normal'];
+                
+                collection.push({
+                    type: 'normal',
+                    name: fallbackEvolution.name,
+                    icon: fallbackEvolution.icon,
+                    parameters: { ...spirit.parameters },
+                    originalName: spirit.name,
+                    wingType: null,
+                    completedAt: Date.now()
+                });
+                
+                showNotification(`🎉 ${spirit.name}이(가) ${fallbackEvolution.name}(으)로 성장했습니다!`);
+                spirits = spirits.filter(s => s.id !== spirit.id);
+                saveGame();
+                renderSpirits();
+                return;
+            }
+            
+            // 날개 타입 결정 (조명 누적 시간 기반)
+            if (!spirit.lightTime) spirit.lightTime = 0;
+            if (!spirit.darkTime) spirit.darkTime = 0;
+            
+            let wingType = null;
+            if (spirit.lightTime > spirit.darkTime) {
+                wingType = 'butterfly';
+            } else if (spirit.darkTime > spirit.lightTime) {
+                wingType = 'moth';
+            } else {
+                wingType = 'butterfly'; // 동점이면 나비
+            }
+            
+            // 도감에 추가
+            collection.push({
+                type: evolutionKey,
+                name: evolution.name,
+                icon: evolution.icon,
+                parameters: { ...spirit.parameters },
+                originalName: spirit.name,
+                wingType: wingType,
+                lightTime: spirit.lightTime,
+                darkTime: spirit.darkTime,
+                completedAt: Date.now()
+            });
+            
+            showNotification(`🎉 ${spirit.name}이(가) ${evolution.name}(으)로 성장했습니다!`);
+
+            spirits = spirits.filter(s => s.id !== spirit.id);
+            saveGame();
+            renderSpirits();
+        }
+
+        function applyTerrariumGrowth() {
+            spirits.forEach(spirit => {
+                if (spirit.isDead) return;
+
+                // 조명 누적 시간 추가 (300초 = 5분)
+                if (!spirit.lightTime) spirit.lightTime = 0;
+                if (!spirit.darkTime) spirit.darkTime = 0;
+                
+                if (lightMode) {
+                    spirit.lightTime += 300;
+                } else {
+                    spirit.darkTime += 300;
+                }
+
+                // 정령의 숨겨진 속성에 테라리움 환경값 추가
+                if (!spirit.hiddenAttributes) {
+                    spirit.hiddenAttributes = {
+                        fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                    };
+                }
+
+                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 100까지만)
+                Object.keys(terrarium).forEach(attr => {
+                    if (terrarium[attr] > 0) {
+                        spirit.hiddenAttributes[attr] = Math.min(
+                            spirit.hiddenAttributes[attr] + terrarium[attr],
+                            100  // 속성 최대치
+                        );
+                    }
+                });
+
+                // 성장도 +1
+                const previousGrowth = spirit.growth;
+                spirit.growth += 1;
+
+                // 성충 체크
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(previousGrowth) !== 'adult') {
+                    completeSpirit(spirit);
+                }
+            });
+
+            saveGame();
+            updateAllSpiritCards();
+        }
+
+        function checkSpiritStatus() {
+            const now = Date.now();
+            spirits.forEach(spirit => {
+                if (!spirit.lastFed) {
+                    spirit.lastFed = spirit.birthTime;
+                }
+
+                const timeSinceLastFed = now - spirit.lastFed;
+                const minutes = timeSinceLastFed / 1000 / 60;
+                const hours = minutes / 60;
+
+                // 10분 경과 - 배고픔
+                if (minutes >= 10 && minutes < 24 * 60) {
+                    if (getStage(spirit.growth) === 'egg') {
+                        spirit.status = '알이 흔들리고 있습니다... 배고픈 것 같아요';
+                    } else {
+                        spirit.status = '배고파하는 것 같습니다...';
+                    }
+                }
+
+                // 24시간 경과 - 사망
+                if (hours >= 24) {
+                    if (getStage(spirit.growth) === 'egg') {
+                        spirit.status = '❌ 알이 깨져서 미동이 없습니다...';
+                        spirit.isDead = true;
+                    } else {
+                        spirit.status = '❌ 테라리움 밖으로 나가 사라졌습니다...';
+                        spirit.isDead = true;
+                    }
+                }
+            });
+        }
+
+        function updateAllSpiritCards() {
+            spirits.forEach(spirit => {
+                updateSpiritCard(spirit);
+            });
+        }
+
+        function updateSpiritCard(spirit) {
+            const cards = document.querySelectorAll('.spirit-card');
+            const index = spirits.findIndex(s => s.id === spirit.id);
+            if (index === -1 || !cards[index]) return;
+
+            const card = cards[index];
+            const stage = getStage(spirit.growth);
+            const nextReq = getNextStageRequirement(spirit.growth);
+            const progress = (spirit.growth / nextReq) * 100;
+            
+            const canFeed = canDoAction(spirit, 'feed') && !spirit.isDead;
+            const canMusic = canDoAction(spirit, 'music') && !spirit.isDead;
+            const canPat = canDoAction(spirit, 'pat') && !spirit.isDead;
+
+            let icon = STAGE_ICONS[stage];
+            if (stage === 'adult' && spirit.evolutionType) {
+                const evolutionData = EVOLUTION_TYPES[spirit.evolutionType];
+                if (evolutionData) {
+                    icon = evolutionData.icon;
+                }
+            }
+            if (spirit.isDead) {
+                icon = stage === 'egg' ? '💔' : '👻';
+            }
+
+            // 아이콘 업데이트
+            const iconElement = card.querySelector('.spirit-icon');
+            if (iconElement && iconElement.textContent !== icon) {
+                iconElement.textContent = icon;
+            }
+
+            // 스테이지 업데이트
+            const stageElement = card.querySelector('.spirit-stage');
+            if (stageElement) {
+                stageElement.textContent = STAGE_NAMES[stage];
+            }
+
+            // 진행도 업데이트
+            const progressFill = card.querySelector('.progress-fill');
+            if (progressFill) {
+                progressFill.style.width = `${Math.min(progress, 100)}%`;
+            }
+
+            const progressText = card.querySelector('.progress-text');
+            if (progressText) {
+                progressText.textContent = `성장 ${spirit.growth} / ${nextReq}`;
+            }
+
+            // 파라미터 업데이트
+            const params = card.querySelectorAll('.param');
+            if (params.length >= 4) {
+                params[0].innerHTML = `<span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}`;
+                params[1].innerHTML = `<span class="param-icon">💪</span>체력 ${spirit.parameters.strength}`;
+                params[2].innerHTML = `<span class="param-icon">💖</span>매력 ${spirit.parameters.charm}`;
+                params[3].innerHTML = `<span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}`;
+            }
+
+            // 상태 메시지 업데이트
+            const statusElement = card.querySelector('.spirit-status');
+            if (statusElement) {
+                statusElement.textContent = spirit.status;
+            }
+
+            // 버튼 상태 업데이트
+            const actionButtons = card.querySelector('.action-buttons');
+            if (actionButtons) {
+                const buttons = actionButtons.querySelectorAll('button');
+                if (buttons.length >= 4) {
+                    buttons[0].disabled = !canFeed;
+                    buttons[1].disabled = !canMusic;
+                    buttons[2].disabled = !canPat;
+                    // buttons[3]는 보내기 버튼이므로 항상 활성화
+                }
+            }
+        }
+
+        function toggleLogs(spiritId) {
+            const logsDiv = document.getElementById(`logs${spiritId}`);
+            const toggleIcon = document.getElementById(`logToggle${spiritId}`);
+            
+            if (logsDiv.style.display === 'none') {
+                logsDiv.style.display = 'block';
+                toggleIcon.textContent = '▲';
+            } else {
+                logsDiv.style.display = 'none';
+                toggleIcon.textContent = '▼';
+            }
+        }
+
+        function renderSpirits() {
+            const grid = document.getElementById('spiritsGrid');
+            
+            if (spirits.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🥚</div>
+                        <div>아직 정령이 없습니다<br>새로운 알을 받아보세요</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = spirits.map(spirit => {
+                const stage = getStage(spirit.growth);
+                const nextReq = getNextStageRequirement(spirit.growth);
+                const progress = (spirit.growth / nextReq) * 100;
+                
+                const canFeed = canDoAction(spirit, 'feed') && !spirit.isDead;
+                const canMusic = canDoAction(spirit, 'music') && !spirit.isDead;
+                const canPat = canDoAction(spirit, 'pat') && !spirit.isDead;
+
+                let icon = STAGE_ICONS[stage];
+                if (stage === 'adult' && spirit.evolutionType) {
+                    const evolutionData = EVOLUTION_TYPES[spirit.evolutionType];
+                    if (evolutionData) {
+                        icon = evolutionData.icon;
+                    }
+                }
+                if (spirit.isDead) {
+                    icon = stage === 'egg' ? '💔' : '👻';
+                }
+
+                // 하위 호환성을 위한 파라미터 체크
+                if (!spirit.parameters.affection && spirit.parameters.mystery !== undefined) {
+                    spirit.parameters.affection = spirit.parameters.mystery;
+                    delete spirit.parameters.mystery;
+                }
+                if (!spirit.hiddenAttributes) {
+                    spirit.hiddenAttributes = {
+                        fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                    };
+                }
+                if (!spirit.logs) {
+                    spirit.logs = [];
+                }
+                if (!spirit.lightTime) {
+                    spirit.lightTime = 0;
+                }
+                if (!spirit.darkTime) {
+                    spirit.darkTime = 0;
+                }
+
+                return `
+                    <div class="spirit-card">
+                        <div class="spirit-header">
+                            <div class="spirit-icon">${icon}</div>
+                            <div class="spirit-info">
+                                <div class="spirit-name" onclick="changeName(${spirit.id})">${spirit.name}</div>
+                                <div class="spirit-stage">${STAGE_NAMES[stage]}</div>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
+                        </div>
+                        <div class="progress-text">성장 ${spirit.growth} / ${nextReq}</div>
+                        <div class="parameters">
+                            <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}</div>
+                            <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength}</div>
+                            <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
+                            <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
+                        </div>
+                        <div class="spirit-status">${spirit.status}</div>
+                        ${spirit.logs && spirit.logs.length > 0 ? `
+                            <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleLogs(${spirit.id})">
+                                    <span style="font-size: 0.9rem; font-weight: 600;">📝 일지 (${spirit.logs.length}개)</span>
+                                    <span id="logToggle${spirit.id}" style="font-size: 0.8rem;">▼</span>
+                                </div>
+                                <div id="logs${spirit.id}" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto;">
+                                    ${spirit.logs.map(log => `
+                                        <div style="font-size: 0.85rem; color: #888; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                                            <span style="color: #666;">${log.time}</span> - ${log.message}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        <div class="action-buttons">
+                            <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
+                                먹이주기
+                            </button>
+                            <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
+                                음악 듣기
+                            </button>
+                            <button onclick="patSpirit(${spirit.id})" ${!canPat ? 'disabled' : ''}>
+                                쓰다듬기
+                            </button>
+                            <button onclick="confirmDeleteSpirit(${spirit.id})">
+                                보내기
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateCoinDisplay() {
+            const displays = document.querySelectorAll('#coinDisplay, #shopCoinDisplay');
+            displays.forEach(el => {
+                if (el) el.textContent = coins;
+            });
+        }
+
+        function renderShop() {
+            updateCoinDisplay();
+            renderSellList();
+            renderBuyList();
+        }
+
+        function renderSellList() {
+            const container = document.getElementById('sellList');
+            if (!container) return;
+
+            const items = [];
+
+            // 먹이 판매
+            if (inventory.food && inventory.food.length > 0) {
+                const foodCounts = {};
+                inventory.food.forEach(f => {
+                    foodCounts[f] = (foodCounts[f] || 0) + 1;
+                });
+
+                Object.entries(foodCounts).forEach(([type, count]) => {
+                    const isRare = type === 'light' || type === 'dark';
+                    const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">${isRare ? '✨' : '🍎'}</span>
+                                <div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
+                                </div>
+                            </div>
+                            <button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                        </div>
+                    `);
+                });
+            }
+
+            // 장식물 판매
+            if (inventory.decorations && inventory.decorations.length > 0) {
+                const decorCounts = {};
+                inventory.decorations.forEach(d => {
+                    decorCounts[d] = (decorCounts[d] || 0) + 1;
+                });
+
+                Object.entries(decorCounts).forEach(([type, count]) => {
+                    const decoData = DECORATION_TYPES[type];
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">${decoData.icon}</span>
+                                <div>
+                                    <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.decoration}💰</div>
+                                </div>
+                            </div>
+                            <button onclick="sellItem('decoration', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                        </div>
+                    `);
+                });
+            }
+
+            // 음악 판매
+            if (inventory.music && inventory.music.length > 0) {
+                const musicCounts = {};
+                inventory.music.forEach(m => {
+                    musicCounts[m] = (musicCounts[m] || 0) + 1;
+                });
+
+                Object.entries(musicCounts).forEach(([type, count]) => {
+                    const musicData = MUSIC_TYPES[type];
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">🎵</span>
+                                <div>
+                                    <div style="font-weight: 700;">${musicData.name} ×${count}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
+                                </div>
+                            </div>
+                            <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                        </div>
+                    `);
+                });
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">판매할 물품이 없습니다</p>';
+            } else {
+                container.innerHTML = items.join('');
+            }
+        }
+
+        function renderBuyList() {
+            const container = document.getElementById('buyList');
+            if (!container) return;
+
+            const items = [];
+
+            // 일반 먹이 구매
+            ['fire', 'water', 'wind', 'earth'].forEach(type => {
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🍎</span>
+                            <div>
+                                <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px;">구매</button>
+                    </div>
+                `);
+            });
+
+            // 희귀 먹이 구매
+            ['light', 'dark'].forEach(type => {
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">✨</span>
+                            <div>
+                                <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px;">구매</button>
+                    </div>
+                `);
+            });
+
+            // 음악 구매
+            Object.keys(MUSIC_TYPES).forEach(type => {
+                const musicData = MUSIC_TYPES[type];
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🎵</span>
+                            <div>
+                                <div style="font-weight: 700;">${musicData.name}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px;">구매</button>
+                    </div>
+                `);
+            });
+
+            // 장식물 구매
+            Object.keys(DECORATION_TYPES).forEach(type => {
+                const decoData = DECORATION_TYPES[type];
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">${decoData.icon}</span>
+                            <div>
+                                <div style="font-weight: 700;">${decoData.name}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.decoration}💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('decoration', '${type}', ${SHOP_PRICES.buy.decoration})" style="padding: 8px 16px;">구매</button>
+                    </div>
+                `);
+            });
+
+            container.innerHTML = items.join('');
+        }
+
+        function sellItem(category, type) {
+            if (category === 'food') {
+                const index = inventory.food.indexOf(type);
+                if (index === -1) return;
+                inventory.food.splice(index, 1);
+                const isRare = type === 'light' || type === 'dark';
+                const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                coins += price;
+                showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 판매했습니다`);
+            } else if (category === 'decoration') {
+                const index = inventory.decorations.indexOf(type);
+                if (index === -1) return;
+                inventory.decorations.splice(index, 1);
+                coins += SHOP_PRICES.sell.decoration;
+                showNotification(`${DECORATION_TYPES[type].name}을(를) ${SHOP_PRICES.sell.decoration}💰에 판매했습니다`);
+            } else if (category === 'music') {
+                const index = inventory.music.indexOf(type);
+                if (index === -1) return;
+                inventory.music.splice(index, 1);
+                coins += SHOP_PRICES.sell.music;
+                showNotification(`${MUSIC_TYPES[type].name}을(를) ${SHOP_PRICES.sell.music}💰에 판매했습니다`);
+            }
+
+            saveGame();
+            renderShop();
+            renderInventory();
+        }
+
+        function buyItem(category, type, price) {
+            if (coins < price) {
+                showNotification('코인이 부족합니다!');
+                return;
+            }
+
+            coins -= price;
+
+            if (category === 'food') {
+                if (!inventory.food) inventory.food = [];
+                inventory.food.push(type);
+                showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 구매했습니다`);
+            } else if (category === 'music') {
+                if (!inventory.music) inventory.music = [];
+                inventory.music.push(type);
+                showNotification(`${MUSIC_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
+            } else if (category === 'decoration') {
+                if (!inventory.decorations) inventory.decorations = [];
+                inventory.decorations.push(type);
+                showNotification(`${DECORATION_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
+            }
+
+            saveGame();
+            renderShop();
+            renderInventory();
+        }
+
+        function renderCollection() {
+            const grid = document.getElementById('collectionGrid');
+            
+            if (collection.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📖</div>
+                        <div>아직 등록된 정령이 없습니다<br>정령을 성충까지 키워보세요</div>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = collection.map(item => {
+                const evolutionData = EVOLUTION_TYPES[item.type];
+                const desc = evolutionData ? evolutionData.desc : '';
+                const originalName = item.originalName || item.name || '이름 없음';
+                
+                // 날개 이모지 결정
+                let wingEmoji = '';
+                if (item.wingType === 'butterfly') {
+                    wingEmoji = '🦋';
+                } else if (item.wingType === 'moth') {
+                    wingEmoji = '🦋'; // 나방도 나비 이모지 사용 (시각적으로 구분)
+                } else if (item.wingType === 'both') {
+                    wingEmoji = '🦋🦋';
+                }
+                
+                return `
+                    <div class="collection-card">
+                        <div class="collection-icon">${item.icon}${wingEmoji}</div>
+                        <div class="collection-name">${evolutionData ? evolutionData.name : item.name}</div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">본명: ${originalName}</div>
+                        ${item.wingType ? `<div style="font-size: 0.85rem; color: #888; margin-top: 4px;">${item.wingType === 'butterfly' ? '나비의 날개' : item.wingType === 'moth' ? '나방의 날개' : '나비와 나방의 날개'}</div>` : ''}
+                        ${desc ? `<div style="font-size: 0.85rem; color: #888; margin-top: 8px; line-height: 1.4;">${desc}</div>` : ''}
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;">
+                            <div class="param">🧠 ${item.parameters.intelligence}</div>
+                            <div class="param">💪 ${item.parameters.strength}</div>
+                            <div class="param">💖 ${item.parameters.charm}</div>
+                            <div class="param">❤️ ${item.parameters.affection || 0}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab; // 현재 탭 저장
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            if (tab === 'garden') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('gardenSection').classList.add('active');
+            } else if (tab === 'terrarium') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('terrariumSection').classList.add('active');
+                renderTerrariumManagement();
+            } else if (tab === 'shop') {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.getElementById('shopSection').classList.add('active');
+                renderShop();
+            } else {
+                document.querySelector('.tab:nth-child(4)').classList.add('active');
+                document.getElementById('collectionSection').classList.add('active');
+                renderCollection();
+            }
+        }
+
+        function recalculateTerrariumEnvironment() {
+            // 환경 초기화
+            terrarium = {
+                fire: 0,
+                water: 0,
+                wind: 0,
+                earth: 0,
+                light: 0,
+                dark: 0
+            };
+
+            // 설치된 모든 장식물을 순회하며 환경 계산
+            installedDecorations.forEach(decorationType => {
+                terrarium[decorationType] = Math.min(10, terrarium[decorationType] + 1);
+
+                // 대립 속성 감소
+                const opposites = {
+                    fire: 'water',
+                    water: 'fire',
+                    wind: 'earth',
+                    earth: 'wind',
+                    light: 'dark',
+                    dark: 'light'
+                };
+                const opposite = opposites[decorationType];
+                terrarium[opposite] = Math.max(0, terrarium[opposite] - 1);
+            });
+
+            // 조명 효과 적용
+            if (lightMode) {
+                terrarium.light = Math.min(10, terrarium.light + 3);
+                terrarium.dark = Math.max(0, terrarium.dark - 2);
+            } else {
+                terrarium.dark = Math.min(10, terrarium.dark + 3);
+                terrarium.light = Math.max(0, terrarium.light - 2);
+            }
+        }
+
+        function toggleLight() {
+            lightMode = !lightMode;
+            applyLightMode();
+            recalculateTerrariumEnvironment();
+            saveGame();
+            updateAllSpiritCards();
+            if (document.getElementById('terrariumSection').classList.contains('active')) {
+                renderTerrariumManagement();
+            }
+            showNotification(lightMode ? '☀️ 조명을 켰습니다' : '🌙 조명을 껐습니다');
+        }
+
+        function applyLightMode() {
+            const icon = document.getElementById('lightIcon');
+            if (lightMode) {
+                document.body.classList.remove('dark-mode');
+                if (icon) icon.textContent = '☀️';
+            } else {
+                document.body.classList.add('dark-mode');
+                if (icon) icon.textContent = '🌙';
+            }
+        }
+
+        function renderTerrariumManagement() {
+            // 환경 바 업데이트
+            Object.entries(terrarium).forEach(([attr, value]) => {
+                const bar = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Bar`);
+                const valueSpan = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Value`);
+                if (bar) bar.style.width = `${value * 10}%`;
+                if (valueSpan) valueSpan.textContent = value;
+            });
+
+            // 설치된 장식물 개수 업데이트
+            const installedCountEl = document.getElementById('installedCount');
+            if (installedCountEl) {
+                installedCountEl.textContent = `${installedDecorations.length} / 20`;
+            }
+
+            // 설치된 장식물 목록
+            const installedContainer = document.getElementById('installedDecorList');
+            if (installedDecorations.length === 0) {
+                installedContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">설치된 장식물이 없습니다</p>';
+            } else {
+                const installedCounts = {};
+                installedDecorations.forEach(d => {
+                    installedCounts[d] = (installedCounts[d] || 0) + 1;
+                });
+
+                installedContainer.innerHTML = `
+                    <div style="display: grid; gap: 12px;">
+                        ${Object.entries(installedCounts).map(([type, count]) => {
+                            const decoData = DECORATION_TYPES[type];
+                            return `
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border: 1px solid var(--border);">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="font-size: 1.5rem;">${decoData.icon}</span>
+                                        <div>
+                                            <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                            <div style="font-size: 0.85rem; color: #888;">${decoData.effect}</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="removeDecorationFromTerrarium('${type}')" style="padding: 8px 16px; background: #dc3545; color: white;">
+                                        회수
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // 인벤토리 장식물 목록
+            const listContainer = document.getElementById('terrariumDecorList');
+            if (!inventory.decorations) inventory.decorations = [];
+            
+            if (inventory.decorations.length === 0) {
+                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">보유한 장식물이 없습니다</p>';
+                return;
+            }
+
+            const decorCounts = {};
+            inventory.decorations.forEach(d => {
+                decorCounts[d] = (decorCounts[d] || 0) + 1;
+            });
+
+            const canInstall = installedDecorations.length < 20;
+
+            listContainer.innerHTML = `
+                <div style="display: grid; gap: 12px;">
+                    ${Object.entries(decorCounts).map(([type, count]) => {
+                        const decoData = DECORATION_TYPES[type];
+                        return `
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border: 1px solid var(--border);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 1.5rem;">${decoData.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">${decoData.effect}</div>
+                                    </div>
+                                </div>
+                                <button onclick="placeDecorationInTerrarium('${type}')" style="padding: 8px 16px;" ${!canInstall ? 'disabled' : ''}>
+                                    ${canInstall ? '설치' : '공간 부족'}
+                                </button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function placeDecorationInTerrarium(decorationType) {
+            if (!inventory.decorations) inventory.decorations = [];
+            
+            // 최대 20개 체크
+            if (installedDecorations.length >= 20) {
+                showNotification('테라리움이 가득 찼습니다 (최대 20개)');
+                return;
+            }
+
+            const index = inventory.decorations.indexOf(decorationType);
+            if (index === -1) return;
+
+            const decoData = DECORATION_TYPES[decorationType];
+
+            // 인벤토리에서 제거하고 설치 목록에 추가
+            inventory.decorations.splice(index, 1);
+            installedDecorations.push(decorationType);
+
+            // 환경 재계산
+            recalculateTerrariumEnvironment();
+
+            saveGame();
+            renderTerrariumManagement();
+            renderInventory();
+            updateAllSpiritCards();
+            showNotification(`${decoData.icon} ${decoData.name} 설치 완료`);
+        }
+
+        function removeDecorationFromTerrarium(decorationType) {
+            const index = installedDecorations.indexOf(decorationType);
+            if (index === -1) return;
+
+            const decoData = DECORATION_TYPES[decorationType];
+
+            // 설치 목록에서 제거하고 인벤토리에 추가
+            installedDecorations.splice(index, 1);
+            if (!inventory.decorations) inventory.decorations = [];
+            inventory.decorations.push(decorationType);
+
+            // 환경 재계산
+            recalculateTerrariumEnvironment();
+
+            saveGame();
+            renderTerrariumManagement();
+            renderInventory();
+            updateAllSpiritCards();
+            showNotification(`${decoData.icon} ${decoData.name} 회수 완료`);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showNotification(message) {
+            // 기존 알림들의 개수를 세서 위치 조정
+            const existingNotifs = document.querySelectorAll('.notification');
+            const offset = existingNotifs.length * 70; // 각 알림마다 70px 간격
+            
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            notif.style.top = `${80 + offset}px`;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
+        function updateTimeDisplay() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('ko-KR', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('timeDisplay').textContent = timeStr;
+        }
+
+        // 게임 루프
+        setInterval(() => {
+            saveGame();
+        }, 5000);
+
+        // 1초마다 버튼 상태 및 정령 상태 체크
+        setInterval(() => {
+            checkSpiritStatus();
+            // garden 탭이 활성화된 경우에만 카드 업데이트
+            if (currentTab === 'garden') {
+                spirits.forEach(spirit => {
+                    updateSpiritCard(spirit);
+                });
+            }
+            updateGatherButton();
+        }, 1000);
+
+        // 5분마다 테라리움 환경 효과 적용
+        setInterval(() => {
+            applyTerrariumGrowth();
+        }, 300000);  // 300000ms = 5분
+
+        setInterval(updateTimeDisplay, 1000);
+
+        // 초기화
+        loadGame();
+        renderSpirits();
+        renderInventory();
+        updateTimeDisplay();
+        applyLightMode();
+        updateCoinDisplay();
+
+        // 모달 배경 클릭 시 닫기
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
