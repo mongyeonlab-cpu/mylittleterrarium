@@ -1409,7 +1409,7 @@
             if (!gatherBtn) return;
 
             const now = Date.now();
-            const gatherCooldown = 30000; // 30초
+            const gatherCooldown = 15000; // 15초
 
             if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
                 gatherBtn.disabled = true;
