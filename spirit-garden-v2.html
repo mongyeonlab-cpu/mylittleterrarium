@@ -958,19 +958,50 @@
             normal: { name: '백의 정령', icon: '🤍', desc: '순수한 빛을 간직한 정령. 모든 정령의 시작이자 근원.' },
             
             // 지적인 계열 (intelligence 최고)
-            'intelligent-basic': { name: '반짝이는 정령', icon: '✨', desc: '지적이고 총명한 정령. 호기심으로 가득하다.' },
-            'intelligent-advanced': { name: '찬란한 정령', icon: '💎', desc: '더욱 영리해진 정령. 예리한 통찰력을 지녔다.' },
-            'intelligent-master': { name: '눈부신 정령', icon: '🔮', desc: '지혜의 극치에 이른 정령. 모든 것을 꿰뚫어본다.' },
+            'intelligent-basic': { prefix: '지적인', icon: '✨' },
+            'intelligent-advanced': { prefix: '지적인', icon: '💎' },
+            'intelligent-master': { prefix: '지적인', icon: '🔮' },
             
             // 강한 계열 (strength 최고)
-            'strong-basic': { name: '반짝이는 정령', icon: '✨', desc: '강하고 용맹한 정령. 힘이 넘친다.' },
-            'strong-advanced': { name: '찬란한 정령', icon: '💪', desc: '더욱 강해진 정령. 거침없는 힘을 자랑한다.' },
-            'strong-master': { name: '눈부신 정령', icon: '⚡', desc: '힘의 극치에 이른 정령. 무엇이든 이겨낸다.' },
+            'strong-basic': { prefix: '강한', icon: '✨' },
+            'strong-advanced': { prefix: '강한', icon: '💪' },
+            'strong-master': { prefix: '강한', icon: '⚡' },
             
             // 아름다운 계열 (charm 최고)
-            'beautiful-basic': { name: '반짝이는 정령', icon: '✨', desc: '아름답고 우아한 정령. 매력적이다.' },
-            'beautiful-advanced': { name: '찬란한 정령', icon: '🌸', desc: '더욱 아름다워진 정령. 모두가 반한다.' },
-            'beautiful-master': { name: '눈부신 정령', icon: '🌺', desc: '아름다움의 극치에 이른 정령. 황홀한 광채를 뿜는다.' }
+            'beautiful-basic': { prefix: '아름다운', icon: '✨' },
+            'beautiful-advanced': { prefix: '아름다운', icon: '🌸' },
+            'beautiful-master': { prefix: '아름다운', icon: '🌺' }
+        };
+        
+        // 속성별 정령 이름
+        const ATTRIBUTE_NAMES = {
+            fire: { name: '화염의 정령', icon: '🔥', desc: '타오르는 열정을 간직한 화염의 정령.' },
+            water: { name: '빙하의 정령', icon: '💧', desc: '차가운 지혜를 품은 물의 정령.' },
+            wind: { name: '질풍의 정령', icon: '🍃', desc: '자유로운 바람을 담은 질풍의 정령.' },
+            earth: { name: '대지의 정령', icon: '🌱', desc: '견고한 대지의 힘을 지닌 정령.' },
+            light: { name: '광명의 정령', icon: '✨', desc: '찬란한 빛으로 가득한 광명의 정령.' },
+            dark: { name: '암흑의 정령', icon: '🌙', desc: '신비로운 어둠을 담은 암흑의 정령.' },
+            
+            // 2속성 조합
+            'fire-water': { name: '증기의 정령', icon: '💨', desc: '불과 물이 만나 탄생한 증기의 정령.' },
+            'fire-wind': { name: '폭풍의 정령', icon: '🌪️', desc: '불과 바람이 만든 뜨거운 폭풍의 정령.' },
+            'fire-earth': { name: '용암의 정령', icon: '🌋', desc: '불과 대지가 빚어낸 용암의 정령.' },
+            'fire-light': { name: '태양의 정령', icon: '☀️', desc: '불과 빛이 합쳐진 태양의 정령.' },
+            'fire-dark': { name: '연기의 정령', icon: '💨', desc: '불과 어둠이 만든 연기의 정령.' },
+            'water-wind': { name: '구름의 정령', icon: '☁️', desc: '물과 바람이 만든 구름의 정령.' },
+            'water-earth': { name: '진흙의 정령', icon: '🪨', desc: '물과 대지가 섞인 진흙의 정령.' },
+            'water-light': { name: '무지개의 정령', icon: '🌈', desc: '물과 빛이 만든 무지개의 정령.' },
+            'water-dark': { name: '안개의 정령', icon: '🌫️', desc: '물과 어둠이 만든 안개의 정령.' },
+            'wind-earth': { name: '모래의 정령', icon: '🏜️', desc: '바람과 대지가 만든 모래의 정령.' },
+            'wind-light': { name: '오로라의 정령', icon: '🌌', desc: '바람과 빛이 만든 오로라의 정령.' },
+            'wind-dark': { name: '회오리의 정령', icon: '🌀', desc: '바람과 어둠이 만든 회오리의 정령.' },
+            'earth-light': { name: '수정의 정령', icon: '💎', desc: '대지와 빛이 만든 수정의 정령.' },
+            'earth-dark': { name: '동굴의 정령', icon: '⛰️', desc: '대지와 어둠이 만든 동굴의 정령.' },
+            'light-dark': { name: '환혹의 정령', icon: '✨🌙', desc: '빛과 어둠이 공존하는 환혹의 정령.' },
+            
+            // 3속성 이상 (복합)
+            balanced: { name: '조화의 정령', icon: '⚖️', desc: '모든 속성이 조화롭게 균형 잡힌 정령.' },
+            multi: { name: '혼돈의 정령', icon: '🌪️', desc: '여러 속성이 뒤섞인 혼돈의 정령.' }
         };
 
         function loadGame() {
@@ -1565,6 +1596,7 @@
                     type: 'normal',
                     name: evolution.name,
                     icon: evolution.icon,
+                    desc: evolution.desc,
                     wingType: null
                 };
                 saveGame();
@@ -1605,12 +1637,67 @@
                     type: 'normal',
                     name: fallbackEvolution.name,
                     icon: fallbackEvolution.icon,
+                    desc: fallbackEvolution.desc,
                     wingType: null
                 };
                 saveGame();
                 renderSpirits();
                 showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
                 return;
+            }
+            
+            // 속성 분석 (숨겨진 속성 기반)
+            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            const sortedAttrs = Object.entries(attrs)
+                .filter(([_, value]) => value > 10) // 10 이상인 속성만
+                .sort((a, b) => b[1] - a[1]); // 내림차순 정렬
+            
+            let attributeKey = '';
+            let attributeData = null;
+            
+            if (sortedAttrs.length === 0) {
+                // 속성 없음 - 백의 정령
+                attributeKey = 'normal';
+                attributeData = { name: '백의 정령', icon: '🤍', desc: '속성이 깃들지 않은 순수한 정령.' };
+            } else if (sortedAttrs.length === 1) {
+                // 단일 속성
+                attributeKey = sortedAttrs[0][0];
+                attributeData = ATTRIBUTE_NAMES[attributeKey];
+            } else if (sortedAttrs.length === 2) {
+                // 2속성 조합
+                const attr1 = sortedAttrs[0][0];
+                const attr2 = sortedAttrs[1][0];
+                const comboKey = [attr1, attr2].sort().join('-');
+                attributeData = ATTRIBUTE_NAMES[comboKey];
+                attributeKey = comboKey;
+            } else if (sortedAttrs.length >= 3) {
+                // 3속성 이상
+                const topValues = sortedAttrs.slice(0, 3).map(a => a[1]);
+                const isBalanced = Math.max(...topValues) - Math.min(...topValues) <= 10;
+                
+                if (isBalanced) {
+                    attributeKey = 'balanced';
+                    attributeData = ATTRIBUTE_NAMES['balanced'];
+                } else {
+                    attributeKey = 'multi';
+                    attributeData = ATTRIBUTE_NAMES['multi'];
+                }
+            }
+            
+            // 최종 이름과 아이콘 조합
+            let finalName = '';
+            let finalIcon = '';
+            let finalDesc = '';
+            
+            if (attributeKey === 'normal') {
+                finalName = attributeData.name;
+                finalIcon = attributeData.icon;
+                finalDesc = attributeData.desc;
+            } else {
+                // "스탯 계열 + 속성 이름" 형태
+                finalName = `${evolution.prefix} ${attributeData.name}`;
+                finalIcon = `${evolution.icon}${attributeData.icon}`;
+                finalDesc = attributeData.desc;
             }
             
             // 날개 타입 결정 (조명 누적 시간 기반)
@@ -1630,8 +1717,10 @@
             spirit.isCompleted = true;
             spirit.evolutionData = {
                 type: evolutionKey,
-                name: evolution.name,
-                icon: evolution.icon,
+                attributeType: attributeKey,
+                name: finalName,
+                icon: finalIcon,
+                desc: finalDesc,
                 wingType: wingType
             };
             
@@ -1664,8 +1753,10 @@
                 // 도감에 추가
                 collection.push({
                     type: evolutionData.type,
+                    attributeType: evolutionData.attributeType,
                     name: evolutionData.name,
                     icon: evolutionData.icon,
+                    desc: evolutionData.desc,
                     parameters: { ...spirit.parameters },
                     originalName: spirit.name,
                     wingType: evolutionData.wingType,
@@ -2247,8 +2338,8 @@
             }
 
             grid.innerHTML = collection.map(item => {
-                const evolutionData = EVOLUTION_TYPES[item.type];
-                const desc = evolutionData ? evolutionData.desc : '';
+                // desc는 도감 아이템에 저장되어 있음
+                const desc = item.desc || '';
                 const originalName = item.originalName || item.name || '이름 없음';
                 
                 // 날개 이모지 결정
@@ -2264,7 +2355,7 @@
                 return `
                     <div class="collection-card">
                         <div class="collection-icon">${item.icon}${wingEmoji}</div>
-                        <div class="collection-name">${evolutionData ? evolutionData.name : item.name}</div>
+                        <div class="collection-name">${item.name}</div>
                         <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">본명: ${originalName}</div>
                         ${item.wingType ? `<div style="font-size: 0.85rem; color: #888; margin-top: 4px;">${item.wingType === 'butterfly' ? '나비의 날개' : item.wingType === 'moth' ? '나방의 날개' : '나비와 나방의 날개'}</div>` : ''}
                         ${desc ? `<div style="font-size: 0.85rem; color: #888; margin-top: 8px; line-height: 1.4;">${desc}</div>` : ''}
