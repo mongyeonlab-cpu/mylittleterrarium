@@ -1691,9 +1691,17 @@
                 }
             }
 
-            // 속성 분석 (숨겨진 속성 기반 - 상대적 퍼센트)
-            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-            const sortedAttrs = Object.entries(attrs)
+            // 속성 분석 (먹이 50% + 테라리움 50% 혼합)
+            const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            
+            // 최종 속성 = (먹이 속성 × 0.5) + (테라리움 속성 × 0.5)
+            const finalAttrs = {};
+            for (let attr in foodAttrs) {
+                finalAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
+            }
+            
+            const sortedAttrs = Object.entries(finalAttrs)
                 .sort((a, b) => b[1] - a[1]); // 내림차순 정렬
             
             // 최고 속성값
