@@ -412,6 +412,60 @@
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
+        
+        .encyclopedia-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .encyclopedia-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .encyclopedia-card.unlocked {
+            border-color: #4CAF50;
+        }
+        
+        .encyclopedia-card.locked {
+            background: repeating-linear-gradient(
+                45deg,
+                var(--card),
+                var(--card) 10px,
+                var(--border) 10px,
+                var(--border) 11px
+            );
+            opacity: 0.6;
+        }
+        
+        .encyclopedia-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+        
+        .encyclopedia-name {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .encyclopedia-count {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 4px;
+        }
 
         .collection-card {
             background: var(--card);
@@ -662,7 +716,8 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
-        <button class="tab" onclick="switchTab('collection')">도감</button>
+        <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
+        <button class="tab" onclick="switchTab('album')">앨범</button>
     </div>
 
     <div id="gardenSection" class="section active">
@@ -712,7 +767,13 @@
         </div>
     </div>
 
-    <div id="collectionSection" class="section">
+    <div id="encyclopediaSection" class="section">
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">📖 정령 도감</h2>
+        <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
+    </div>
+
+    <div id="albumSection" class="section">
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
         <div class="collection-grid" id="collectionGrid"></div>
     </div>
 
@@ -843,6 +904,7 @@
     <script>
         let spirits = [];
         let collection = [];
+        let encyclopedia = {}; // 도감: { evolutionKey: count }
         let inventory = {
             music: [],
             decorations: [],
@@ -1010,6 +1072,7 @@
                 const data = JSON.parse(saved);
                 spirits = data.spirits || [];
                 collection = data.collection || [];
+                encyclopedia = data.encyclopedia || {};
                 
                 // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거
                 collection = collection.filter(item => {
@@ -1050,6 +1113,7 @@
             localStorage.setItem('spiritGardenV2', JSON.stringify({
                 spirits,
                 collection,
+                encyclopedia,
                 inventory,
                 terrarium,
                 installedDecorations,
@@ -1750,7 +1814,7 @@
             }
             
             if (confirm(endingMessage)) {
-                // 도감에 추가
+                // 앨범에 추가
                 collection.push({
                     type: evolutionData.type,
                     attributeType: evolutionData.attributeType,
@@ -1765,11 +1829,18 @@
                     completedAt: Date.now()
                 });
                 
+                // 도감에 등록 (진화 타입별 카운트)
+                const encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType || 'normal'}`;
+                if (!encyclopedia[encyclopediaKey]) {
+                    encyclopedia[encyclopediaKey] = 0;
+                }
+                encyclopedia[encyclopediaKey]++;
+                
                 // 정령 제거
                 spirits = spirits.filter(s => s.id !== spiritId);
                 saveGame();
                 renderSpirits();
-                showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 도감에 등록되었습니다`);
+                showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다`);
             }
         }
 
@@ -2324,6 +2395,61 @@
             renderInventory();
         }
 
+        function renderEncyclopedia() {
+            const grid = document.getElementById('encyclopediaGrid');
+            
+            // 모든 가능한 진화 조합 생성
+            const statTypes = ['intelligent', 'strong', 'beautiful'];
+            const attributeTypes = [
+                'fire', 'water', 'wind', 'earth', 'light', 'dark',
+                'fire-water', 'fire-wind', 'fire-earth', 'fire-light', 'fire-dark',
+                'water-wind', 'water-earth', 'water-light', 'water-dark',
+                'wind-earth', 'wind-light', 'wind-dark',
+                'earth-light', 'earth-dark',
+                'light-dark',
+                'balanced', 'multi', 'normal'
+            ];
+            
+            let html = '';
+            
+            // 스탯 계열별로 그룹화
+            statTypes.forEach(statType => {
+                const statPrefix = EVOLUTION_TYPES[`${statType}-basic`].prefix;
+                
+                html += `<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">
+                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 8px;">
+                        ${statPrefix} 계열
+                    </h3>
+                </div>`;
+                
+                attributeTypes.forEach(attrType => {
+                    // basic, advanced, master 모두 합산
+                    const count = (encyclopedia[`${statType}-basic-${attrType}`] || 0) +
+                                  (encyclopedia[`${statType}-advanced-${attrType}`] || 0) +
+                                  (encyclopedia[`${statType}-master-${attrType}`] || 0);
+                    const isUnlocked = count > 0;
+                    
+                    const attributeData = ATTRIBUTE_NAMES[attrType];
+                    if (!attributeData) return;
+                    
+                    const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
+                    const displayIcon = isUnlocked ? attributeData.icon : '❓';
+                    const displayName = isUnlocked ? `${statPrefix} ${attributeData.name}` : '???????';
+                    const countText = isUnlocked ? `달성 ${count}회` : '미달성';
+                    
+                    html += `
+                        <div class="${cardClass}">
+                            <div class="encyclopedia-icon">${displayIcon}</div>
+                            <div class="encyclopedia-name">${displayName}</div>
+                            <div class="encyclopedia-count">${countText}</div>
+                        </div>
+                    `;
+                });
+            });
+            
+            grid.innerHTML = html;
+        }
+
         function renderCollection() {
             const grid = document.getElementById('collectionGrid');
             
@@ -2387,9 +2513,13 @@
                 document.querySelector('.tab:nth-child(3)').classList.add('active');
                 document.getElementById('shopSection').classList.add('active');
                 renderShop();
-            } else {
+            } else if (tab === 'encyclopedia') {
                 document.querySelector('.tab:nth-child(4)').classList.add('active');
-                document.getElementById('collectionSection').classList.add('active');
+                document.getElementById('encyclopediaSection').classList.add('active');
+                renderEncyclopedia();
+            } else if (tab === 'album') {
+                document.querySelector('.tab:nth-child(5)').classList.add('active');
+                document.getElementById('albumSection').classList.add('active');
                 renderCollection();
             }
         }
