@@ -1663,66 +1663,34 @@
             const params = spirit.parameters;
             const maxStat = Math.max(params.intelligence, params.strength, params.charm);
             
-            // 노멀 진화 (모든 스탯이 10 미만)
-            if (maxStat < 10) {
-                const evolution = EVOLUTION_TYPES['normal'];
-                spirit.isCompleted = true;
-                spirit.evolutionData = {
-                    type: 'normal',
-                    attributeType: 'normal',
-                    name: evolution.name,
-                    icon: evolution.icon,
-                    desc: evolution.desc,
-                    wingType: null
-                };
-                saveGame();
-                renderSpirits();
-                showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
-                return;
-            }
-
-            // 최고 스탯 결정
+            // 노멀 진화 체크 (모든 스탯이 10 미만)
+            // 하지만 속성이 있으면 속성 진화 가능
+            const hasLowStats = maxStat < 10;
+            
+            // 스탯 계열 결정 (10 이상인 경우만)
             let statType = '';
-            if (params.intelligence >= params.strength && params.intelligence >= params.charm) {
-                statType = 'intelligent';
-            } else if (params.strength >= params.intelligence && params.strength >= params.charm) {
-                statType = 'strong';
-            } else {
-                statType = 'beautiful';
-            }
-
-            // 진화 단계 결정 (스탯 수치 기준)
             let evolutionKey = '';
-            if (maxStat >= 30) {
-                evolutionKey = `${statType}-high`;  // 30+ : 세상의~
-            } else if (maxStat >= 20) {
-                evolutionKey = `${statType}-mid`;  // 20-29 : 지적인/강한/아름다운
-            } else {
-                evolutionKey = `${statType}-low`;  // 10-19 : 똑똑한/튼튼한/귀여운
+            
+            if (!hasLowStats) {
+                // 최고 스탯 결정
+                if (params.intelligence >= params.strength && params.intelligence >= params.charm) {
+                    statType = 'intelligent';
+                } else if (params.strength >= params.intelligence && params.strength >= params.charm) {
+                    statType = 'strong';
+                } else {
+                    statType = 'beautiful';
+                }
+
+                // 진화 단계 결정 (스탯 수치 기준)
+                if (maxStat >= 30) {
+                    evolutionKey = `${statType}-high`;  // 30+ : 세상의~
+                } else if (maxStat >= 20) {
+                    evolutionKey = `${statType}-mid`;  // 20-29 : 지적인/강한/아름다운
+                } else {
+                    evolutionKey = `${statType}-low`;  // 10-19 : 똑똑한/튼튼한/귀여운
+                }
             }
 
-            const evolution = EVOLUTION_TYPES[evolutionKey];
-            
-            // 진화 타입이 없으면 기본값 사용
-            if (!evolution) {
-                console.error(`Evolution type not found: ${evolutionKey}`);
-                evolutionKey = 'normal';
-                const fallbackEvolution = EVOLUTION_TYPES['normal'];
-                spirit.isCompleted = true;
-                spirit.evolutionData = {
-                    type: 'normal',
-                    attributeType: 'normal',
-                    name: fallbackEvolution.name,
-                    icon: fallbackEvolution.icon,
-                    desc: fallbackEvolution.desc,
-                    wingType: null
-                };
-                saveGame();
-                renderSpirits();
-                showNotification('🎉 정령이 성장을 완료했습니다! 육성 탭에서 확인해주세요.');
-                return;
-            }
-            
             // 속성 분석 (숨겨진 속성 기반 - 상대적 퍼센트)
             const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const sortedAttrs = Object.entries(attrs)
@@ -1789,14 +1757,27 @@
             let finalDesc = '';
             
             if (attributeKey === 'normal') {
+                // 속성도 없음 - 백의 정령
+                finalName = attributeData.name;
+                finalIcon = attributeData.icon;
+                finalDesc = attributeData.desc;
+            } else if (hasLowStats) {
+                // 스탯 부족하지만 속성 있음 - 속성 이름만
                 finalName = attributeData.name;
                 finalIcon = attributeData.icon;
                 finalDesc = attributeData.desc;
             } else {
-                // "스탯 계열 + 속성 이름" 형태
+                // 스탯도 있고 속성도 있음 - "스탯 계열 + 속성 이름" 형태
+                const evolution = EVOLUTION_TYPES[evolutionKey];
                 finalName = `${evolution.prefix} ${attributeData.name}`;
                 finalIcon = `${evolution.icon}${attributeData.icon}`;
                 finalDesc = attributeData.desc;
+            }
+            
+            // evolutionKey 설정 (도감 등록용)
+            if (hasLowStats) {
+                // 스탯 부족한 경우 속성만으로 키 생성
+                evolutionKey = attributeKey === 'normal' ? 'normal' : `nostat-${attributeKey}`;
             }
             
             // 날개 타입 결정 (조명 누적 시간 기반)
