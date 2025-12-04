@@ -1604,7 +1604,7 @@
                 inventory.food = [];
             }
 
-            // 먹이 인벤토리
+            // 먹이 인벤토리 (순서 고정: fire, water, wind, earth, light, dark)
             const foodContainer = document.getElementById('foodInventory');
             if (inventory.food.length === 0) {
                 foodContainer.innerHTML = '<div class="inventory-item">없음</div>';
@@ -1613,15 +1613,17 @@
                 inventory.food.forEach(f => {
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
-                foodContainer.innerHTML = Object.entries(foodCounts)
-                    .map(([type, count]) => `
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                foodContainer.innerHTML = foodOrder
+                    .filter(type => foodCounts[type])
+                    .map(type => `
                         <div class="inventory-item">
-                            ${ENV_ICONS[type]} ×${count}
+                            ${ENV_ICONS[type]} ×${foodCounts[type]}
                         </div>
                     `).join('');
             }
 
-            // 음악 인벤토리
+            // 음악 인벤토리 (순서 고정: classic, jazz, rock, pop, ballad)
             const musicContainer = document.getElementById('musicInventory');
             if (!inventory.music) inventory.music = [];
             if (inventory.music.length === 0) {
@@ -1631,15 +1633,17 @@
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                musicContainer.innerHTML = Object.entries(musicCounts)
-                    .map(([type, count]) => `
+                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                musicContainer.innerHTML = musicOrder
+                    .filter(type => musicCounts[type])
+                    .map(type => `
                         <div class="inventory-item">
-                            ${MUSIC_TYPES[type].icon} ×${count}
+                            ${MUSIC_TYPES[type].icon} ×${musicCounts[type]}
                         </div>
                     `).join('');
             }
 
-            // 장식물 인벤토리
+            // 장식물 인벤토리 (순서 고정: fire, water, wind, earth, light, dark)
             const decorContainer = document.getElementById('decorInventory');
             if (!inventory.decorations) inventory.decorations = [];
             if (inventory.decorations.length === 0) {
@@ -1649,10 +1653,12 @@
                 inventory.decorations.forEach(d => {
                     decorCounts[d] = (decorCounts[d] || 0) + 1;
                 });
-                decorContainer.innerHTML = Object.entries(decorCounts)
-                    .map(([type, count]) => `
+                const decorOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                decorContainer.innerHTML = decorOrder
+                    .filter(type => decorCounts[type])
+                    .map(type => `
                         <div class="inventory-item">
-                            ${DECORATION_TYPES[type].icon} ×${count}
+                            ${DECORATION_TYPES[type].icon} ×${decorCounts[type]}
                         </div>
                     `).join('');
             }
@@ -2291,14 +2297,16 @@
 
             const items = [];
 
-            // 먹이 판매
+            // 먹이 판매 (순서 고정)
             if (inventory.food && inventory.food.length > 0) {
                 const foodCounts = {};
                 inventory.food.forEach(f => {
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
 
-                Object.entries(foodCounts).forEach(([type, count]) => {
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                foodOrder.filter(type => foodCounts[type]).forEach(type => {
+                    const count = foodCounts[type];
                     const isRare = type === 'light' || type === 'dark';
                     const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
                     items.push(`
@@ -2316,14 +2324,16 @@
                 });
             }
 
-            // 장식물 판매
+            // 장식물 판매 (순서 고정)
             if (inventory.decorations && inventory.decorations.length > 0) {
                 const decorCounts = {};
                 inventory.decorations.forEach(d => {
                     decorCounts[d] = (decorCounts[d] || 0) + 1;
                 });
 
-                Object.entries(decorCounts).forEach(([type, count]) => {
+                const decorOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                decorOrder.filter(type => decorCounts[type]).forEach(type => {
+                    const count = decorCounts[type];
                     const decoData = DECORATION_TYPES[type];
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -2340,14 +2350,16 @@
                 });
             }
 
-            // 음악 판매
+            // 음악 판매 (순서 고정)
             if (inventory.music && inventory.music.length > 0) {
                 const musicCounts = {};
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
 
-                Object.entries(musicCounts).forEach(([type, count]) => {
+                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                musicOrder.filter(type => musicCounts[type]).forEach(type => {
+                    const count = musicCounts[type];
                     const musicData = MUSIC_TYPES[type];
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -2563,6 +2575,23 @@
                             ${attributeData.name}
                         </h3>
                     </div>`;
+                    
+                    // 수식어 없는 정령 (스탯 부족)
+                    const nostatCount = encyclopedia[`nostat-${attrType}`] || 0;
+                    if (nostatCount > 0 || attrType === 'normal') {
+                        const cardClass = nostatCount > 0 ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
+                        const displayIcon = nostatCount > 0 ? attributeData.icon : '❓';
+                        const displayName = nostatCount > 0 ? '(수식어 없음)' : '???????';
+                        const countText = nostatCount > 0 ? `${nostatCount}회` : '미달성';
+                        
+                        html += `
+                            <div class="${cardClass}" style="min-height: 100px;">
+                                <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
+                                <div class="encyclopedia-name" style="font-size: 0.9rem;">${displayName}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${countText}</div>
+                            </div>
+                        `;
+                    }
                     
                     statTypes.forEach(statType => {
                         // 어떤 레벨이 달성되었는지 확인
