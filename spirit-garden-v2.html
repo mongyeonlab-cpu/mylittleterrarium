@@ -1020,19 +1020,19 @@
             normal: { name: '백의 정령', icon: '🤍', desc: '순수한 빛을 간직한 정령. 모든 정령의 시작이자 근원.' },
             
             // 지적인 계열 (intelligence 최고)
-            'intelligent-basic': { prefix: '지적인', icon: '✨' },
-            'intelligent-advanced': { prefix: '지적인', icon: '💎' },
-            'intelligent-master': { prefix: '지적인', icon: '🔮' },
+            'intelligent-low': { prefix: '똑똑한', icon: '✨' },
+            'intelligent-mid': { prefix: '지적인', icon: '💎' },
+            'intelligent-high': { prefix: '세상의 비밀을 아는', icon: '🔮' },
             
             // 강한 계열 (strength 최고)
-            'strong-basic': { prefix: '강한', icon: '✨' },
-            'strong-advanced': { prefix: '강한', icon: '💪' },
-            'strong-master': { prefix: '강한', icon: '⚡' },
+            'strong-low': { prefix: '튼튼한', icon: '✨' },
+            'strong-mid': { prefix: '강한', icon: '💪' },
+            'strong-high': { prefix: '세상을 받치는', icon: '⚡' },
             
             // 아름다운 계열 (charm 최고)
-            'beautiful-basic': { prefix: '아름다운', icon: '✨' },
-            'beautiful-advanced': { prefix: '아름다운', icon: '🌸' },
-            'beautiful-master': { prefix: '아름다운', icon: '🌺' }
+            'beautiful-low': { prefix: '귀여운', icon: '✨' },
+            'beautiful-mid': { prefix: '아름다운', icon: '🌸' },
+            'beautiful-high': { prefix: '세상을 매혹하는', icon: '🌺' }
         };
         
         // 속성별 정령 이름
@@ -1658,6 +1658,7 @@
                 spirit.isCompleted = true;
                 spirit.evolutionData = {
                     type: 'normal',
+                    attributeType: 'normal',
                     name: evolution.name,
                     icon: evolution.icon,
                     desc: evolution.desc,
@@ -1679,14 +1680,14 @@
                 statType = 'beautiful';
             }
 
-            // 진화 단계 결정
+            // 진화 단계 결정 (스탯 수치 기준)
             let evolutionKey = '';
             if (maxStat >= 30) {
-                evolutionKey = `${statType}-master`;  // 30+ : 눈부신
+                evolutionKey = `${statType}-high`;  // 30+ : 세상의~
             } else if (maxStat >= 20) {
-                evolutionKey = `${statType}-advanced`;  // 20-29 : 찬란한
+                evolutionKey = `${statType}-mid`;  // 20-29 : 지적인/강한/아름다운
             } else {
-                evolutionKey = `${statType}-basic`;  // 10-19 : 반짝이는
+                evolutionKey = `${statType}-low`;  // 10-19 : 똑똑한/튼튼한/귀여운
             }
 
             const evolution = EVOLUTION_TYPES[evolutionKey];
@@ -1699,6 +1700,7 @@
                 spirit.isCompleted = true;
                 spirit.evolutionData = {
                     type: 'normal',
+                    attributeType: 'normal',
                     name: fallbackEvolution.name,
                     icon: fallbackEvolution.icon,
                     desc: fallbackEvolution.desc,
@@ -1710,41 +1712,63 @@
                 return;
             }
             
-            // 속성 분석 (숨겨진 속성 기반)
+            // 속성 분석 (숨겨진 속성 기반 - 상대적 퍼센트)
             const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const sortedAttrs = Object.entries(attrs)
-                .filter(([_, value]) => value > 10) // 10 이상인 속성만
                 .sort((a, b) => b[1] - a[1]); // 내림차순 정렬
+            
+            // 최고 속성값
+            const maxAttrValue = sortedAttrs[0][1];
             
             let attributeKey = '';
             let attributeData = null;
             
-            if (sortedAttrs.length === 0) {
-                // 속성 없음 - 백의 정령
+            if (maxAttrValue < 50) {
+                // 모든 속성이 50 미만 - 백의 정령
                 attributeKey = 'normal';
                 attributeData = { name: '백의 정령', icon: '🤍', desc: '속성이 깃들지 않은 순수한 정령.' };
-            } else if (sortedAttrs.length === 1) {
-                // 단일 속성
-                attributeKey = sortedAttrs[0][0];
-                attributeData = ATTRIBUTE_NAMES[attributeKey];
-            } else if (sortedAttrs.length === 2) {
-                // 2속성 조합
-                const attr1 = sortedAttrs[0][0];
-                const attr2 = sortedAttrs[1][0];
-                const comboKey = [attr1, attr2].sort().join('-');
-                attributeData = ATTRIBUTE_NAMES[comboKey];
-                attributeKey = comboKey;
-            } else if (sortedAttrs.length >= 3) {
-                // 3속성 이상
-                const topValues = sortedAttrs.slice(0, 3).map(a => a[1]);
-                const isBalanced = Math.max(...topValues) - Math.min(...topValues) <= 10;
+            } else {
+                // 50 이상인 속성들만 필터링
+                const significantAttrs = sortedAttrs.filter(([_, value]) => value >= 50);
                 
-                if (isBalanced) {
-                    attributeKey = 'balanced';
-                    attributeData = ATTRIBUTE_NAMES['balanced'];
-                } else {
-                    attributeKey = 'multi';
-                    attributeData = ATTRIBUTE_NAMES['multi'];
+                if (significantAttrs.length === 1) {
+                    // 단일 속성 (하나만 50 이상)
+                    attributeKey = significantAttrs[0][0];
+                    attributeData = ATTRIBUTE_NAMES[attributeKey];
+                } else if (significantAttrs.length === 2) {
+                    // 2속성: 1위와 2위 차이가 40% 이하면 조합, 초과면 단일
+                    const first = significantAttrs[0][1];
+                    const second = significantAttrs[1][1];
+                    const diffPercent = ((first - second) / first) * 100;
+                    
+                    if (diffPercent <= 40) {
+                        // 2속성 조합
+                        const attr1 = significantAttrs[0][0];
+                        const attr2 = significantAttrs[1][0];
+                        const comboKey = [attr1, attr2].sort().join('-');
+                        attributeData = ATTRIBUTE_NAMES[comboKey];
+                        attributeKey = comboKey;
+                    } else {
+                        // 단일 속성 (차이가 너무 큼)
+                        attributeKey = significantAttrs[0][0];
+                        attributeData = ATTRIBUTE_NAMES[attributeKey];
+                    }
+                } else if (significantAttrs.length >= 3) {
+                    // 3속성 이상
+                    const topValues = significantAttrs.slice(0, 3).map(a => a[1]);
+                    const maxVal = Math.max(...topValues);
+                    const minVal = Math.min(...topValues);
+                    const diffPercent = ((maxVal - minVal) / maxVal) * 100;
+                    
+                    if (diffPercent <= 25) {
+                        // 조화 (차이 25% 이하)
+                        attributeKey = 'balanced';
+                        attributeData = ATTRIBUTE_NAMES['balanced'];
+                    } else {
+                        // 혼돈 (차이 25% 초과)
+                        attributeKey = 'multi';
+                        attributeData = ATTRIBUTE_NAMES['multi'];
+                    }
                 }
             }
             
@@ -1795,9 +1819,14 @@
         
         function confirmEvolution(spiritId) {
             const spirit = spirits.find(s => s.id === spiritId);
-            if (!spirit || !spirit.isCompleted) return;
+            if (!spirit || !spirit.isCompleted) {
+                console.log('confirmEvolution failed:', { spirit, spiritId, isCompleted: spirit?.isCompleted });
+                return;
+            }
             
             const evolutionData = spirit.evolutionData;
+            console.log('Evolution data:', evolutionData);
+            
             const affection = spirit.parameters.affection || 0;
             
             // 애정도별 엔딩 메시지
@@ -2414,7 +2443,7 @@
             
             // 스탯 계열별로 그룹화
             statTypes.forEach(statType => {
-                const statPrefix = EVOLUTION_TYPES[`${statType}-basic`].prefix;
+                const statPrefix = EVOLUTION_TYPES[`${statType}-mid`].prefix;
                 
                 html += `<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">
                     <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 8px;">
@@ -2423,10 +2452,10 @@
                 </div>`;
                 
                 attributeTypes.forEach(attrType => {
-                    // basic, advanced, master 모두 합산
-                    const count = (encyclopedia[`${statType}-basic-${attrType}`] || 0) +
-                                  (encyclopedia[`${statType}-advanced-${attrType}`] || 0) +
-                                  (encyclopedia[`${statType}-master-${attrType}`] || 0);
+                    // low, mid, high 모두 합산
+                    const count = (encyclopedia[`${statType}-low-${attrType}`] || 0) +
+                                  (encyclopedia[`${statType}-mid-${attrType}`] || 0) +
+                                  (encyclopedia[`${statType}-high-${attrType}`] || 0);
                     const isUnlocked = count > 0;
                     
                     const attributeData = ATTRIBUTE_NAMES[attrType];
