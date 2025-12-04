@@ -1348,8 +1348,8 @@
             // 일지 추가
             addLog(spirit, `${FOOD_NAMES[foodType]}를 먹었습니다`);
 
-            // 성충 체크
-            if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(spirit.growth - growthGain) !== 'adult') {
+            // 성충 체크 (100 이상이면 무조건 완료)
+            if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
                 completeSpirit(spirit);
             }
 
@@ -1955,8 +1955,11 @@
                 const previousGrowth = spirit.growth;
                 spirit.growth += 1;
 
-                // 성충 체크
-                if (spirit.growth >= STAGE_REQUIREMENTS.adult && getStage(previousGrowth) !== 'adult') {
+                console.log(`Spirit ${spirit.name}: growth ${previousGrowth} → ${spirit.growth}`);
+
+                // 성충 체크 (100 이상이면 무조건 완료)
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult) {
+                    console.log(`Completing spirit ${spirit.name} with growth ${spirit.growth}`);
                     completeSpirit(spirit);
                 }
             });
