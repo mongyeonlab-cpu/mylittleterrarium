@@ -2428,6 +2428,7 @@
             const grid = document.getElementById('encyclopediaGrid');
             
             const statTypes = ['intelligent', 'strong', 'beautiful'];
+            const statLevels = ['low', 'mid', 'high'];
             
             // 속성별 그룹 정의
             const attributeGroups = [
@@ -2487,18 +2488,26 @@
                     </div>`;
                     
                     statTypes.forEach(statType => {
-                        // low, mid, high 모두 합산
-                        const count = (encyclopedia[`${statType}-low-${attrType}`] || 0) +
-                                      (encyclopedia[`${statType}-mid-${attrType}`] || 0) +
-                                      (encyclopedia[`${statType}-high-${attrType}`] || 0);
-                        const isUnlocked = count > 0;
+                        // 어떤 레벨이 달성되었는지 확인
+                        const lowCount = encyclopedia[`${statType}-low-${attrType}`] || 0;
+                        const midCount = encyclopedia[`${statType}-mid-${attrType}`] || 0;
+                        const highCount = encyclopedia[`${statType}-high-${attrType}`] || 0;
+                        const totalCount = lowCount + midCount + highCount;
+                        const isUnlocked = totalCount > 0;
                         
-                        const statPrefix = EVOLUTION_TYPES[`${statType}-mid`].prefix;
+                        // 달성된 레벨 찾기 (우선순위: high > mid > low)
+                        let achievedLevel = 'mid';
+                        if (highCount > 0) achievedLevel = 'high';
+                        else if (midCount > 0) achievedLevel = 'mid';
+                        else if (lowCount > 0) achievedLevel = 'low';
+                        
+                        const statPrefix = EVOLUTION_TYPES[`${statType}-${achievedLevel}`].prefix;
+                        const statIcon = EVOLUTION_TYPES[`${statType}-${achievedLevel}`].icon;
                         
                         const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
-                        const displayIcon = isUnlocked ? `${EVOLUTION_TYPES[`${statType}-mid`].icon}${attributeData.icon}` : '❓';
+                        const displayIcon = isUnlocked ? `${statIcon}${attributeData.icon}` : '❓';
                         const displayName = isUnlocked ? `${statPrefix}` : '???????';
-                        const countText = isUnlocked ? `${count}회` : '미달성';
+                        const countText = isUnlocked ? `${totalCount}회` : '미달성';
                         
                         html += `
                             <div class="${cardClass}" style="min-height: 100px;">
