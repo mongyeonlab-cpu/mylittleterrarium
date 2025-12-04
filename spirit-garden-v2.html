@@ -2427,52 +2427,87 @@
         function renderEncyclopedia() {
             const grid = document.getElementById('encyclopediaGrid');
             
-            // 모든 가능한 진화 조합 생성
             const statTypes = ['intelligent', 'strong', 'beautiful'];
-            const attributeTypes = [
-                'fire', 'water', 'wind', 'earth', 'light', 'dark',
-                'fire-water', 'fire-wind', 'fire-earth', 'fire-light', 'fire-dark',
-                'water-wind', 'water-earth', 'water-light', 'water-dark',
-                'wind-earth', 'wind-light', 'wind-dark',
-                'earth-light', 'earth-dark',
-                'light-dark',
-                'balanced', 'multi', 'normal'
+            
+            // 속성별 그룹 정의
+            const attributeGroups = [
+                {
+                    title: '⚪ 순수',
+                    attrs: ['normal']
+                },
+                {
+                    title: '🔥💧🍃🌱✨🌙 기본 속성',
+                    attrs: ['fire', 'water', 'wind', 'earth', 'light', 'dark']
+                },
+                {
+                    title: '🔥 화염 조합',
+                    attrs: ['fire-water', 'fire-wind', 'fire-earth', 'fire-light', 'fire-dark']
+                },
+                {
+                    title: '💧 빙하 조합',
+                    attrs: ['water-wind', 'water-earth', 'water-light', 'water-dark']
+                },
+                {
+                    title: '🍃 질풍 조합',
+                    attrs: ['wind-earth', 'wind-light', 'wind-dark']
+                },
+                {
+                    title: '🌱 대지 조합',
+                    attrs: ['earth-light', 'earth-dark']
+                },
+                {
+                    title: '✨🌙 환혹',
+                    attrs: ['light-dark']
+                },
+                {
+                    title: '⚖️🌪️ 다속성',
+                    attrs: ['balanced', 'multi']
+                }
             ];
             
             let html = '';
             
-            // 스탯 계열별로 그룹화
-            statTypes.forEach(statType => {
-                const statPrefix = EVOLUTION_TYPES[`${statType}-mid`].prefix;
-                
-                html += `<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">
-                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 8px;">
-                        ${statPrefix} 계열
-                    </h3>
+            attributeGroups.forEach(group => {
+                // 그룹 헤더
+                html += `<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); border-bottom: 3px solid var(--fire); padding-bottom: 10px;">
+                        ${group.title}
+                    </h2>
                 </div>`;
                 
-                attributeTypes.forEach(attrType => {
-                    // low, mid, high 모두 합산
-                    const count = (encyclopedia[`${statType}-low-${attrType}`] || 0) +
-                                  (encyclopedia[`${statType}-mid-${attrType}`] || 0) +
-                                  (encyclopedia[`${statType}-high-${attrType}`] || 0);
-                    const isUnlocked = count > 0;
-                    
+                group.attrs.forEach(attrType => {
                     const attributeData = ATTRIBUTE_NAMES[attrType];
                     if (!attributeData) return;
                     
-                    const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
-                    const displayIcon = isUnlocked ? attributeData.icon : '❓';
-                    const displayName = isUnlocked ? `${statPrefix} ${attributeData.name}` : '???????';
-                    const countText = isUnlocked ? `달성 ${count}회` : '미달성';
+                    // 스탯 계열별로 서브 섹션
+                    html += `<div style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 10px;">
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; color: #888; padding-left: 10px; border-left: 3px solid var(--border);">
+                            ${attributeData.name}
+                        </h3>
+                    </div>`;
                     
-                    html += `
-                        <div class="${cardClass}">
-                            <div class="encyclopedia-icon">${displayIcon}</div>
-                            <div class="encyclopedia-name">${displayName}</div>
-                            <div class="encyclopedia-count">${countText}</div>
-                        </div>
-                    `;
+                    statTypes.forEach(statType => {
+                        // low, mid, high 모두 합산
+                        const count = (encyclopedia[`${statType}-low-${attrType}`] || 0) +
+                                      (encyclopedia[`${statType}-mid-${attrType}`] || 0) +
+                                      (encyclopedia[`${statType}-high-${attrType}`] || 0);
+                        const isUnlocked = count > 0;
+                        
+                        const statPrefix = EVOLUTION_TYPES[`${statType}-mid`].prefix;
+                        
+                        const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
+                        const displayIcon = isUnlocked ? `${EVOLUTION_TYPES[`${statType}-mid`].icon}${attributeData.icon}` : '❓';
+                        const displayName = isUnlocked ? `${statPrefix}` : '???????';
+                        const countText = isUnlocked ? `${count}회` : '미달성';
+                        
+                        html += `
+                            <div class="${cardClass}" style="min-height: 100px;">
+                                <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
+                                <div class="encyclopedia-name" style="font-size: 0.9rem;">${displayName}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${countText}</div>
+                            </div>
+                        `;
+                    });
                 });
             });
             
