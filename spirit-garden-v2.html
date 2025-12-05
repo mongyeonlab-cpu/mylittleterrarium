@@ -1888,6 +1888,11 @@
         }
 
         function feedSpiritFromInventory(spiritId, foodType) {
+            if (isPaused) {
+                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                return;
+            }
+            
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
 
@@ -1968,6 +1973,11 @@
         }
 
         function playMusic(spiritId, musicType, inventoryIndex) {
+            if (isPaused) {
+                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                return;
+            }
+            
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
 
@@ -2019,6 +2029,11 @@
         }
 
         function patSpirit(spiritId) {
+            if (isPaused) {
+                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                return;
+            }
+            
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
 
@@ -2066,6 +2081,11 @@
         }
 
         function goGather() {
+            if (isPaused) {
+                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                return;
+            }
+            
             const now = Date.now();
             const gatherCooldown = 15000; // 15초
 
@@ -2169,6 +2189,13 @@
 
             const now = Date.now();
             const gatherCooldown = 15000; // 15초
+            
+            // 일시정지 중이면 버튼 비활성화
+            if (isPaused) {
+                gatherBtn.disabled = true;
+                gatherBtn.textContent = '🌿 채집하기 (일시정지)';
+                return;
+            }
 
             if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
                 gatherBtn.disabled = true;
@@ -2610,6 +2637,8 @@
         }
 
         function applyGrowth() {
+            if (isPaused) return; // 일시정지 중이면 성장 안 함
+            
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
 
@@ -2631,6 +2660,8 @@
         }
 
         function applyTerrariumGrowth() {
+            if (isPaused) return; // 일시정지 중이면 실행 안 함
+            
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;  // 죽었거나 완성된 정령 제외
 
@@ -2812,9 +2843,9 @@
                 const nextReq = getNextStageRequirement(spirit.growth);
                 const progress = (spirit.growth / nextReq) * 100;
                 
-                const canFeed = canDoAction(spirit, 'feed') && !spirit.isDead;
-                const canMusic = canDoAction(spirit, 'music') && !spirit.isDead;
-                const canPat = canDoAction(spirit, 'pat') && !spirit.isDead;
+                const canFeed = !isPaused && canDoAction(spirit, 'feed') && !spirit.isDead;
+                const canMusic = !isPaused && canDoAction(spirit, 'music') && !spirit.isDead;
+                const canPat = !isPaused && canDoAction(spirit, 'pat') && !spirit.isDead;
 
                 let icon = STAGE_ICONS[stage];
                 if (stage === 'adult' && spirit.evolutionType) {
@@ -3600,6 +3631,10 @@
                 pauseBtn.title = '일시정지';
                 showNotification('▶️ 게임이 재개되었습니다');
             }
+            
+            // 버튼 상태 업데이트
+            updateGatherButton();
+            updateAllSpiritCards();
             
             saveGame();
         }
