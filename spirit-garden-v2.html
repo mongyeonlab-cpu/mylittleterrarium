@@ -1319,6 +1319,7 @@
                 lastMusic: null,
                 lastPat: null,
                 lastDecorate: null,
+                lastInteraction: Date.now(),  // 마지막 상호작용 시간
                 status: '배고파 보입니다...',
                 birthTime: Date.now(),
                 logs: [],  // 일지
@@ -1472,6 +1473,7 @@
 
             spirit.growth += growthGain;
             spirit.lastFed = Date.now();
+            spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.status = '맛있게 먹었습니다!';
             spirit.parameters.affection += 1;
 
@@ -1547,6 +1549,7 @@
             spirit.parameters.affection += 2;
 
             spirit.lastMusic = Date.now();
+            spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.lastMusicType = musicType; // 마지막으로 들은 음악 저장
             spirit.status = `${musicData.name}을(를) 듣고 있습니다...`;
 
@@ -1574,6 +1577,7 @@
 
             spirit.parameters.affection += 1;
             spirit.lastPat = Date.now();
+            spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             
             const messages = [
                 '정령이 기뻐합니다! 💕',
@@ -1911,11 +1915,49 @@
             let finalIcon = '';
             let finalDesc = '';
             
-            if (attributeKey === 'normal') {
-                // 속성도 없음 - 백의 정령
-                finalName = attributeData.name;
-                finalIcon = attributeData.icon;
-                finalDesc = attributeData.desc;
+            // 날개 타입 먼저 결정 (오필리아/오베론 판정에 필요)
+            if (!spirit.lightTime) spirit.lightTime = 0;
+            if (!spirit.darkTime) spirit.darkTime = 0;
+            
+            let wingType = null;
+            if (spirit.lightTime > spirit.darkTime) {
+                wingType = 'butterfly';
+            } else if (spirit.darkTime > spirit.lightTime) {
+                wingType = 'moth';
+            } else {
+                wingType = 'butterfly'; // 동점이면 나비
+            }
+            
+            // 오필리아/오베론 조건 체크
+            // 모든 스탯 50 이상 + 모든 속성 100 근접 (90 이상)
+            const isPerfectStats = params.intelligence >= 50 && params.strength >= 50 && params.charm >= 50;
+            const isPerfectAttributes = Object.values(finalAttrs).every(val => val >= 90);
+            
+            if (isPerfectStats && isPerfectAttributes) {
+                // 완벽한 정령 - 오필리아/오베론
+                if (wingType === 'butterfly') {
+                    finalName = '오필리아';
+                    finalIcon = '🦋✨';
+                    finalDesc = '모든 힘을 완벽히 갖춘 나비의 여왕. 빛과 생명을 관장하는 전설적 존재.';
+                } else {
+                    finalName = '오베론';
+                    finalIcon = '🦋🌙';
+                    finalDesc = '모든 힘을 완벽히 갖춘 나방의 군주. 어둠과 신비를 지배하는 전설적 존재.';
+                }
+            } else if (attributeKey === 'normal') {
+                // 속성 없음
+                if (hasLowStats) {
+                    // 스탯도 낮음 - 순수한 백의 정령
+                    finalName = attributeData.name;
+                    finalIcon = attributeData.icon;
+                    finalDesc = attributeData.desc;
+                } else {
+                    // 스탯은 높음 - "스탯 계열 + 백의 정령"
+                    const evolution = EVOLUTION_TYPES[evolutionKey];
+                    finalName = `${evolution.prefix} ${attributeData.name}`;
+                    finalIcon = `${evolution.icon}${attributeData.icon}`;
+                    finalDesc = attributeData.desc;
+                }
             } else if (hasLowStats) {
                 // 스탯 부족하지만 속성 있음 - 속성 이름만
                 finalName = attributeData.name;
@@ -1931,26 +1973,19 @@
             
             // evolutionKey 설정 (도감 등록용)
             let finalEvolutionType = evolutionKey;
-            if (hasLowStats) {
+            if (isPerfectStats && isPerfectAttributes) {
+                // 오필리아/오베론
+                finalEvolutionType = wingType === 'butterfly' ? 'ophelia' : 'oberon';
+            } else if (hasLowStats) {
                 // 스탯 부족한 경우
                 if (attributeKey === 'normal') {
-                    finalEvolutionType = 'normal';
+                    finalEvolutionType = 'nostat';  // 스탯 낮고 속성도 없음 -> nostat-normal
                 } else {
-                    finalEvolutionType = 'nostat';
+                    finalEvolutionType = 'nostat';  // 스탯 낮고 속성 있음 -> nostat-fire 등
                 }
-            }
-            
-            // 날개 타입 결정 (조명 누적 시간 기반)
-            if (!spirit.lightTime) spirit.lightTime = 0;
-            if (!spirit.darkTime) spirit.darkTime = 0;
-            
-            let wingType = null;
-            if (spirit.lightTime > spirit.darkTime) {
-                wingType = 'butterfly';
-            } else if (spirit.darkTime > spirit.lightTime) {
-                wingType = 'moth';
-            } else {
-                wingType = 'butterfly'; // 동점이면 나비
+            } else if (attributeKey === 'normal') {
+                // 스탯은 높은데 속성 없음 -> intelligent-high-normal 같은 형태 유지
+                finalEvolutionType = evolutionKey;
             }
             
             // 정령을 완성 상태로 표시 (아직 제거하지 않음)
@@ -2707,6 +2742,37 @@
             
             let html = '';
             
+            // 전설적 존재 (오필리아/오베론) - 맨 위에 특별 표시
+            html += `<div style="grid-column: 1 / -1; margin-top: 10px; margin-bottom: 15px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); border-bottom: 3px solid gold; padding-bottom: 10px;">
+                    ✨👑 전설적 존재
+                </h2>
+            </div>`;
+            
+            // 오필리아
+            const opheliaCount = encyclopedia['ophelia'] || 0;
+            const opheliaUnlocked = opheliaCount > 0;
+            html += `
+                <div class="${opheliaUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${opheliaUnlocked ? '🦋✨' : '❓'}</div>
+                    <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${opheliaUnlocked ? '오필리아' : '???????'}</div>
+                    <div class="encyclopedia-count" style="font-size: 0.8rem;">${opheliaUnlocked ? `${opheliaCount}회` : '미달성'}</div>
+                    ${opheliaUnlocked ? '<div style="font-size: 0.7rem; color: gold; margin-top: 5px;">나비의 여왕</div>' : ''}
+                </div>
+            `;
+            
+            // 오베론
+            const oberonCount = encyclopedia['oberon'] || 0;
+            const oberonUnlocked = oberonCount > 0;
+            html += `
+                <div class="${oberonUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${oberonUnlocked ? '🦋🌙' : '❓'}</div>
+                    <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${oberonUnlocked ? '오베론' : '???????'}</div>
+                    <div class="encyclopedia-count" style="font-size: 0.8rem;">${oberonUnlocked ? `${oberonCount}회` : '미달성'}</div>
+                    ${oberonUnlocked ? '<div style="font-size: 0.7rem; color: gold; margin-top: 5px;">나방의 군주</div>' : ''}
+                </div>
+            `;
+            
             attributeGroups.forEach(group => {
                 // 그룹 헤더
                 html += `<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">
@@ -3061,8 +3127,8 @@
             
             let availableMessages = [];
             
-            // 배고픔 (60초 이상 안 먹임)
-            if (timeSinceLastFed > 60) {
+            // 배고픔 (5분=300초 이상 안 먹임)
+            if (timeSinceLastFed > 300) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
             }
             // 최근에 음악 들음 (60초 이내)
@@ -3120,6 +3186,41 @@
                     if (timeSinceLastMusic > 10 || !spirit.status.includes('듣고 있습니다')) {
                         spirit.status = getRandomMessage(spirit);
                     }
+                }
+            });
+            updateAllSpiritCards();
+        }
+        
+        // 5분 방치 체크 (애정도 감소)
+        function checkNeglect() {
+            const now = Date.now();
+            spirits.forEach(spirit => {
+                if (spirit.isDead || spirit.isCompleted) return;
+                
+                // lastInteraction이 없으면 현재 시간으로 초기화 (구버전 호환)
+                if (!spirit.lastInteraction) {
+                    spirit.lastInteraction = now;
+                    return;
+                }
+                
+                const timeSinceLastInteraction = (now - spirit.lastInteraction) / 1000; // 초
+                
+                // 5분(300초) 이상 방치 시 애정도 -2
+                if (timeSinceLastInteraction >= 300) {
+                    spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 2);
+                    spirit.lastInteraction = now; // 타이머 리셋
+                    
+                    // 심심해하는 메시지 표시
+                    const neglectMessages = [
+                        `${spirit.name}이(가) 외로워합니다... (애정도 -2)`,
+                        `${spirit.name}이(가) 심심해합니다... (애정도 -2)`,
+                        `${spirit.name}이(가) 당신을 기다리고 있습니다... (애정도 -2)`,
+                        `${spirit.name}이(가) 관심을 원합니다... (애정도 -2)`
+                    ];
+                    spirit.status = neglectMessages[Math.floor(Math.random() * neglectMessages.length)];
+                    
+                    saveGame();
+                    console.log(`${spirit.name}: 5분 방치, 애정도 -2`);
                 }
             });
             updateAllSpiritCards();
@@ -3185,6 +3286,7 @@
 
         setInterval(updateTimeDisplay, 1000);
         setInterval(updateRandomMessages, 30000); // 30초마다 랜덤 메시지 업데이트
+        setInterval(checkNeglect, 60000); // 1분마다 방치 체크
 
         // 초기화
         loadGame();
