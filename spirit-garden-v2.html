@@ -938,6 +938,87 @@
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
 
+        // 랜덤 문구 시스템
+        const RANDOM_MESSAGES = {
+            // 기본 행동 (조건 없음)
+            basic: [
+                '{name}이(가) 꿈틀거립니다.',
+                '{name}이(가) 몸을 부르르 떱니다.',
+                '{name}이(가) 주변을 두리번거립니다.',
+                '{name}이(가) 작게 울음소리를 냅니다.',
+                '{name}이(가) 가만히 웅크리고 있습니다.',
+                '{name}이(가) 천천히 움직입니다.',
+                '{name}이(가) 테라리움 유리에 몸을 문지릅니다.',
+                '{name}이(가) 날개를 살짝 떨고 있습니다.',
+                '{name}이(가) 자신의 몸을 정리합니다.',
+                '{name}이(가) 무언가를 찾는 듯합니다.'
+            ],
+            // 배고픔
+            hungry: [
+                '{name}이(가) 배고파 보입니다.',
+                '{name}이(가) 먹이를 찾고 있습니다.',
+                '{name}이(가) 허기진 눈빛으로 당신을 봅니다.',
+                '{name}이(가) 입맛을 다십니다.',
+                '{name}이(가) 배를 움켜쥐고 있습니다.'
+            ],
+            // 낮잠 (조명 켜짐)
+            napLight: [
+                '{name}이(가) 낮잠을 자고 있습니다.',
+                '{name}이(가) 햇살 아래에서 졸고 있습니다.',
+                '{name}이(가) 편안하게 눈을 감고 있습니다.',
+                '{name}이(가) 스르륵 잠이 들었습니다.',
+                '{name}이(가) 나뭇잎 위에서 낮잠을 즐깁니다.'
+            ],
+            // 밤잠 (조명 꺼짐)
+            sleepDark: [
+                '{name}이(가) 잠을 자고 있습니다.',
+                '{name}이(가) 깊은 잠에 빠졌습니다.',
+                '{name}이(가) 고요히 잠들어 있습니다.',
+                '{name}이(가) 어둠 속에서 편히 쉬고 있습니다.',
+                '{name}이(가) 조용히 꿈나라로 떠났습니다.'
+            ],
+            // 애정도 낮음 (0-10)
+            affectionVeryLow: [
+                '{name}이(가) 당신을 피해 테라리움 구석에 숨습니다.',
+                '{name}이(가) 당신을 경계하며 멀리 떨어집니다.',
+                '{name}이(가) 고개를 돌려 당신을 외면합니다.',
+                '{name}이(가) 불안한 듯 몸을 떨고 있습니다.',
+                '{name}이(가) 당신 앞에서 움츠러듭니다.'
+            ],
+            // 애정도 낮음 (10-30)
+            affectionLow: [
+                '{name}이(가) 당신을 빤히 바라봅니다.',
+                '{name}이(가) 조심스럽게 당신을 관찰합니다.',
+                '{name}이(가) 살짝 당신에게 다가옵니다.',
+                '{name}이(가) 당신에게 관심을 보이기 시작합니다.',
+                '{name}이(가) 호기심 어린 눈으로 당신을 봅니다.'
+            ],
+            // 애정도 중간 (30-50)
+            affectionMedium: [
+                '{name}이(가) 당신의 손에 뺨을 부빕니다.',
+                '{name}이(가) 당신 주변을 빙글빙글 돕니다.',
+                '{name}이(가) 당신의 손가락을 살짝 건드립니다.',
+                '{name}이(가) 당신에게 애교를 부립니다.',
+                '{name}이(가) 당신 곁에 가까이 다가옵니다.'
+            ],
+            // 애정도 높음 (50-100)
+            affectionHigh: [
+                '{name}이(가) 당신을 보며 행복해합니다.',
+                '{name}이(가) 당신의 손바닥에서 뒹굽니다.',
+                '{name}이(가) 당신에게 애정 어린 눈빛을 보냅니다.',
+                '{name}이(가) 당신의 손을 꼭 붙잡습니다.',
+                '{name}이(가) 당신과 함께 있어 즐거워 보입니다.'
+            ],
+            // 애정도 매우 높음 (100+)
+            affectionVeryHigh: [
+                '{name}이(가) 당신을 깊이 신뢰하고 있습니다.',
+                '{name}이(가) 당신의 품에 파고듭니다.',
+                '{name}이(가) 당신을 향한 사랑을 표현합니다.',
+                '{name}이(가) 당신의 손에 입맞춤합니다.',
+                '{name}이(가) 당신 없이는 못 산다는 듯 쳐다봅니다.'
+            ]
+        };
+
         const STAGE_REQUIREMENTS = {
             egg: 0,
             larva1: 10,
@@ -2924,6 +3005,57 @@
             showNotification(`${decoData.icon} ${decoData.name} 회수 완료`);
         }
 
+        // 랜덤 메시지 생성
+        function getRandomMessage(spirit) {
+            if (spirit.isDead || spirit.isCompleted) return spirit.status;
+            
+            const affection = spirit.parameters.affection || 0;
+            const now = Date.now();
+            const timeSinceLastFed = spirit.lastFed ? (now - spirit.lastFed) / 1000 : Infinity;
+            
+            let availableMessages = [];
+            
+            // 배고픔 (60초 이상 안 먹임)
+            if (timeSinceLastFed > 60) {
+                availableMessages = [...RANDOM_MESSAGES.hungry];
+            }
+            // 잠 (조명에 따라)
+            else if (Math.random() < 0.15) { // 15% 확률로 잠
+                if (lightMode) {
+                    availableMessages = [...RANDOM_MESSAGES.napLight];
+                } else {
+                    availableMessages = [...RANDOM_MESSAGES.sleepDark];
+                }
+            }
+            // 애정도별 메시지
+            else if (affection >= 100) {
+                availableMessages = [...RANDOM_MESSAGES.affectionVeryHigh, ...RANDOM_MESSAGES.basic];
+            } else if (affection >= 50) {
+                availableMessages = [...RANDOM_MESSAGES.affectionHigh, ...RANDOM_MESSAGES.basic];
+            } else if (affection >= 30) {
+                availableMessages = [...RANDOM_MESSAGES.affectionMedium, ...RANDOM_MESSAGES.basic];
+            } else if (affection >= 10) {
+                availableMessages = [...RANDOM_MESSAGES.affectionLow, ...RANDOM_MESSAGES.basic];
+            } else {
+                availableMessages = [...RANDOM_MESSAGES.affectionVeryLow, ...RANDOM_MESSAGES.basic];
+            }
+            
+            // 랜덤 선택
+            const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+            return randomMessage.replace('{name}', spirit.name);
+        }
+        
+        // 30초마다 랜덤 메시지 업데이트
+        function updateRandomMessages() {
+            spirits.forEach(spirit => {
+                if (!spirit.isDead && !spirit.isCompleted && !spirit.status.includes('을(를)')) {
+                    // 특정 행동 중이 아닐 때만 업데이트
+                    spirit.status = getRandomMessage(spirit);
+                }
+            });
+            updateAllSpiritCards();
+        }
+
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
@@ -2983,6 +3115,7 @@
         }, 300000);  // 300000ms = 5분
 
         setInterval(updateTimeDisplay, 1000);
+        setInterval(updateRandomMessages, 30000); // 30초마다 랜덤 메시지 업데이트
 
         // 초기화
         loadGame();
