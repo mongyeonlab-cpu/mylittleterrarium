@@ -1094,6 +1094,12 @@
                     decorations: [],
                     food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
                 };
+                
+                // 잘못된 음악 키 제거 (quest, lullaby 등 → classic, jazz 등)
+                if (inventory.music) {
+                    const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                    inventory.music = inventory.music.filter(m => validMusicKeys.includes(m));
+                }
                 terrarium = data.terrarium || {
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
@@ -1619,24 +1625,36 @@
             // 음악 인벤토리 (순서 고정: classic, jazz, rock, pop, ballad)
             const musicContainer = document.getElementById('musicInventory');
             if (!inventory.music) inventory.music = [];
-            console.log('Music inventory:', inventory.music);
+            console.log('=== Music Inventory Debug ===');
+            console.log('Music array:', inventory.music);
+            console.log('Music array length:', inventory.music.length);
+            
             if (inventory.music.length === 0) {
+                console.log('No music, showing empty state');
                 musicContainer.innerHTML = '<div class="inventory-item">없음</div>';
             } else {
                 const musicCounts = {};
                 inventory.music.forEach(m => {
+                    console.log('Processing music:', m);
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
                 console.log('Music counts:', musicCounts);
                 const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-                const musicHTML = musicOrder
-                    .filter(type => musicCounts[type])
-                    .map(type => `
+                const filteredMusic = musicOrder.filter(type => musicCounts[type]);
+                console.log('Filtered music types:', filteredMusic);
+                
+                const musicHTML = filteredMusic.map(type => {
+                    const html = `
                         <div class="inventory-item">
                             ${MUSIC_TYPES[type].icon} ×${musicCounts[type]}
                         </div>
-                    `).join('');
-                console.log('Music HTML:', musicHTML);
+                    `;
+                    console.log('Generated HTML for', type, ':', html);
+                    return html;
+                }).join('');
+                
+                console.log('Final music HTML length:', musicHTML.length);
+                console.log('Final music HTML:', musicHTML);
                 musicContainer.innerHTML = musicHTML || '<div class="inventory-item">없음</div>';
             }
 
