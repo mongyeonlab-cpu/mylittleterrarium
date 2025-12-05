@@ -2516,8 +2516,12 @@
         function renderEncyclopedia() {
             const grid = document.getElementById('encyclopediaGrid');
             
-            const statTypes = ['intelligent', 'strong', 'beautiful'];
-            const statLevels = ['low', 'mid', 'high'];
+            const statTypes = [
+                { key: 'nostat', name: '(수식어 없음)' },
+                { key: 'intelligent', name: '지적인 계열' },
+                { key: 'strong', name: '강한 계열' },
+                { key: 'beautiful', name: '아름다운 계열' }
+            ];
             
             // 속성별 그룹 정의
             const attributeGroups = [
@@ -2569,51 +2573,50 @@
                     const attributeData = ATTRIBUTE_NAMES[attrType];
                     if (!attributeData) return;
                     
-                    // 스탯 계열별로 서브 섹션
-                    html += `<div style="grid-column: 1 / -1; margin-top: 15px; margin-bottom: 10px;">
-                        <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; color: #888; padding-left: 10px; border-left: 3px solid var(--border);">
-                            ${attributeData.name}
+                    // 속성 아이콘만 표시 (이름 숨김)
+                    html += `<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.2rem; color: var(--text); display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 2rem;">${attributeData.icon}</span>
                         </h3>
                     </div>`;
                     
-                    // 수식어 없는 정령 (스탯 부족)
-                    const nostatCount = encyclopedia[`nostat-${attrType}`] || 0;
-                    if (nostatCount > 0 || attrType === 'normal') {
-                        const cardClass = nostatCount > 0 ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
-                        const displayIcon = nostatCount > 0 ? attributeData.icon : '❓';
-                        const displayName = nostatCount > 0 ? '(수식어 없음)' : '???????';
-                        const countText = nostatCount > 0 ? `${nostatCount}회` : '미달성';
+                    // 가로로 나열 (수식어 없음 + 3개 스탯 계열)
+                    statTypes.forEach(statInfo => {
+                        let count = 0;
+                        let displayName = '???????';
+                        let displayIcon = '❓';
+                        let isUnlocked = false;
                         
-                        html += `
-                            <div class="${cardClass}" style="min-height: 100px;">
-                                <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
-                                <div class="encyclopedia-name" style="font-size: 0.9rem;">${displayName}</div>
-                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${countText}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    statTypes.forEach(statType => {
-                        // 어떤 레벨이 달성되었는지 확인
-                        const lowCount = encyclopedia[`${statType}-low-${attrType}`] || 0;
-                        const midCount = encyclopedia[`${statType}-mid-${attrType}`] || 0;
-                        const highCount = encyclopedia[`${statType}-high-${attrType}`] || 0;
-                        const totalCount = lowCount + midCount + highCount;
-                        const isUnlocked = totalCount > 0;
-                        
-                        // 달성된 레벨 찾기 (우선순위: high > mid > low)
-                        let achievedLevel = 'mid';
-                        if (highCount > 0) achievedLevel = 'high';
-                        else if (midCount > 0) achievedLevel = 'mid';
-                        else if (lowCount > 0) achievedLevel = 'low';
-                        
-                        const statPrefix = EVOLUTION_TYPES[`${statType}-${achievedLevel}`].prefix;
-                        const statIcon = EVOLUTION_TYPES[`${statType}-${achievedLevel}`].icon;
+                        if (statInfo.key === 'nostat') {
+                            // 수식어 없는 정령
+                            count = encyclopedia[`nostat-${attrType}`] || 0;
+                            isUnlocked = count > 0;
+                            displayName = isUnlocked ? '(수식어 없음)' : '???????';
+                            displayIcon = isUnlocked ? attributeData.icon : '❓';
+                        } else {
+                            // 스탯 계열 정령
+                            const lowCount = encyclopedia[`${statInfo.key}-low-${attrType}`] || 0;
+                            const midCount = encyclopedia[`${statInfo.key}-mid-${attrType}`] || 0;
+                            const highCount = encyclopedia[`${statInfo.key}-high-${attrType}`] || 0;
+                            count = lowCount + midCount + highCount;
+                            isUnlocked = count > 0;
+                            
+                            if (isUnlocked) {
+                                // 달성된 레벨 찾기 (우선순위: high > mid > low)
+                                let achievedLevel = 'mid';
+                                if (highCount > 0) achievedLevel = 'high';
+                                else if (midCount > 0) achievedLevel = 'mid';
+                                else if (lowCount > 0) achievedLevel = 'low';
+                                
+                                const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
+                                const statIcon = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].icon;
+                                displayName = statPrefix;
+                                displayIcon = `${statIcon}${attributeData.icon}`;
+                            }
+                        }
                         
                         const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
-                        const displayIcon = isUnlocked ? `${statIcon}${attributeData.icon}` : '❓';
-                        const displayName = isUnlocked ? `${statPrefix}` : '???????';
-                        const countText = isUnlocked ? `${totalCount}회` : '미달성';
+                        const countText = isUnlocked ? `${count}회` : '미달성';
                         
                         html += `
                             <div class="${cardClass}" style="min-height: 100px;">
