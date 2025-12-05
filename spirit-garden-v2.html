@@ -982,12 +982,11 @@
         };
 
         const MUSIC_TYPES = {
-            quest: { name: '탐험의 레코드', icon: '⚔️', effect: '체력 +3, 지력 +1' },
-            lullaby: { name: '자장가 레코드', icon: '🌙', effect: '매력 +2, 지력 +1' },
-            march: { name: '행진곡 레코드', icon: '🎺', effect: '체력 +3, 지력 +1' },
-            ballad: { name: '발라드 레코드', icon: '🎵', effect: '매력 +3, 체력 +1' },
-            classical: { name: '클래식 레코드', icon: '🎻', effect: '지력 +3, 매력 +1' },
-            dance: { name: '댄스 레코드', icon: '💃', effect: '체력 +2, 매력 +2' }
+            classic: { name: '클래식 🎻', icon: '🎻', effect: '지력 +10' },
+            jazz: { name: '재즈 🎷', icon: '🎷', effect: '매력 +10' },
+            rock: { name: '록 🎸', icon: '🎸', effect: '체력 +10' },
+            pop: { name: '팝 🎤', icon: '🎤', effect: '지력 +5, 매력 +5' },
+            ballad: { name: '발라드 🎹', icon: '🎹', effect: '체력 +5, 매력 +5' }
         };
 
         const DECORATION_TYPES = {
@@ -1399,24 +1398,18 @@
             const musicData = MUSIC_TYPES[musicType];
             
             // 효과 적용
-            if (musicType === 'quest') {
-                spirit.parameters.strength += 3;
-                spirit.parameters.intelligence += 1;
-            } else if (musicType === 'lullaby') {
-                spirit.parameters.charm += 2;
-                spirit.parameters.intelligence += 1;
-            } else if (musicType === 'march') {
-                spirit.parameters.strength += 3;
-                spirit.parameters.intelligence += 1;
+            if (musicType === 'classic') {
+                spirit.parameters.intelligence += 10;
+            } else if (musicType === 'jazz') {
+                spirit.parameters.charm += 10;
+            } else if (musicType === 'rock') {
+                spirit.parameters.strength += 10;
+            } else if (musicType === 'pop') {
+                spirit.parameters.intelligence += 5;
+                spirit.parameters.charm += 5;
             } else if (musicType === 'ballad') {
-                spirit.parameters.charm += 3;
-                spirit.parameters.strength += 1;
-            } else if (musicType === 'classical') {
-                spirit.parameters.intelligence += 3;
-                spirit.parameters.charm += 1;
-            } else if (musicType === 'dance') {
-                spirit.parameters.strength += 2;
-                spirit.parameters.charm += 2;
+                spirit.parameters.strength += 5;
+                spirit.parameters.charm += 5;
             }
 
             // 애정도 증가 (상호작용)
@@ -1626,6 +1619,7 @@
             // 음악 인벤토리 (순서 고정: classic, jazz, rock, pop, ballad)
             const musicContainer = document.getElementById('musicInventory');
             if (!inventory.music) inventory.music = [];
+            console.log('Music inventory:', inventory.music);
             if (inventory.music.length === 0) {
                 musicContainer.innerHTML = '<div class="inventory-item">없음</div>';
             } else {
@@ -1633,14 +1627,17 @@
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
+                console.log('Music counts:', musicCounts);
                 const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-                musicContainer.innerHTML = musicOrder
+                const musicHTML = musicOrder
                     .filter(type => musicCounts[type])
                     .map(type => `
                         <div class="inventory-item">
                             ${MUSIC_TYPES[type].icon} ×${musicCounts[type]}
                         </div>
                     `).join('');
+                console.log('Music HTML:', musicHTML);
+                musicContainer.innerHTML = musicHTML || '<div class="inventory-item">없음</div>';
             }
 
             // 장식물 인벤토리 (순서 고정: fire, water, wind, earth, light, dark)
