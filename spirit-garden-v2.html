@@ -951,7 +951,10 @@
                 '{name}이(가) 테라리움 유리에 몸을 문지릅니다.',
                 '{name}이(가) 날개를 살짝 떨고 있습니다.',
                 '{name}이(가) 자신의 몸을 정리합니다.',
-                '{name}이(가) 무언가를 찾는 듯합니다.'
+                '{name}이(가) 무언가를 찾는 듯합니다.',
+                '{name}이(가) 외로워합니다.',
+                '{name}이(가) 심심해 보입니다.',
+                '{name}이(가) 한숨을 쉽니다.'
             ],
             // 배고픔
             hungry: [
@@ -1016,7 +1019,48 @@
                 '{name}이(가) 당신을 향한 사랑을 표현합니다.',
                 '{name}이(가) 당신의 손에 입맞춤합니다.',
                 '{name}이(가) 당신 없이는 못 산다는 듯 쳐다봅니다.'
-            ]
+            ],
+            // 음악 관련 (최근에 음악 들음)
+            music: [
+                '{name}이(가) {music}을(를) 흥얼거립니다.',
+                '{name}이(가) {music}에 맞춰 춤을 춥니다.',
+                '{name}이(가) {music}의 선율을 떠올립니다.',
+                '{name}이(가) 음악에 취해 있습니다.',
+                '{name}이(가) {music}의 여운에 젖어 있습니다.'
+            ],
+            // 장식물 관련
+            decorations: {
+                fire: [
+                    '{name}이(가) 용암석에서 흐르는 불을 바라봅니다.',
+                    '{name}이(가) 불꽃에 매료된 듯합니다.',
+                    '{name}이(가) 뜨거운 열기를 즐기고 있습니다.'
+                ],
+                water: [
+                    '{name}이(가) 분수의 물줄기를 구경합니다.',
+                    '{name}이(가) 물방울과 놀고 있습니다.',
+                    '{name}이(가) 시원한 물소리에 귀를 기울입니다.'
+                ],
+                wind: [
+                    '{name}이(가) 바람개비를 신기하게 바라봅니다.',
+                    '{name}이(가) 바람에 몸을 맡기고 있습니다.',
+                    '{name}이(가) 산들바람을 즐기고 있습니다.'
+                ],
+                earth: [
+                    '{name}이(가) 이끼 덮인 돌을 관찰합니다.',
+                    '{name}이(가) 흙냄새를 맡고 있습니다.',
+                    '{name}이(가) 대지의 기운을 느낍니다.'
+                ],
+                light: [
+                    '{name}이(가) 반짝이는 수정에 자신의 얼굴을 비춰봅니다.',
+                    '{name}이(가) 빛나는 수정을 구경합니다.',
+                    '{name}이(가) 영롱한 빛에 매혹되어 있습니다.'
+                ],
+                dark: [
+                    '{name}이(가) 달빛석을 조용히 바라봅니다.',
+                    '{name}이(가) 어두운 돌 옆에서 쉬고 있습니다.',
+                    '{name}이(가) 신비로운 어둠을 느낍니다.'
+                ]
+            }
         };
 
         const STAGE_REQUIREMENTS = {
@@ -1503,6 +1547,7 @@
             spirit.parameters.affection += 2;
 
             spirit.lastMusic = Date.now();
+            spirit.lastMusicType = musicType; // 마지막으로 들은 음악 저장
             spirit.status = `${musicData.name}을(를) 듣고 있습니다...`;
 
             // 일지 추가
@@ -3012,6 +3057,7 @@
             const affection = spirit.parameters.affection || 0;
             const now = Date.now();
             const timeSinceLastFed = spirit.lastFed ? (now - spirit.lastFed) / 1000 : Infinity;
+            const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
             
             let availableMessages = [];
             
@@ -3019,25 +3065,42 @@
             if (timeSinceLastFed > 60) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
             }
-            // 잠 (조명에 따라)
-            else if (Math.random() < 0.15) { // 15% 확률로 잠
+            // 최근에 음악 들음 (60초 이내)
+            else if (timeSinceLastMusic < 60 && spirit.lastMusicType) {
+                const musicName = MUSIC_TYPES[spirit.lastMusicType].name;
+                availableMessages = RANDOM_MESSAGES.music.map(msg => 
+                    msg.replace('{music}', musicName)
+                );
+            }
+            // 장식물 설치됨 (20% 확률)
+            else if (installedDecorations.length > 0 && Math.random() < 0.2) {
+                const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
+                if (RANDOM_MESSAGES.decorations[randomDeco]) {
+                    availableMessages = [...RANDOM_MESSAGES.decorations[randomDeco]];
+                }
+            }
+            // 잠 (조명에 따라, 15% 확률)
+            else if (Math.random() < 0.15) {
                 if (lightMode) {
                     availableMessages = [...RANDOM_MESSAGES.napLight];
                 } else {
                     availableMessages = [...RANDOM_MESSAGES.sleepDark];
                 }
             }
-            // 애정도별 메시지
-            else if (affection >= 100) {
-                availableMessages = [...RANDOM_MESSAGES.affectionVeryHigh, ...RANDOM_MESSAGES.basic];
-            } else if (affection >= 50) {
-                availableMessages = [...RANDOM_MESSAGES.affectionHigh, ...RANDOM_MESSAGES.basic];
-            } else if (affection >= 30) {
-                availableMessages = [...RANDOM_MESSAGES.affectionMedium, ...RANDOM_MESSAGES.basic];
-            } else if (affection >= 10) {
-                availableMessages = [...RANDOM_MESSAGES.affectionLow, ...RANDOM_MESSAGES.basic];
-            } else {
-                availableMessages = [...RANDOM_MESSAGES.affectionVeryLow, ...RANDOM_MESSAGES.basic];
+            
+            // 위 조건에 해당 안 되면 애정도별 메시지
+            if (availableMessages.length === 0) {
+                if (affection >= 100) {
+                    availableMessages = [...RANDOM_MESSAGES.affectionVeryHigh, ...RANDOM_MESSAGES.basic];
+                } else if (affection >= 50) {
+                    availableMessages = [...RANDOM_MESSAGES.affectionHigh, ...RANDOM_MESSAGES.basic];
+                } else if (affection >= 30) {
+                    availableMessages = [...RANDOM_MESSAGES.affectionMedium, ...RANDOM_MESSAGES.basic];
+                } else if (affection >= 10) {
+                    availableMessages = [...RANDOM_MESSAGES.affectionLow, ...RANDOM_MESSAGES.basic];
+                } else {
+                    availableMessages = [...RANDOM_MESSAGES.affectionVeryLow, ...RANDOM_MESSAGES.basic];
+                }
             }
             
             // 랜덤 선택
@@ -3048,9 +3111,15 @@
         // 30초마다 랜덤 메시지 업데이트
         function updateRandomMessages() {
             spirits.forEach(spirit => {
-                if (!spirit.isDead && !spirit.isCompleted && !spirit.status.includes('을(를)')) {
-                    // 특정 행동 중이 아닐 때만 업데이트
-                    spirit.status = getRandomMessage(spirit);
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    // 모든 정령의 메시지를 업데이트 (행동 중이어도)
+                    const now = Date.now();
+                    const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
+                    
+                    // 음악 듣는 중이 아니거나, 음악 들은지 10초 이상 지났으면 업데이트
+                    if (timeSinceLastMusic > 10 || !spirit.status.includes('듣고 있습니다')) {
+                        spirit.status = getRandomMessage(spirit);
+                    }
                 }
             });
             updateAllSpiritCards();
