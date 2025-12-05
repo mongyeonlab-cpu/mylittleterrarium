@@ -1804,9 +1804,14 @@
             }
             
             // evolutionKey 설정 (도감 등록용)
+            let finalEvolutionType = evolutionKey;
             if (hasLowStats) {
-                // 스탯 부족한 경우 속성만으로 키 생성
-                evolutionKey = attributeKey === 'normal' ? 'normal' : `nostat-${attributeKey}`;
+                // 스탯 부족한 경우
+                if (attributeKey === 'normal') {
+                    finalEvolutionType = 'normal';
+                } else {
+                    finalEvolutionType = 'nostat';
+                }
             }
             
             // 날개 타입 결정 (조명 누적 시간 기반)
@@ -1825,7 +1830,7 @@
             // 정령을 완성 상태로 표시 (아직 제거하지 않음)
             spirit.isCompleted = true;
             spirit.evolutionData = {
-                type: evolutionKey,
+                type: finalEvolutionType,
                 attributeType: attributeKey,
                 name: finalName,
                 icon: finalIcon,
