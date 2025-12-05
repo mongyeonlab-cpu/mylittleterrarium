@@ -1441,6 +1441,30 @@
                     const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
                     inventory.music = inventory.music.filter(m => validMusicKeys.includes(m));
                 }
+                
+                // 기존 장식물 키를 새 형식으로 변환 (fire → fire_common1 등)
+                const oldToNewDecoMapping = {
+                    fire: 'fire_common1',
+                    water: 'water_common1',
+                    wind: 'wind_common1',
+                    earth: 'earth_common1',
+                    light: 'light_common1',
+                    dark: 'dark_common1'
+                };
+                
+                if (inventory.decorations) {
+                    inventory.decorations = inventory.decorations.map(d => {
+                        // 이미 새 형식이면 그대로, 아니면 변환
+                        return oldToNewDecoMapping[d] || d;
+                    });
+                }
+                
+                if (installedDecorations) {
+                    installedDecorations = installedDecorations.map(d => {
+                        return oldToNewDecoMapping[d] || d;
+                    });
+                }
+                
                 terrarium = data.terrarium || {
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
