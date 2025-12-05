@@ -937,6 +937,7 @@
         let lastGatherTime = null;
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
+        let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -2958,17 +2959,43 @@
         }
 
         function toggleLight() {
+            const now = Date.now();
+            
+            // 현재 조명 변경 기록
+            lightToggleHistory.push(now);
+            
+            // 1분(60초) 이전 기록 제거
+            lightToggleHistory = lightToggleHistory.filter(time => (now - time) < 60000);
+            
+            // 1분 이내 5회 이상 변경 체크
+            const isSpamming = lightToggleHistory.length >= 5;
+            
             lightMode = !lightMode;
             
-            // 정령들이 즉시 놀라는 반응
+            // 정령들 반응
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
-                    if (lightMode) {
-                        // 조명 켜짐
-                        spirit.status = `${spirit.name}이(가) 갑자기 주변이 환해져 깜짝 놀랍니다.`;
+                    if (isSpamming) {
+                        // 조명 남용 시 화내거나 춤추기
+                        const spamMessages = [
+                            `${spirit.name}이(가) 당신의 장난에 화를 냅니다.`,
+                            `${spirit.name}이(가) 격한 춤을 춥니다.`,
+                            `${spirit.name}이(가) 조명 장난에 짜증을 냅니다.`,
+                            `${spirit.name}이(가) 어지러워합니다!`
+                        ];
+                        spirit.status = spamMessages[Math.floor(Math.random() * spamMessages.length)];
+                        
+                        // 애정도 -1
+                        spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 1);
                     } else {
-                        // 조명 꺼짐
-                        spirit.status = `${spirit.name}이(가) 갑자기 주변이 어두워져 깜짝 놀랍니다.`;
+                        // 정상적인 조명 전환 반응
+                        if (lightMode) {
+                            // 조명 켜짐
+                            spirit.status = `${spirit.name}이(가) 갑자기 주변이 환해져 깜짝 놀랍니다.`;
+                        } else {
+                            // 조명 꺼짐
+                            spirit.status = `${spirit.name}이(가) 갑자기 주변이 어두워져 깜짝 놀랍니다.`;
+                        }
                     }
                 }
             });
@@ -2980,7 +3007,12 @@
             if (document.getElementById('terrariumSection').classList.contains('active')) {
                 renderTerrariumManagement();
             }
-            showNotification(lightMode ? '☀️ 조명을 켰습니다' : '🌙 조명을 껐습니다');
+            
+            if (isSpamming) {
+                showNotification(lightMode ? '☀️ 조명을 켰습니다 (정령이 화를 냅니다!)' : '🌙 조명을 껐습니다 (정령이 화를 냅니다!)');
+            } else {
+                showNotification(lightMode ? '☀️ 조명을 켰습니다' : '🌙 조명을 껐습니다');
+            }
         }
 
         function applyLightMode() {
