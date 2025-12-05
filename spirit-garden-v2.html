@@ -1552,7 +1552,16 @@
             spirit.lastMusic = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.lastMusicType = musicType; // 마지막으로 들은 음악 저장
-            spirit.status = `${musicData.name}을(를) 듣고 있습니다...`;
+            
+            // 음악 관련 랜덤 메시지
+            const musicMessages = [
+                `${spirit.name}이(가) ${musicData.name}을(를) 흥얼거립니다.`,
+                `${spirit.name}이(가) ${musicData.name}에 맞춰 춤을 춥니다.`,
+                `${spirit.name}이(가) ${musicData.name}의 선율을 떠올립니다.`,
+                `${spirit.name}이(가) 음악에 취해 있습니다.`,
+                `${spirit.name}이(가) ${musicData.name}의 여운에 젖어 있습니다.`
+            ];
+            spirit.status = musicMessages[Math.floor(Math.random() * musicMessages.length)];
 
             // 일지 추가
             addLog(spirit, `${musicData.name}을(를) 들었습니다`);
@@ -1815,11 +1824,11 @@
             const params = spirit.parameters;
             const maxStat = Math.max(params.intelligence, params.strength, params.charm);
             
-            // 노멀 진화 체크 (모든 스탯이 10 미만)
+            // 노멀 진화 체크 (모든 스탯이 20 미만)
             // 하지만 속성이 있으면 속성 진화 가능
-            const hasLowStats = maxStat < 10;
+            const hasLowStats = maxStat < 20;
             
-            // 스탯 계열 결정 (10 이상인 경우만)
+            // 스탯 계열 결정 (20 이상인 경우만)
             let statType = '';
             let evolutionKey = '';
             
@@ -1834,12 +1843,12 @@
                 }
 
                 // 진화 단계 결정 (스탯 수치 기준)
-                if (maxStat >= 30) {
-                    evolutionKey = `${statType}-high`;  // 30+ : 세상의~
-                } else if (maxStat >= 20) {
-                    evolutionKey = `${statType}-mid`;  // 20-29 : 지적인/강한/아름다운
+                if (maxStat >= 80) {
+                    evolutionKey = `${statType}-high`;  // 80+ : 세상의~
+                } else if (maxStat >= 50) {
+                    evolutionKey = `${statType}-mid`;  // 50-79 : 지적인/강한/아름다운
                 } else {
-                    evolutionKey = `${statType}-low`;  // 10-19 : 똑똑한/튼튼한/귀여운
+                    evolutionKey = `${statType}-low`;  // 20-49 : 똑똑한/튼튼한/귀여운
                 }
             }
 
@@ -1930,8 +1939,8 @@
             }
             
             // 오필리아/오베론 조건 체크
-            // 모든 스탯 50 이상 + 모든 속성 100 근접 (90 이상)
-            const isPerfectStats = params.intelligence >= 50 && params.strength >= 50 && params.charm >= 50;
+            // 모든 스탯 70 이상 + 모든 속성 100 근접 (90 이상)
+            const isPerfectStats = params.intelligence >= 70 && params.strength >= 70 && params.charm >= 70;
             const isPerfectAttributes = Object.values(finalAttrs).every(val => val >= 90);
             
             if (isPerfectStats && isPerfectAttributes) {
@@ -3206,8 +3215,8 @@
             if (timeSinceLastFed > 300) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
             }
-            // 최근에 음악 들음 (60초 이내)
-            else if (timeSinceLastMusic < 60 && spirit.lastMusicType) {
+            // 최근에 음악 들음 (5분=300초 이내)
+            else if (timeSinceLastMusic < 300 && spirit.lastMusicType) {
                 const musicName = MUSIC_TYPES[spirit.lastMusicType].name;
                 availableMessages = RANDOM_MESSAGES.music.map(msg => 
                     msg.replace('{music}', musicName)
@@ -3262,14 +3271,8 @@
         function updateRandomMessages() {
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
-                    // 모든 정령의 메시지를 업데이트 (행동 중이어도)
-                    const now = Date.now();
-                    const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
-                    
-                    // 음악 듣는 중이 아니거나, 음악 들은지 10초 이상 지났으면 업데이트
-                    if (timeSinceLastMusic > 10 || !spirit.status.includes('듣고 있습니다')) {
-                        spirit.status = getRandomMessage(spirit);
-                    }
+                    // 모든 정령의 메시지를 30초마다 랜덤 업데이트
+                    spirit.status = getRandomMessage(spirit);
                 }
             });
             updateAllSpiritCards();
