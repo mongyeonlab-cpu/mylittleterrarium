@@ -588,8 +588,71 @@
             padding: 0;
         }
         
+        /* 하단 버튼 컨테이너 */
+        .bottom-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .bottom-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .bottom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .bottom-btn:active {
+            transform: translateY(0);
+        }
+        
+        .pause-btn {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .pause-btn.paused {
+            background: #4CAF50;
+        }
+        
+        .reset-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .light-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
         /* 모바일에서 조명 버튼 크기 조정 */
         @media (max-width: 768px) {
+            .bottom-buttons {
+                bottom: 15px;
+                right: 15px;
+                gap: 8px;
+            }
+            
+            .bottom-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
             .light-toggle {
                 bottom: 15px;
                 right: 15px;
@@ -703,9 +766,13 @@
     </style>
 </head>
 <body>
-    <button id="lightToggle" class="light-toggle" onclick="toggleLight()">
-        <span id="lightIcon">☀️</span>
-    </button>
+    <div class="bottom-buttons">
+        <button class="bottom-btn reset-btn" onclick="resetGame()" title="게임 초기화">🔄</button>
+        <button class="bottom-btn pause-btn" id="pauseBtn" onclick="togglePause()" title="일시정지">⏸️</button>
+        <button class="bottom-btn light-btn" onclick="toggleLight()" title="조명 켜기/끄기">
+            <span id="lightIcon">☀️</span>
+        </button>
+    </div>
 
     <h1>나의 작은 테라리움</h1>
     <div class="subtitle">Spirit Garden</div>
@@ -938,6 +1005,7 @@
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
+        let isPaused = false; // 게임 일시정지 상태
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -1473,11 +1541,20 @@
                 coins = data.coins || 0;
                 lastGatherTime = data.lastGatherTime || null;
                 currentTitle = data.currentTitle || 'none';
+                isPaused = data.isPaused || false;
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
                 if (titleSelect) {
                     titleSelect.value = currentTitle;
+                }
+                
+                // 일시정지 버튼 UI 반영
+                const pauseBtn = document.getElementById('pauseBtn');
+                if (pauseBtn && isPaused) {
+                    pauseBtn.textContent = '▶️';
+                    pauseBtn.classList.add('paused');
+                    pauseBtn.title = '재개';
                 }
 
                 // 설치된 장식물로 환경 재계산
@@ -1508,7 +1585,8 @@
                 lightMode,
                 coins,
                 lastGatherTime,
-                currentTitle
+                currentTitle,
+                isPaused
             }));
         }
 
@@ -3505,6 +3583,85 @@
                 if (icon) icon.textContent = '🌙';
             }
         }
+        
+        // 일시정지 토글
+        function togglePause() {
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            
+            if (isPaused) {
+                pauseBtn.textContent = '▶️';
+                pauseBtn.classList.add('paused');
+                pauseBtn.title = '재개';
+                showNotification('⏸️ 게임이 일시정지되었습니다');
+            } else {
+                pauseBtn.textContent = '⏸️';
+                pauseBtn.classList.remove('paused');
+                pauseBtn.title = '일시정지';
+                showNotification('▶️ 게임이 재개되었습니다');
+            }
+            
+            saveGame();
+        }
+        
+        // 게임 리셋
+        function resetGame() {
+            if (!confirm('⚠️ 정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!')) {
+                return;
+            }
+            
+            if (!confirm('⚠️ 다시 한 번 확인합니다.\n정말로 모든 데이터를 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            // 모든 데이터 초기화
+            spirits = [];
+            collection = [];
+            encyclopedia = {};
+            inventory = {
+                music: [],
+                decorations: [],
+                food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
+            };
+            terrarium = {
+                fire: 0,
+                water: 0,
+                wind: 0,
+                earth: 0,
+                light: 0,
+                dark: 0
+            };
+            installedDecorations = [];
+            lightMode = true;
+            coins = 0;
+            currentTitle = 'none';
+            lastGatherTime = null;
+            isPaused = false;
+            
+            // localStorage 삭제
+            localStorage.removeItem('spiritGardenV2');
+            
+            // UI 업데이트
+            renderSpirits();
+            renderInventory();
+            updateCoinDisplay();
+            applyLightMode();
+            renderEncyclopedia();
+            renderAlbum();
+            
+            const titleSelect = document.getElementById('titleSelect');
+            if (titleSelect) {
+                titleSelect.value = 'none';
+            }
+            
+            const pauseBtn = document.getElementById('pauseBtn');
+            if (pauseBtn) {
+                pauseBtn.textContent = '⏸️';
+                pauseBtn.classList.remove('paused');
+            }
+            
+            showNotification('🔄 게임이 초기화되었습니다');
+        }
 
         function renderTerrariumManagement() {
             // 환경 바 업데이트 (최대 250)
@@ -3749,7 +3906,10 @@
         }
         
         // 30초마다 랜덤 메시지 업데이트
+        // 30초마다 랜덤 메시지 업데이트
         function updateRandomMessages() {
+            if (isPaused) return; // 일시정지 중이면 실행 안 함
+            
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
                     // 모든 정령의 메시지를 30초마다 랜덤 업데이트
@@ -3769,6 +3929,8 @@
         
         // 5분 방치 체크 (애정도 감소)
         function checkNeglect() {
+            if (isPaused) return; // 일시정지 중이면 실행 안 함
+            
             const now = Date.now();
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
@@ -3865,6 +4027,8 @@
 
         // 만족도 업데이트 (1분마다)
         setInterval(() => {
+            if (isPaused) return; // 일시정지 중이면 실행 안 함
+            
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
                 
