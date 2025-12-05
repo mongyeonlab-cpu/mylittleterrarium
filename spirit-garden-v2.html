@@ -2782,7 +2782,19 @@
                 const iconTitle = appearance ? `title="${appearance}"` : '';
 
                 return `
-                    <div class="spirit-card">
+                    <div class="spirit-card" style="position: relative;">
+                        ${(() => {
+                            const satisfaction = spirit.satisfaction || 'mid';
+                            const satisfactionIcons = { high: '😊', mid: '😐', low: '😞' };
+                            const satisfactionTexts = { high: '만족', mid: '보통', low: '불만' };
+                            const satisfactionColors = { high: '#4caf50', mid: '#ff9800', low: '#f44336' };
+                            return `
+                                <div style="position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: ${satisfactionColors[satisfaction]}22; border: 1px solid ${satisfactionColors[satisfaction]}; border-radius: 12px; font-size: 0.75rem;">
+                                    <span style="font-size: 1rem;">${satisfactionIcons[satisfaction]}</span>
+                                    <span style="font-weight: 600; color: ${satisfactionColors[satisfaction]};">${satisfactionTexts[satisfaction]}</span>
+                                </div>
+                            `;
+                        })()}
                         <div class="spirit-header">
                             <div class="spirit-icon" ${iconTitle} style="cursor: help;">${icon}</div>
                             <div class="spirit-info">
@@ -2800,18 +2812,6 @@
                             <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
                             <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
                         </div>
-                        ${(() => {
-                            const satisfaction = spirit.satisfaction || 'mid';
-                            const satisfactionIcons = { high: '😊', mid: '😐', low: '😞' };
-                            const satisfactionTexts = { high: '만족', mid: '보통', low: '불만' };
-                            const satisfactionColors = { high: '#4caf50', mid: '#ff9800', low: '#f44336' };
-                            return `
-                                <div style="margin-top: 8px; padding: 8px; background: ${satisfactionColors[satisfaction]}22; border: 1px solid ${satisfactionColors[satisfaction]}; border-radius: 4px; text-align: center;">
-                                    <span style="font-size: 1.2rem;">${satisfactionIcons[satisfaction]}</span>
-                                    <span style="font-weight: 600; color: ${satisfactionColors[satisfaction]}; margin-left: 4px;">만족도: ${satisfactionTexts[satisfaction]}</span>
-                                </div>
-                            `;
-                        })()}
                         <div class="spirit-status">${spirit.status}</div>
                         ${spirit.logs && spirit.logs.length > 0 ? `
                             <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
