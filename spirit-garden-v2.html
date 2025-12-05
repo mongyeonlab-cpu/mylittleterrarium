@@ -3108,6 +3108,32 @@
 
             // 환경 재계산
             recalculateTerrariumEnvironment();
+            
+            // 정령들이 사라진 장식을 찾는 메시지 (3분 이내 랜덤)
+            spirits.forEach(spirit => {
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    const searchMessages = [
+                        `${spirit.name}이(가) ${decoData.name}이(가) 어디갔는지 찾습니다.`,
+                        `${spirit.name}이(가) ${decoData.name}을(를) 두리번거리며 찾습니다.`,
+                        `${spirit.name}이(가) 사라진 ${decoData.name}을(를) 찾아 헤맵니다.`,
+                        `${spirit.name}이(가) ${decoData.name}이(가) 없어져서 슬퍼합니다.`,
+                        `${spirit.name}이(가) ${decoData.name}이(가) 그리워 보입니다.`
+                    ];
+                    const randomMessage = searchMessages[Math.floor(Math.random() * searchMessages.length)];
+                    
+                    // 0~180초(3분) 사이 랜덤 타이밍
+                    const randomDelay = Math.random() * 180000; // 0 ~ 180000ms (0 ~ 3분)
+                    
+                    setTimeout(() => {
+                        // 타임아웃 실행 시점에도 정령이 살아있고 완성되지 않았는지 재확인
+                        const currentSpirit = spirits.find(s => s.id === spirit.id);
+                        if (currentSpirit && !currentSpirit.isDead && !currentSpirit.isCompleted) {
+                            currentSpirit.status = randomMessage;
+                            updateSpiritCard(currentSpirit);
+                        }
+                    }, randomDelay);
+                }
+            });
 
             saveGame();
             renderTerrariumManagement();
