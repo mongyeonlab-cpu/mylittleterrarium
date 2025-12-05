@@ -1480,6 +1480,7 @@
 
             // 일지 추가
             addLog(spirit, `${FOOD_NAMES[foodType]}를 먹었습니다`);
+            addLog(spirit, '맛있게 먹었습니다!');
 
             // 성충 체크 (100 이상이면 무조건 완료)
             if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
@@ -1600,6 +1601,7 @@
 
             // 일지 추가
             addLog(spirit, '쓰다듬었습니다');
+            addLog(spirit, spirit.status);
 
             saveGame();
             updateSpiritCard(spirit);
@@ -2994,6 +2996,9 @@
                         ];
                         spirit.status = spamMessages[Math.floor(Math.random() * spamMessages.length)];
                         
+                        // 일지 추가
+                        addLog(spirit, spirit.status);
+                        
                         // 애정도 -1
                         spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 1);
                     } else {
@@ -3005,6 +3010,9 @@
                             // 조명 꺼짐
                             spirit.status = `${spirit.name}이(가) 갑자기 주변이 어두워져 깜짝 놀랍니다.`;
                         }
+                        
+                        // 일지 추가
+                        addLog(spirit, spirit.status);
                     }
                 }
             });
@@ -3187,6 +3195,10 @@
                         if (currentSpirit && !currentSpirit.isDead && !currentSpirit.isCompleted) {
                             console.log(`${currentSpirit.name}: 장식물 반응 표시 - "${randomMessage}"`);
                             currentSpirit.status = randomMessage;
+                            
+                            // 일지 추가
+                            addLog(currentSpirit, randomMessage);
+                            
                             updateSpiritCard(currentSpirit);
                         }
                     }, randomDelay);
@@ -3272,7 +3284,15 @@
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
                     // 모든 정령의 메시지를 30초마다 랜덤 업데이트
-                    spirit.status = getRandomMessage(spirit);
+                    const oldStatus = spirit.status;
+                    const newStatus = getRandomMessage(spirit);
+                    
+                    // 메시지가 변경되었고, 특정 시스템 메시지가 아니면 일지에 기록
+                    if (newStatus !== oldStatus && !newStatus.includes('듣고 있습니다')) {
+                        addLog(spirit, newStatus);
+                    }
+                    
+                    spirit.status = newStatus;
                 }
             });
             updateAllSpiritCards();
@@ -3305,6 +3325,9 @@
                         `${spirit.name}이(가) 관심을 원합니다... (애정도 -2)`
                     ];
                     spirit.status = neglectMessages[Math.floor(Math.random() * neglectMessages.length)];
+                    
+                    // 일지 추가
+                    addLog(spirit, spirit.status);
                     
                     saveGame();
                     console.log(`${spirit.name}: 5분 방치, 애정도 -2`);
