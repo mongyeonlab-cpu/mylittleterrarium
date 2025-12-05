@@ -3211,12 +3211,12 @@
             
             let availableMessages = [];
             
-            // 배고픔 (5분=300초 이상 안 먹임)
+            // 배고픔 (5분=300초 이상 안 먹임) - 최우선
             if (timeSinceLastFed > 300) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
             }
-            // 최근에 음악 들음 (5분=300초 이내)
-            else if (timeSinceLastMusic < 300 && spirit.lastMusicType) {
+            // 최근에 음악 들음 (5분=300초 이내, 30% 확률로 음악 메시지)
+            else if (timeSinceLastMusic < 300 && spirit.lastMusicType && Math.random() < 0.3) {
                 const musicName = MUSIC_TYPES[spirit.lastMusicType].name;
                 availableMessages = RANDOM_MESSAGES.music.map(msg => 
                     msg.replace('{music}', musicName)
