@@ -2959,6 +2959,20 @@
 
         function toggleLight() {
             lightMode = !lightMode;
+            
+            // 정령들이 즉시 놀라는 반응
+            spirits.forEach(spirit => {
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    if (lightMode) {
+                        // 조명 켜짐
+                        spirit.status = `${spirit.name}이(가) 갑자기 주변이 환해져 깜짝 놀랍니다.`;
+                    } else {
+                        // 조명 꺼짐
+                        spirit.status = `${spirit.name}이(가) 갑자기 주변이 어두워져 깜짝 놀랍니다.`;
+                    }
+                }
+            });
+            
             applyLightMode();
             recalculateTerrariumEnvironment();
             saveGame();
@@ -3124,10 +3138,13 @@
                     // 0~180초(3분) 사이 랜덤 타이밍
                     const randomDelay = Math.random() * 180000; // 0 ~ 180000ms (0 ~ 3분)
                     
+                    console.log(`${spirit.name}: ${randomDelay/1000}초 후에 "${randomMessage}" 표시 예정`);
+                    
                     setTimeout(() => {
                         // 타임아웃 실행 시점에도 정령이 살아있고 완성되지 않았는지 재확인
                         const currentSpirit = spirits.find(s => s.id === spirit.id);
                         if (currentSpirit && !currentSpirit.isDead && !currentSpirit.isCompleted) {
+                            console.log(`${currentSpirit.name}: 장식물 반응 표시 - "${randomMessage}"`);
                             currentSpirit.status = randomMessage;
                             updateSpiritCard(currentSpirit);
                         }
@@ -3170,6 +3187,15 @@
                 if (RANDOM_MESSAGES.decorations[randomDeco]) {
                     availableMessages = [...RANDOM_MESSAGES.decorations[randomDeco]];
                 }
+            }
+            // 테라리움이 텅 비어있음 (30% 확률)
+            else if (installedDecorations.length === 0 && Math.random() < 0.3) {
+                availableMessages = [
+                    `${spirit.name}이(가) 텅 빈 테라리움 안을 빙글빙글 돌아다닙니다.`,
+                    `${spirit.name}이(가) 심심해 보입니다.`,
+                    `${spirit.name}이(가) 아무것도 없는 공간을 두리번거립니다.`,
+                    `${spirit.name}이(가) 무료해 보입니다.`
+                ];
             }
             // 잠 (조명에 따라, 15% 확률)
             else if (Math.random() < 0.15) {
