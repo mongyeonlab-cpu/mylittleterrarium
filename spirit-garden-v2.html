@@ -675,6 +675,12 @@
                 gap: 15px !important;
             }
             
+            /* 테라리움 장식물 목록 1열로 변경 */
+            #installedDecorList > div,
+            #terrariumDecorList > div {
+                grid-template-columns: 1fr !important;
+            }
+            
             /* 상점 섹션 패딩 조정 */
             .shop-section {
                 padding: 20px !important;
@@ -859,7 +865,14 @@
         <div style="max-width: 1000px; margin: 0 auto;">
             <div style="text-align: center; margin-bottom: 30px;">
                 <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🏪 정령 상점</h2>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--fire);">보유 코인: <span id="shopCoinDisplay">0</span> 💰</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--fire); margin-bottom: 20px;">보유 코인: <span id="shopCoinDisplay">0</span> 💰</div>
+                
+                <!-- 카테고리 선택 드롭다운 -->
+                <select id="shopCategorySelect" onchange="changeShopCategory()" style="padding: 12px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; min-width: 200px;">
+                    <option value="food">🍎 먹이</option>
+                    <option value="decoration">🌳 장식물</option>
+                    <option value="music">🎵 레코드</option>
+                </select>
             </div>
 
             <div class="shop-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
@@ -880,8 +893,15 @@
 
     <div id="terrariumSection" class="section">
         <div style="max-width: 800px; margin: 0 auto;">
+            <!-- 테라리움 환경 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">테라리움 환경</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">테라리움 환경</h2>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
+                        <span style="font-weight: 600; color: #666;">전체 품질:</span>
+                        <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
+                    </div>
+                </div>
                 <div class="env-bars" style="display: grid; gap: 12px;">
                     <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
                         <span style="font-size: 1.5rem;">🔥</span>
@@ -928,12 +948,14 @@
                 </div>
             </div>
 
+            <!-- 설치된 장식물 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 10px;">설치된 장식물</h2>
                 <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;" id="installedCount">0 / 20</div>
                 <div id="installedDecorList"></div>
             </div>
 
+            <!-- 인벤토리 장식물 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
                 <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">인벤토리 장식물</h2>
                 <div id="terrariumDecorList"></div>
@@ -986,7 +1008,8 @@
         let inventory = {
             music: [],
             decorations: [],
-            food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
+            food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth'],
+            medicine: [] // 약초
         };
         let terrarium = {
             fire: 0,
@@ -1004,6 +1027,7 @@
         let lastGatherTime = null;
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
+        let currentShopCategory = 'food'; // 현재 상점 카테고리 (food, decoration, music)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
 
@@ -1415,6 +1439,14 @@
             light: '빛나는 넥타',
             dark: '검은 꽃가루'
         };
+        
+        // 약초 아이템
+        const MEDICINE = {
+            name: '만병통치 약초',
+            icon: '🌿',
+            price: 50,
+            description: '정령의 질병을 치료합니다'
+        };
 
         // 상점 가격표
         const SHOP_PRICES = {
@@ -1729,6 +1761,32 @@
             return APPEARANCE_DESCRIPTIONS[stage][maxAttr] || '평범한 모습입니다.';
         }
         
+        // 품질 등급을 점수로 변환
+        function getQualityScore(quality) {
+            const qualityScores = {
+                'common': 1,   // 낮음
+                'rare': 3,     // 보통
+                'epic': 5      // 높음
+            };
+            return qualityScores[quality] || 1;
+        }
+        
+        // 테라리움 전체 품질 계산
+        function calculateTerrariumQuality() {
+            if (installedDecorations.length === 0) return 0;
+            
+            let totalQuality = 0;
+            installedDecorations.forEach(key => {
+                const decoData = DECORATION_TYPES[key];
+                if (decoData) {
+                    totalQuality += getQualityScore(decoData.quality);
+                }
+            });
+            
+            // 평균 품질 반환 (소수점 1자리)
+            return Math.round((totalQuality / installedDecorations.length) * 10) / 10;
+        }
+        
         // 만족도 계산 함수
         function calculateSatisfaction(spirit) {
             const stage = getStage(spirit.growth);
@@ -1736,78 +1794,60 @@
             // 죽었거나 완성된 정령은 만족도 계산 안 함
             if (spirit.isDead || spirit.isCompleted) return spirit.satisfaction || 'mid';
             
-            let score = 0;
+            // 장식물이 없으면 낮음
+            if (installedDecorations.length === 0) return 'low';
             
-            // 알 ~ 애벌레1: 장식물 수량 + 퀄리티만 영향
+            // 테라리움 전체 품질
+            const avgQuality = calculateTerrariumQuality();
+            
+            // 알 ~ 애벌레1: 품질만 확인
             if (stage === 'egg' || stage === 'larva1') {
-                // 장식물 개수 점수 (0-20개, 최대 50점)
-                const countScore = Math.min(50, installedDecorations.length * 2.5);
-                
-                // 퀄리티 점수 (최대 50점)
-                let qualityScore = 0;
-                installedDecorations.forEach(key => {
-                    const decoData = DECORATION_TYPES[key];
-                    if (decoData) {
-                        if (decoData.quality === 'epic') qualityScore += 3;
-                        else if (decoData.quality === 'rare') qualityScore += 2;
-                        else qualityScore += 1;
-                    }
-                });
-                qualityScore = Math.min(50, qualityScore);
-                
-                score = countScore + qualityScore;
+                // 품질 평균이 3(보통)을 초과하면 만족
+                if (avgQuality > 3) return 'high';
+                else if (avgQuality >= 2) return 'mid';
+                else return 'low';
             }
-            // 애벌레2 이상: 정령의 속성과 맞는 장식물일수록 만족도 높음
+            // 애벌레2, 애벌레3, 번데기: 품질 + 속성 유사도
             else {
+                // 품질 평균이 3 이하면 무조건 불만족
+                if (avgQuality <= 3) return 'low';
+                
                 // 정령의 현재 속성 계산
                 const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-                const finalAttrs = {};
+                const spiritAttrs = {};
                 for (let attr in foodAttrs) {
-                    finalAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrarium[attr] * 0.5);
+                    spiritAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrarium[attr] * 0.5);
                 }
                 
-                // 정령의 주 속성 찾기 (상위 2개)
-                const sortedAttrs = Object.entries(finalAttrs)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 2);
-                
-                const primaryAttr = sortedAttrs[0][0];
-                const secondaryAttr = sortedAttrs.length > 1 ? sortedAttrs[1][0] : null;
-                
-                // 장식물 개수 기본 점수 (최대 30점)
-                const countScore = Math.min(30, installedDecorations.length * 1.5);
-                
-                // 속성 매칭 점수 (최대 70점)
-                let matchScore = 0;
-                installedDecorations.forEach(key => {
-                    const decoData = DECORATION_TYPES[key];
-                    if (!decoData) return;
-                    
-                    const decoAttr = decoData.attr;
-                    const power = decoData.power;
-                    
-                    // 주 속성과 일치: power × 3점
-                    if (decoAttr === primaryAttr) {
-                        matchScore += power * 3;
+                // 정령의 주 속성 찾기 (가장 높은 속성)
+                let maxAttr = null;
+                let maxValue = 0;
+                for (let attr in spiritAttrs) {
+                    if (spiritAttrs[attr] > maxValue) {
+                        maxValue = spiritAttrs[attr];
+                        maxAttr = attr;
                     }
-                    // 부 속성과 일치: power × 2점
-                    else if (secondaryAttr && decoAttr === secondaryAttr) {
-                        matchScore += power * 2;
-                    }
-                    // 일치하지 않음: power × 0.5점
-                    else {
-                        matchScore += power * 0.5;
-                    }
-                });
-                matchScore = Math.min(70, matchScore);
+                }
                 
-                score = countScore + matchScore;
+                // 속성이 10 미만이면 속성이 명확하지 않음
+                if (maxValue < 10) {
+                    // 품질만으로 판단
+                    return avgQuality > 4 ? 'high' : 'mid';
+                }
+                
+                // 테라리움의 주 속성과 정령의 주 속성 비교
+                // 테라리움에서 정령의 주 속성이 가장 높아야 만족
+                const terrariumMaxAttr = Object.entries(terrarium)
+                    .sort((a, b) => b[1] - a[1])[0][0];
+                
+                if (terrariumMaxAttr === maxAttr) {
+                    // 속성 일치 + 품질 높음 = 만족
+                    return 'high';
+                } else {
+                    // 속성 불일치하지만 품질이 매우 높으면 보통
+                    return avgQuality > 4 ? 'mid' : 'low';
+                }
             }
-            
-            // 점수에 따른 만족도 결정
-            if (score >= 70) return 'high';
-            else if (score >= 35) return 'mid';
-            else return 'low';
         }
 
         function getNextStageRequirement(growth) {
@@ -1857,15 +1897,43 @@
 
         function renderFeedOptions() {
             if (!inventory.food) inventory.food = [];
+            if (!inventory.medicine) inventory.medicine = [];
             
             const modal = document.getElementById('feedModal');
+            const spirit = spirits.find(s => s.id === currentSpiritId);
+            
             const foodCounts = {};
             inventory.food.forEach(f => {
                 foodCounts[f] = (foodCounts[f] || 0) + 1;
             });
+            
+            let medicineSection = '';
+            if (spirit && spirit.isSick && inventory.medicine.length > 0) {
+                medicineSection = `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px;">
+                        <div style="font-weight: 700; color: #2e7d32; margin-bottom: 10px;">💊 치료</div>
+                        <button class="option-btn" onclick="giveMedicineFromModal(${currentSpiritId})" style="background: #4caf50; color: white;">
+                            <span class="option-icon">🌿</span>
+                            <div class="option-info">
+                                <div class="option-name">${MEDICINE.name} ×${inventory.medicine.length}</div>
+                                <div class="option-effect">병을 완전히 치료합니다</div>
+                            </div>
+                        </button>
+                    </div>
+                `;
+            } else if (spirit && spirit.isSick) {
+                medicineSection = `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #ffebee; border: 2px solid #f44336; border-radius: 8px;">
+                        <div style="font-weight: 700; color: #c62828; margin-bottom: 5px;">⚠️ 정령이 아픕니다!</div>
+                        <div style="font-size: 0.9rem; color: #666;">약초가 필요합니다. 상점에서 구매하세요.</div>
+                    </div>
+                `;
+            }
 
             const content = `
                 <div class="modal-title">무엇을 먹일까요?</div>
+                ${medicineSection}
+                <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">🍎 먹이</div>
                 <div class="food-grid">
                     ${Object.entries(foodCounts).map(([type, count]) => {
                         const isRare = type === 'light' || type === 'dark';
@@ -1885,6 +1953,11 @@
                 <button class="close-btn" onclick="closeModal('feedModal')">닫기</button>
             `;
             modal.querySelector('.modal-content').innerHTML = content;
+        }
+        
+        function giveMedicineFromModal(spiritId) {
+            giveMedicine(spiritId);
+            closeModal('feedModal');
         }
 
         function feedSpiritFromInventory(spiritId, foodType) {
@@ -2042,17 +2115,54 @@
                 return;
             }
 
+            const currentAffection = spirit.parameters.affection || 0;
             spirit.parameters.affection += 1;
             spirit.lastPat = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             
-            const messages = [
-                '정령이 기뻐합니다! 💕',
-                '정령이 당신을 따릅니다 ❤️',
-                '정령이 행복해 보입니다 ✨',
-                '정령이 편안해 보입니다 💖',
-                '정령이 당신을 좋아합니다 🥰'
-            ];
+            // 애정도에 따른 반응 메시지
+            let messages = [];
+            let notificationEmoji = '';
+            
+            if (currentAffection < 10) {
+                // 낯설어함, 경계함
+                messages = [
+                    `${spirit.name}이(가) 당신을 낯설어합니다...`,
+                    `${spirit.name}이(가) 경계하며 물러섭니다`,
+                    `${spirit.name}이(가) 조심스럽게 바라봅니다`,
+                    `${spirit.name}이(가) 당신의 손길을 두려워합니다`,
+                    `${spirit.name}이(가) 불안해하며 몸을 움츠립니다`,
+                    `${spirit.name}이(가) 당신이 누구인지 궁금해합니다`,
+                    `${spirit.name}이(가) 천천히 다가옵니다...`
+                ];
+                notificationEmoji = '😟';
+            } else if (currentAffection < 50) {
+                // 익숙해짐
+                messages = [
+                    `${spirit.name}이(가) 당신에게 익숙해졌습니다`,
+                    `${spirit.name}이(가) 편안해 보입니다`,
+                    `${spirit.name}이(가) 당신의 손길을 받아들입니다`,
+                    `${spirit.name}이(가) 조금씩 마음을 엽니다`,
+                    `${spirit.name}이(가) 당신을 신뢰하기 시작합니다`,
+                    `${spirit.name}이(가) 기분이 좋아 보입니다`,
+                    `${spirit.name}이(가) 당신 곁에 머뭅니다 ✨`
+                ];
+                notificationEmoji = '😊';
+            } else {
+                // 친해짐, 잘 따름
+                messages = [
+                    `${spirit.name}이(가) 당신을 무척 좋아합니다! 💕`,
+                    `${spirit.name}이(가) 당신을 따라다닙니다 ❤️`,
+                    `${spirit.name}이(가) 행복하게 당신을 바라봅니다`,
+                    `${spirit.name}이(가) 당신에게 애교를 부립니다 🥰`,
+                    `${spirit.name}이(가) 당신의 손을 비빕니다 💖`,
+                    `${spirit.name}이(가) 기뻐하며 날아오릅니다!`,
+                    `${spirit.name}이(가) 당신 곁을 떠나지 않으려 합니다`,
+                    `${spirit.name}이(가) 당신의 사랑을 온몸으로 느낍니다 ✨`
+                ];
+                notificationEmoji = '🥰';
+            }
+            
             spirit.status = messages[Math.floor(Math.random() * messages.length)];
 
             // 일지 추가
@@ -2061,7 +2171,56 @@
 
             saveGame();
             updateSpiritCard(spirit);
-            showNotification('쓰다듬었습니다 (애정 +1)');
+            showNotification(`${notificationEmoji} 쓰다듬었습니다 (애정 +1 → ${spirit.parameters.affection})`);
+        }
+        
+        // 약 먹이기 함수
+        function giveMedicine(spiritId) {
+            if (isPaused) {
+                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                return;
+            }
+            
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+            
+            if (!spirit.isSick) {
+                showNotification('이 정령은 건강합니다');
+                return;
+            }
+            
+            if (!inventory.medicine) inventory.medicine = [];
+            if (inventory.medicine.length === 0) {
+                showNotification('약초가 없습니다. 상점에서 구매하세요!');
+                return;
+            }
+            
+            // 약초 소모
+            inventory.medicine.pop();
+            
+            // 병 치료
+            spirit.isSick = false;
+            spirit.sickWarned = false;
+            delete spirit.sickTime;
+            spirit.lastInteraction = Date.now(); // 상호작용 시간 업데이트
+            
+            const healMessages = [
+                `${spirit.name}이(가) 약초를 먹고 건강해졌습니다! 💚`,
+                `${spirit.name}의 병이 완전히 나았습니다! ✨`,
+                `${spirit.name}이(가) 활기를 되찾았습니다! 🌟`,
+                `${spirit.name}이(가) 당신의 보살핌에 감사합니다 💕`
+            ];
+            
+            spirit.status = healMessages[Math.floor(Math.random() * healMessages.length)];
+            
+            // 일지 추가
+            addLog(spirit, '약초를 먹고 건강해졌습니다');
+            addLog(spirit, spirit.status);
+            
+            saveGame();
+            updateSpiritCard(spirit);
+            renderInventory();
+            showNotification(`🌿 ${spirit.name}의 병이 나았습니다!`);
         }
 
         function changeTitle() {
@@ -2078,6 +2237,12 @@
             
             showNotification(`칭호를 ${titleNames[currentTitle]}(으)로 변경했습니다`);
             saveGame();
+        }
+        
+        function changeShopCategory() {
+            const select = document.getElementById('shopCategorySelect');
+            currentShopCategory = select.value;
+            renderShop();
         }
 
         function goGather() {
@@ -2691,10 +2856,58 @@
                         );
                     }
                 });
+                
+                // 질병 체크 (5분마다, 이미 아프지 않은 경우)
+                if (!spirit.isSick) {
+                    checkForDisease(spirit);
+                }
             });
 
             saveGame();
             updateAllSpiritCards();
+        }
+        
+        // 질병 체크 함수
+        function checkForDisease(spirit) {
+            // 정령의 주 속성 찾기
+            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            let maxAttr = null;
+            let maxValue = 0;
+            
+            for (let attr in attrs) {
+                if (attrs[attr] > maxValue) {
+                    maxValue = attrs[attr];
+                    maxAttr = attr;
+                }
+            }
+            
+            // 속성이 너무 낮으면 체크 안 함
+            if (maxValue < 20) return;
+            
+            // 대립 속성 정의
+            const opposites = {
+                fire: 'water',
+                water: 'fire',
+                wind: 'earth',
+                earth: 'wind',
+                light: 'dark',
+                dark: 'light'
+            };
+            
+            const oppositeAttr = opposites[maxAttr];
+            if (!oppositeAttr) return;
+            
+            // 테라리움의 대립 속성이 정령의 주 속성보다 높으면 질병 위험
+            if (terrarium[oppositeAttr] > terrarium[maxAttr] && terrarium[oppositeAttr] >= 10) {
+                // 20% 확률로 질병 발생
+                if (Math.random() < 0.2) {
+                    spirit.isSick = true;
+                    spirit.sickTime = Date.now();
+                    spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
+                    addLog(spirit, '환경이 맞지 않아 병에 걸렸습니다');
+                    showNotification(`⚠️ ${spirit.name}이(가) 병에 걸렸습니다!`);
+                }
+            }
         }
 
         function checkSpiritStatus() {
@@ -2963,7 +3176,7 @@
                         ` : ''}
                         <div class="action-buttons">
                             <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
-                                먹이주기
+                                ${spirit.isSick ? '🌿 ' : ''}먹이주기
                             </button>
                             <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
                                 음악 듣기
@@ -2999,88 +3212,90 @@
 
             const items = [];
 
-            // 먹이 판매 (순서 고정)
-            if (inventory.food && inventory.food.length > 0) {
-                const foodCounts = {};
-                inventory.food.forEach(f => {
-                    foodCounts[f] = (foodCounts[f] || 0) + 1;
-                });
+            if (currentShopCategory === 'food') {
+                // 먹이 판매 (순서 고정)
+                if (inventory.food && inventory.food.length > 0) {
+                    const foodCounts = {};
+                    inventory.food.forEach(f => {
+                        foodCounts[f] = (foodCounts[f] || 0) + 1;
+                    });
 
-                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
-                foodOrder.filter(type => foodCounts[type]).forEach(type => {
-                    const count = foodCounts[type];
-                    const isRare = type === 'light' || type === 'dark';
-                    const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">${isRare ? '✨' : '🍎'}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
+                    const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                    foodOrder.filter(type => foodCounts[type]).forEach(type => {
+                        const count = foodCounts[type];
+                        const isRare = type === 'light' || type === 'dark';
+                        const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${isRare ? '✨' : '🍎'}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
+                                    </div>
                                 </div>
+                                <button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
                             </div>
-                            <button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
-                        </div>
-                    `);
-                });
-            }
+                        `);
+                    });
+                }
+            } else if (currentShopCategory === 'decoration') {
+                // 장식물 판매 (등급별 정렬)
+                if (inventory.decorations && inventory.decorations.length > 0) {
+                    const decorCounts = {};
+                    inventory.decorations.forEach(d => {
+                        decorCounts[d] = (decorCounts[d] || 0) + 1;
+                    });
 
-            // 장식물 판매 (등급별 정렬)
-            if (inventory.decorations && inventory.decorations.length > 0) {
-                const decorCounts = {};
-                inventory.decorations.forEach(d => {
-                    decorCounts[d] = (decorCounts[d] || 0) + 1;
-                });
-
-                // 모든 장식물 키를 가져와서 등급순으로 정렬
-                Object.keys(decorCounts).forEach(key => {
-                    const count = decorCounts[key];
-                    const decoData = DECORATION_TYPES[key];
-                    if (!decoData) return; // 데이터 없으면 스킵
-                    
-                    const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
-                    const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                    
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${decoData.name} ×${count}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
+                    // 모든 장식물 키를 가져와서 등급순으로 정렬
+                    Object.keys(decorCounts).forEach(key => {
+                        const count = decorCounts[key];
+                        const decoData = DECORATION_TYPES[key];
+                        if (!decoData) return; // 데이터 없으면 스킵
+                        
+                        const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
+                        const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
+                                    </div>
                                 </div>
+                                <button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
                             </div>
-                            <button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
-                        </div>
-                    `);
-                });
-            }
+                        `);
+                    });
+                }
+            } else if (currentShopCategory === 'music') {
+                // 음악 판매 (순서 고정)
+                if (inventory.music && inventory.music.length > 0) {
+                    const musicCounts = {};
+                    inventory.music.forEach(m => {
+                        musicCounts[m] = (musicCounts[m] || 0) + 1;
+                    });
 
-            // 음악 판매 (순서 고정)
-            if (inventory.music && inventory.music.length > 0) {
-                const musicCounts = {};
-                inventory.music.forEach(m => {
-                    musicCounts[m] = (musicCounts[m] || 0) + 1;
-                });
-
-                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-                musicOrder.filter(type => musicCounts[type]).forEach(type => {
-                    const count = musicCounts[type];
-                    const musicData = MUSIC_TYPES[type];
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">🎵</span>
-                                <div>
-                                    <div style="font-weight: 700;">${musicData.name} ×${count}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
+                    const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                    musicOrder.filter(type => musicCounts[type]).forEach(type => {
+                        const count = musicCounts[type];
+                        const musicData = MUSIC_TYPES[type];
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">🎵</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${musicData.name} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
+                                    </div>
                                 </div>
+                                <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
                             </div>
-                            <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
-                        </div>
-                    `);
-                });
+                        `);
+                    });
+                }
             }
 
             if (items.length === 0) {
@@ -3095,120 +3310,137 @@
             if (!container) return;
 
             const items = [];
-
-            // 일반 먹이 구매
-            ['fire', 'water', 'wind', 'earth'].forEach(type => {
-                items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">🍎</span>
-                            <div>
-                                <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
-                            </div>
-                        </div>
-                        <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px;">구매</button>
-                    </div>
-                `);
-            });
-
-            // 희귀 먹이 구매
-            ['light', 'dark'].forEach(type => {
-                items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">✨</span>
-                            <div>
-                                <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
-                            </div>
-                        </div>
-                        <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px;">구매</button>
-                    </div>
-                `);
-            });
-
-            // 음악 구매
-            Object.keys(MUSIC_TYPES).forEach(type => {
-                const musicData = MUSIC_TYPES[type];
-                items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">🎵</span>
-                            <div>
-                                <div style="font-weight: 700;">${musicData.name}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
-                            </div>
-                        </div>
-                        <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px;">구매</button>
-                    </div>
-                `);
-            });
-
-            // 장식물 구매 (등급별 그룹화)
-            const decorationsByQuality = {
-                common: [],
-                rare: [],
-                epic: []
-            };
             
-            Object.keys(DECORATION_TYPES).forEach(key => {
-                const decoData = DECORATION_TYPES[key];
-                decorationsByQuality[decoData.quality].push({ key, data: decoData });
-            });
-            
-            // 일반 장식물
-            items.push(`<div style="margin: 20px 0; padding: 10px; background: #f0f0f0; font-weight: 700;">🏠 일반 장식물</div>`);
-            decorationsByQuality.common.forEach(({ key, data }) => {
+            if (currentShopCategory === 'food') {
+                // 약초 구매 (제일 위에 표시)
                 items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #e8f5e9; border: 2px solid #4caf50; margin-bottom: 15px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">${data.icon}</span>
+                            <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
                             <div>
-                                <div style="font-weight: 700;">${data.name}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                                <div style="font-weight: 700; color: #2e7d32;">${MEDICINE.name}</div>
+                                <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${MEDICINE.price}💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                        <button onclick="buyItem('medicine', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px; background: #4caf50; color: white;">구매</button>
                     </div>
                 `);
-            });
-            
-            // 희귀 장식물
-            items.push(`<div style="margin: 20px 0; padding: 10px; background: #e3f2fd; font-weight: 700;">💎 희귀 장식물</div>`);
-            decorationsByQuality.rare.forEach(({ key, data }) => {
-                items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">💎${data.icon}</span>
-                            <div>
-                                <div style="font-weight: 700;">${data.name}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                
+                // 일반 먹이 구매
+                ['fire', 'water', 'wind', 'earth'].forEach(type => {
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">🍎</span>
+                                <div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
+                                </div>
                             </div>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px;">구매</button>
                         </div>
-                        <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
-                    </div>
-                `);
-            });
-            
-            // 최상급 장식물
-            items.push(`<div style="margin: 20px 0; padding: 10px; background: #fff3e0; font-weight: 700;">⭐ 최상급 장식물</div>`);
-            decorationsByQuality.epic.forEach(({ key, data }) => {
-                items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">⭐${data.icon}</span>
-                            <div>
-                                <div style="font-weight: 700;">${data.name}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
-                            </div>
-                        </div>
-                        <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
-                    </div>
-                `);
-            });
+                    `);
+                });
 
-            container.innerHTML = items.join('');
+                // 희귀 먹이 구매
+                ['light', 'dark'].forEach(type => {
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">✨</span>
+                                <div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
+                                </div>
+                            </div>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px;">구매</button>
+                        </div>
+                    `);
+                });
+            } else if (currentShopCategory === 'music') {
+                // 음악 구매
+                Object.keys(MUSIC_TYPES).forEach(type => {
+                    const musicData = MUSIC_TYPES[type];
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">🎵</span>
+                                <div>
+                                    <div style="font-weight: 700;">${musicData.name}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
+                                </div>
+                            </div>
+                            <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px;">구매</button>
+                        </div>
+                    `);
+                });
+            } else if (currentShopCategory === 'decoration') {
+                // 장식물 구매 (등급별 그룹화)
+                const decorationsByQuality = {
+                    common: [],
+                    rare: [],
+                    epic: []
+                };
+                
+                Object.keys(DECORATION_TYPES).forEach(key => {
+                    const decoData = DECORATION_TYPES[key];
+                    decorationsByQuality[decoData.quality].push({ key, data: decoData });
+                });
+                
+                // 일반 장식물
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #f0f0f0; font-weight: 700;">🏠 일반 장식물</div>`);
+                decorationsByQuality.common.forEach(({ key, data }) => {
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">${data.icon}</span>
+                                <div>
+                                    <div style="font-weight: 700;">${data.name}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                                </div>
+                            </div>
+                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                        </div>
+                    `);
+                });
+                
+                // 희귀 장식물
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #e3f2fd; font-weight: 700;">💎 희귀 장식물</div>`);
+                decorationsByQuality.rare.forEach(({ key, data }) => {
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">💎${data.icon}</span>
+                                <div>
+                                    <div style="font-weight: 700;">${data.name}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                                </div>
+                            </div>
+                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                        </div>
+                    `);
+                });
+                
+                // 최상급 장식물
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #fff3e0; font-weight: 700;">⭐ 최상급 장식물</div>`);
+                decorationsByQuality.epic.forEach(({ key, data }) => {
+                    items.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.5rem;">⭐${data.icon}</span>
+                                <div>
+                                    <div style="font-weight: 700;">${data.name}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                                </div>
+                            </div>
+                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                        </div>
+                    `);
+                });
+            }
+
+            container.innerHTML = items.length > 0 ? items.join('') : '<p style="color: #888; text-align: center; padding: 20px;">구매 가능한 물품이 없습니다</p>';
         }
 
         function sellItem(category, type) {
@@ -3262,6 +3494,10 @@
                 if (!inventory.decorations) inventory.decorations = [];
                 inventory.decorations.push(type);
                 showNotification(`${DECORATION_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
+            } else if (category === 'medicine') {
+                if (!inventory.medicine) inventory.medicine = [];
+                inventory.medicine.push('medicine');
+                showNotification(`🌿 ${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
             }
 
             saveGame();
@@ -3706,6 +3942,22 @@
                 if (bar) bar.style.width = `${(value / 50) * 100}%`;
                 if (valueSpan) valueSpan.textContent = value;
             });
+            
+            // 전체 품질 업데이트
+            const qualityEl = document.getElementById('terrariumQuality');
+            if (qualityEl) {
+                const avgQuality = calculateTerrariumQuality();
+                qualityEl.textContent = avgQuality.toFixed(1);
+                
+                // 품질에 따른 색상 변경
+                if (avgQuality > 4) {
+                    qualityEl.style.color = '#4caf50'; // 초록 (높음)
+                } else if (avgQuality > 3) {
+                    qualityEl.style.color = '#ff9800'; // 주황 (보통)
+                } else {
+                    qualityEl.style.color = '#f44336'; // 빨강 (낮음)
+                }
+            }
 
             // 설치된 장식물 개수 업데이트
             const installedCountEl = document.getElementById('installedCount');
@@ -3724,22 +3976,22 @@
                 });
 
                 installedContainer.innerHTML = `
-                    <div style="display: grid; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         ${Object.entries(installedCounts).map(([key, count]) => {
                             const decoData = DECORATION_TYPES[key];
                             if (!decoData) return '';
                             
                             const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                             return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border: 1px solid var(--border);">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
                                         <div>
-                                            <div style="font-weight: 700;">${decoData.name} ×${count}</div>
-                                            <div style="font-size: 0.85rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                            <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
                                         </div>
                                     </div>
-                                    <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 8px 16px; background: #dc3545; color: white;">
+                                    <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                                         회수
                                     </button>
                                 </div>
@@ -3766,23 +4018,23 @@
             const canInstall = installedDecorations.length < 20;
 
             listContainer.innerHTML = `
-                <div style="display: grid; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${Object.entries(decorCounts).map(([key, count]) => {
                         const decoData = DECORATION_TYPES[key];
                         if (!decoData) return '';
                         
                         const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                         return `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--bg); border: 1px solid var(--border);">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${decoData.name} ×${count}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                        <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
                                     </div>
                                 </div>
-                                <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 8px 16px;" ${!canInstall ? 'disabled' : ''}>
-                                    ${canInstall ? '설치' : '공간 부족'}
+                                <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
+                                    ${canInstall ? '설치' : '가득'}
                                 </button>
                             </div>
                         `;
@@ -3977,26 +4229,33 @@
                 }
                 
                 const timeSinceLastInteraction = (now - spirit.lastInteraction) / 1000; // 초
+                const minutesSinceInteraction = timeSinceLastInteraction / 60;
                 
-                // 5분(300초) 이상 방치 시 애정도 -2
-                if (timeSinceLastInteraction >= 300) {
-                    spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 2);
-                    spirit.lastInteraction = now; // 타이머 리셋
-                    
-                    // 심심해하는 메시지 표시
-                    const neglectMessages = [
-                        `${spirit.name}이(가) 외로워합니다... (애정도 -2)`,
-                        `${spirit.name}이(가) 심심해합니다... (애정도 -2)`,
-                        `${spirit.name}이(가) 당신을 기다리고 있습니다... (애정도 -2)`,
-                        `${spirit.name}이(가) 관심을 원합니다... (애정도 -2)`
-                    ];
-                    spirit.status = neglectMessages[Math.floor(Math.random() * neglectMessages.length)];
-                    
-                    // 일지 추가
-                    addLog(spirit, spirit.status);
-                    
+                // 아픈 상태에서 30분 방치 시 도망감
+                if (spirit.isSick && !spirit.sickWarned && minutesSinceInteraction >= 30) {
+                    spirit.sickWarned = true;
+                    spirit.status = `${spirit.name}이(가) 아파서 괴로워합니다... 🤒💔`;
+                    addLog(spirit, '⚠️ 아픈 상태로 오래 방치되고 있습니다!');
+                    showNotification(`⚠️ ${spirit.name}이(가) 매우 괴로워합니다! 곧 떠날 수 있습니다!`);
                     saveGame();
-                    console.log(`${spirit.name}: 5분 방치, 애정도 -2`);
+                }
+                
+                // 아픈 상태에서 1시간 방치 시 도망감
+                if (spirit.isSick && minutesSinceInteraction >= 60) {
+                    spirit.status = `${spirit.name}이(가) 테라리움을 떠났습니다... 😢`;
+                    addLog(spirit, '아픈 상태로 방치되어 떠났습니다');
+                    showNotification(`😢 ${spirit.name}이(가) 테라리움을 떠났습니다...`);
+                    deleteSpirit(spirit.id);
+                    return;
+                }
+                
+                // 건강한 상태에서 1시간(3600초) 방치 시 도망감
+                if (!spirit.isSick && timeSinceLastInteraction >= 3600) {
+                    spirit.status = `${spirit.name}이(가) 외로워서 테라리움을 떠났습니다... 😢`;
+                    addLog(spirit, '오래 방치되어 떠났습니다');
+                    showNotification(`😢 ${spirit.name}이(가) 외로워서 떠났습니다...`);
+                    deleteSpirit(spirit.id);
+                    return;
                 }
             });
             updateAllSpiritCards();
