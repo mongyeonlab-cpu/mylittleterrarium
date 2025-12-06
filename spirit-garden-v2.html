@@ -796,6 +796,28 @@
     <div id="gardenSection" class="section active">
         <div class="main-layout">
             <div class="inventory-panel">
+                <div style="margin-bottom: 16px;">
+                    <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">칭호 선택</label>
+                    <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
+                        <option value="none">없음 (기본)</option>
+                        <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
+                        <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
+                        <option value="musician">음악가 (레코드 확률 2배)</option>
+                        <option value="collector">수집가 (테라리움 물품 확률 2배)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label for="gatherLocationSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">채집 장소</label>
+                    <select id="gatherLocationSelect" onchange="changeGatherLocation()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
+                        <option value="garden">🌸 정원 (모든 속성)</option>
+                        <option value="lake">🌊 호수 (물·바람)</option>
+                        <option value="forest">🌲 숲 (땅·불)</option>
+                    </select>
+                </div>
+
+                <button class="walk-btn" onclick="goGather()" style="margin-bottom: 20px;">채집하기</button>
+
                 <div class="inventory-title">내 소지품</div>
                 
                 <div class="inventory-section">
@@ -806,7 +828,7 @@
                 </div>
 
                 <div class="inventory-section">
-                    <div class="inventory-label">🎵 음악</div>
+                    <div class="inventory-label">음악</div>
                     <div class="inventory-items" id="musicInventory">
                         <div class="inventory-item">없음</div>
                     </div>
@@ -818,19 +840,6 @@
                         <div class="inventory-item">없음</div>
                     </div>
                 </div>
-
-                <div style="margin-bottom: 12px;">
-                    <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">🏆 칭호 선택</label>
-                    <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
-                        <option value="none">없음 (기본)</option>
-                        <option value="hawk_eye">🦅 매의 눈 (모든 채집물 확률 1.5배)</option>
-                        <option value="gatherer">🍎 채집꾼 (먹이 확률 2배)</option>
-                        <option value="musician">🎵 음악가 (레코드 확률 2배)</option>
-                        <option value="collector">💎 수집가 (테라리움 물품 확률 2배)</option>
-                    </select>
-                </div>
-
-                <button class="walk-btn" onclick="goGather()">🌿 채집하기</button>
             </div>
 
             <div>
@@ -841,7 +850,7 @@
     </div>
 
     <div id="encyclopediaSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">📖 정령 도감</h2>
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">정령 도감</h2>
         <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
     </div>
 
@@ -871,7 +880,7 @@
                 <select id="shopCategorySelect" onchange="changeShopCategory()" style="padding: 12px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; min-width: 200px;">
                     <option value="food">🍎 먹이</option>
                     <option value="decoration">🌳 장식물</option>
-                    <option value="music">🎵 레코드</option>
+                    <option value="music">레코드</option>
                 </select>
             </div>
 
@@ -918,7 +927,7 @@
                         <span id="terrWaterValue" style="min-width: 30px; text-align: right;">0</span>
                     </div>
                     <div class="env-bar" style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.5rem;">🍃</span>
+                        <span style="font-size: 1.5rem;">🌬️</span>
                         <div class="env-bar-bg" style="flex: 1; height: 12px; background: var(--border);">
                             <div class="env-bar-fill" id="terrWindBar" style="height: 100%; background: var(--wind); width: 0%;"></div>
                         </div>
@@ -1001,8 +1010,8 @@
         </div>
     </div>
 
-    <script>
-        let spirits = [];
+
+    <script>      let spirits = [];
         let collection = [];
         let encyclopedia = {}; // 도감: { evolutionKey: count }
         let inventory = {
@@ -1028,6 +1037,7 @@
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
         let currentShopCategory = 'food'; // 현재 상점 카테고리 (food, decoration, music)
+        let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
 
@@ -1373,7 +1383,7 @@
         const ENV_ICONS = {
             fire: '🔥',
             water: '💧',
-            wind: '🍃',
+            wind: '🌬️',
             earth: '🌱',
             light: '✨',
             dark: '🌙'
@@ -1403,7 +1413,7 @@
             water_epic: { name: '인어의 눈물', icon: '🧜', attr: 'water', power: 3, quality: 'epic', price: 100 },
             
             // 바람 속성 (5개)
-            wind_common1: { name: '바람개비', icon: '🍃', attr: 'wind', power: 1, quality: 'common', price: 30 },
+            wind_common1: { name: '바람개비', icon: '🌬️', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_common2: { name: '부드러운 깃털', icon: '🪶', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_rare1: { name: '풍경', icon: '🎐', attr: 'wind', power: 2, quality: 'rare', price: 60 },
             wind_rare2: { name: '나비 표본', icon: '🦋', attr: 'wind', power: 2, quality: 'rare', price: 60 },
@@ -1448,7 +1458,198 @@
             description: '정령의 질병을 치료합니다'
         };
 
-        // 상점 가격표
+
+
+        // 도감 힌트 데이터
+        const ENCYCLOPEDIA_HINTS = {
+            // 전설
+            'titania': '빛의 정령들의 군주. 나비를 조종한다.',
+            'oberon': '어둠의 정령들의 군주. 나방을 조종한다.',
+            
+            // 백의 정령
+            'nostat-normal': '순수한 백색. 아무 속성도 깃들지 않은 정령.',
+            'intelligent-low-normal': '지혜롭지만 순수한 정령.',
+            'intelligent-mid-normal': '지적이며 순수한 정령.',
+            'intelligent-high-normal': '세상의 지혜를 담은 순수한 정령.',
+            'strong-low-normal': '튼튼하지만 순수한 정령.',
+            'strong-mid-normal': '강하며 순수한 정령.',
+            'strong-high-normal': '세상의 힘을 담은 순수한 정령.',
+            'beautiful-low-normal': '귀엽고 순수한 정령.',
+            'beautiful-mid-normal': '아름답고 순수한 정령.',
+            'beautiful-high-normal': '세상의 아름다움을 담은 순수한 정령.',
+            
+            // 불 속성
+            'nostat-fire': '불의 기운이 느껴지는 정령.',
+            'intelligent-low-fire': '똑똑한 불의 정령.',
+            'intelligent-mid-fire': '지적인 불의 정령.',
+            'intelligent-high-fire': '세상의 불을 다스리는 지혜로운 정령.',
+            'strong-low-fire': '튼튼한 불의 정령.',
+            'strong-mid-fire': '강한 불의 정령.',
+            'strong-high-fire': '세상의 불을 다스리는 강인한 정령.',
+            'beautiful-low-fire': '귀여운 불의 정령.',
+            'beautiful-mid-fire': '아름다운 불의 정령.',
+            'beautiful-high-fire': '세상의 불을 다스리는 매혹적인 정령.',
+            
+            // 물 속성
+            'nostat-water': '물의 기운이 느껴지는 정령.',
+            'intelligent-low-water': '똑똑한 물의 정령.',
+            'intelligent-mid-water': '지적인 물의 정령.',
+            'intelligent-high-water': '세상의 물을 다스리는 지혜로운 정령.',
+            'strong-low-water': '튼튼한 물의 정령.',
+            'strong-mid-water': '강한 물의 정령.',
+            'strong-high-water': '세상의 물을 다스리는 강인한 정령.',
+            'beautiful-low-water': '귀여운 물의 정령.',
+            'beautiful-mid-water': '아름다운 물의 정령.',
+            'beautiful-high-water': '세상의 물을 다스리는 매혹적인 정령.',
+            
+            // 바람 속성
+            'nostat-wind': '바람의 기운이 느껴지는 정령.',
+            'intelligent-low-wind': '똑똑한 바람의 정령.',
+            'intelligent-mid-wind': '지적인 바람의 정령.',
+            'intelligent-high-wind': '세상의 바람을 다스리는 지혜로운 정령.',
+            'strong-low-wind': '튼튼한 바람의 정령.',
+            'strong-mid-wind': '강한 바람의 정령.',
+            'strong-high-wind': '세상의 바람을 다스리는 강인한 정령.',
+            'beautiful-low-wind': '귀여운 바람의 정령.',
+            'beautiful-mid-wind': '아름다운 바람의 정령.',
+            'beautiful-high-wind': '세상의 바람을 다스리는 매혹적인 정령.',
+            
+            // 땅 속성
+            'nostat-earth': '땅의 기운이 느껴지는 정령.',
+            'intelligent-low-earth': '똑똑한 땅의 정령.',
+            'intelligent-mid-earth': '지적인 땅의 정령.',
+            'intelligent-high-earth': '세상의 땅을 다스리는 지혜로운 정령.',
+            'strong-low-earth': '튼튼한 땅의 정령.',
+            'strong-mid-earth': '강한 땅의 정령.',
+            'strong-high-earth': '세상의 땅을 다스리는 강인한 정령.',
+            'beautiful-low-earth': '귀여운 땅의 정령.',
+            'beautiful-mid-earth': '아름다운 땅의 정령.',
+            'beautiful-high-earth': '세상의 땅을 다스리는 매혹적인 정령.',
+            
+            // 빛 속성
+            'nostat-light': '빛의 기운이 강하게 느껴지는 정령.',
+            'intelligent-low-light': '똑똑한 빛의 정령.',
+            'intelligent-mid-light': '지적인 빛의 정령.',
+            'intelligent-high-light': '세상의 빛을 다스리는 지혜로운 정령.',
+            'strong-low-light': '튼튼한 빛의 정령.',
+            'strong-mid-light': '강한 빛의 정령.',
+            'strong-high-light': '세상의 빛을 다스리는 강인한 정령.',
+            'beautiful-low-light': '귀여운 빛의 정령.',
+            'beautiful-mid-light': '아름다운 빛의 정령.',
+            'beautiful-high-light': '세상의 빛을 다스리는 매혹적인 정령.',
+            
+            // 어둠 속성
+            'nostat-dark': '어둠의 기운이 강하게 느껴지는 정령.',
+            'intelligent-low-dark': '똑똑한 어둠의 정령.',
+            'intelligent-mid-dark': '지적인 어둠의 정령.',
+            'intelligent-high-dark': '세상의 어둠을 다스리는 지혜로운 정령.',
+            'strong-low-dark': '튼튼한 어둠의 정령.',
+            'strong-mid-dark': '강한 어둠의 정령.',
+            'strong-high-dark': '세상의 어둠을 다스리는 강인한 정령.',
+            'beautiful-low-dark': '귀여운 어둠의 정령.',
+            'beautiful-mid-dark': '아름다운 어둠의 정령.',
+            'beautiful-high-dark': '세상의 어둠을 다스리는 매혹적인 정령.',
+            
+            // 복합 속성 (간략하게)
+            'nostat-fire-water': '불과 물의 기운이 느껴지는 정령.',
+            'nostat-fire-wind': '불과 바람의 기운이 느껴지는 정령.',
+            'nostat-fire-earth': '불과 땅의 기운이 느껴지는 정령.',
+            'nostat-fire-light': '불과 빛의 기운이 느껴지는 정령.',
+            'nostat-fire-dark': '불과 어둠의 기운이 느껴지는 정령.',
+            'nostat-water-wind': '물과 바람의 기운이 느껴지는 정령.',
+            'nostat-water-earth': '물과 땅의 기운이 느껴지는 정령.',
+            'nostat-water-light': '물과 빛의 기운이 느껴지는 정령.',
+            'nostat-water-dark': '물과 어둠의 기운이 느껴지는 정령.',
+            'nostat-wind-earth': '바람과 땅의 기운이 느껴지는 정령.',
+            'nostat-wind-light': '바람과 빛의 기운이 느껴지는 정령.',
+            'nostat-wind-dark': '바람과 어둠의 기운이 느껴지는 정령.',
+            'nostat-earth-light': '땅과 빛의 기운이 느껴지는 정령.',
+            'nostat-earth-dark': '땅과 어둠의 기운이 느껴지는 정령.',
+            'nostat-light-dark': '빛과 어둠이 공존하는 신비로운 정령.',
+            'nostat-balanced': '모든 속성이 조화롭게 균형잡힌 정령.',
+            'nostat-multi': '여러 속성이 뒤섞인 혼돈의 정령.'
+        };
+
+        // 상태 키워드 시스템
+        function getStatusKeywords(spirit) {
+            const keywords = [];
+            const keywordColor = '#2a2a2a';  // 검정색 통일
+            
+            // 애정도 기반
+            if (spirit.parameters.affection >= 100) {
+                keywords.push({ text: '사랑이 가득한', color: keywordColor });
+            } else if (spirit.parameters.affection >= 70) {
+                keywords.push({ text: '애정 어린', color: keywordColor });
+            } else if (spirit.parameters.affection <= 10) {
+                keywords.push({ text: '경계하는', color: keywordColor });
+            }
+            
+            // 질병 상태
+            if (spirit.isSick) {
+                keywords.push({ text: '질병에 걸린', color: keywordColor });
+            }
+            
+            // 음악 청취 횟수 (musicListened 카운트)
+            if (spirit.musicListened >= 10) {
+                keywords.push({ text: '음악을 사랑하는', color: keywordColor });
+            }
+            
+            // 스탯 기반
+            if (spirit.parameters.intelligence >= 80) {
+                keywords.push({ text: '현명한', color: keywordColor });
+            }
+            if (spirit.parameters.strength >= 80) {
+                keywords.push({ text: '강인한', color: keywordColor });
+            }
+            if (spirit.parameters.charm >= 80) {
+                keywords.push({ text: '매혹적인', color: keywordColor });
+            }
+            
+            // 성장 단계 기반
+            const stage = getStage(spirit.growth);
+            if (stage === 'adult' && !spirit.isCompleted) {
+                keywords.push({ text: '번데기가 된', color: keywordColor });
+            }
+            
+            // 만족도 기반
+            if (spirit.satisfaction === 'high') {
+                keywords.push({ text: '행복한', color: keywordColor });
+            } else if (spirit.satisfaction === 'low') {
+                keywords.push({ text: '불만족스러운', color: keywordColor });
+            }
+            
+            // 방치 시간 기반 (30분 이상)
+            const timeSinceInteraction = Date.now() - (spirit.lastInteraction || Date.now());
+            if (timeSinceInteraction > 30 * 60 * 1000) {
+                keywords.push({ text: '외로운', color: keywordColor });
+            }
+            
+            // 테라리움 환경과 속성 일치도
+            const dominantAttr = getDominantAttribute(spirit);
+            const terrariumEnv = Object.keys(terrarium).reduce((a, b) => 
+                terrarium[a] > terrarium[b] ? a : b
+            );
+            if (dominantAttr === terrariumEnv && terrarium[terrariumEnv] >= 30) {
+                keywords.push({ text: '환경에 적응한', color: keywordColor });
+            }
+            
+            // 빛/어둠 시간 기반
+            if (spirit.lightTime >= 10) {
+                keywords.push({ text: '태양을 동경하는', color: keywordColor });
+            }
+            if (spirit.darkTime >= 10) {
+                keywords.push({ text: '어둠을 좋아하는', color: keywordColor });
+            }
+            
+            // 먹이 횟수 (feedCount 카운트)
+            if (spirit.feedCount >= 20) {
+                keywords.push({ text: '미식가', color: keywordColor });
+            }
+            
+            return keywords;
+        }
+
+                // 상점 가격표
         const SHOP_PRICES = {
             // 판매 가격 (인벤토리 → 코인)
             sell: {
@@ -1491,7 +1692,7 @@
             normal: { name: '백의 정령', icon: '⚪', desc: '순수한 백색의 빛을 지닌 정령.' },
             fire: { name: '화염의 정령', icon: '🔥', desc: '타오르는 열정을 간직한 화염의 정령.' },
             water: { name: '빙하의 정령', icon: '💧', desc: '차가운 지혜를 품은 물의 정령.' },
-            wind: { name: '질풍의 정령', icon: '🍃', desc: '자유로운 바람을 담은 질풍의 정령.' },
+            wind: { name: '질풍의 정령', icon: '🌬️', desc: '자유로운 바람을 담은 질풍의 정령.' },
             earth: { name: '대지의 정령', icon: '🌱', desc: '견고한 대지의 힘을 지닌 정령.' },
             light: { name: '광명의 정령', icon: '✨', desc: '찬란한 빛으로 가득한 광명의 정령.' },
             dark: { name: '암흑의 정령', icon: '🌙', desc: '신비로운 어둠을 담은 암흑의 정령.' },
@@ -1619,6 +1820,7 @@
                 coins,
                 lastGatherTime,
                 currentTitle,
+                currentGatherLocation,
                 isPaused
             }));
         }
@@ -1683,13 +1885,28 @@
                 birthTime: Date.now(),
                 logs: [],  // 일지
                 lightTime: 0,  // 빛 모드 누적 시간 (초)
-                darkTime: 0    // 어둠 모드 누적 시간 (초)
+                darkTime: 0,   // 어둠 모드 누적 시간 (초)
+                musicListened: 0,  // 음악 청취 횟수
+                feedCount: 0       // 먹이 횟수
             };
 
             spirits.push(spirit);
             saveGame();
             renderSpirits();
             showNotification(`${randomName}이(가) 태어났습니다! 🥚`);
+        }
+
+
+        function showAppearance(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+            
+            const appearance = getAppearanceDescription(spirit);
+            if (appearance) {
+                showNotification(`${spirit.name}의 모습: ${appearance}`);
+            } else {
+                showNotification(`${spirit.name}의 모습을 자세히 볼 수 없습니다.`);
+            }
         }
 
         function changeName(spiritId) {
@@ -1718,7 +1935,31 @@
             };
         }
 
-        function getStage(growth) {
+        // 정령의 주요 속성 찾기
+        function getDominantAttribute(spirit) {
+            if (!spirit.hiddenAttributes) {
+                return 'normal';
+            }
+            
+            let maxAttr = 'normal';
+            let maxValue = 0;
+            
+            for (let attr in spirit.hiddenAttributes) {
+                if (spirit.hiddenAttributes[attr] > maxValue) {
+                    maxValue = spirit.hiddenAttributes[attr];
+                    maxAttr = attr;
+                }
+            }
+            
+            // 속성값이 60 미만이면 normal (100에서 60으로 낮춤)
+            if (maxValue < 60) {
+                return 'normal';
+            }
+            
+            return maxAttr;
+        }
+
+                function getStage(growth) {
             if (growth >= STAGE_REQUIREMENTS.adult) return 'adult';
             if (growth >= STAGE_REQUIREMENTS.pupa) return 'pupa';
             if (growth >= STAGE_REQUIREMENTS.larva3) return 'larva3';
@@ -1808,11 +2049,8 @@
                 else if (avgQuality >= 2) return 'mid';
                 else return 'low';
             }
-            // 애벌레2, 애벌레3, 번데기: 품질 + 속성 유사도
+            // 애벌레2, 애벌레3, 번데기: 품질 + 속성 유사도 (난이도 완화)
             else {
-                // 품질 평균이 3 이하면 무조건 불만족
-                if (avgQuality <= 3) return 'low';
-                
                 // 정령의 현재 속성 계산
                 const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                 const spiritAttrs = {};
@@ -1832,21 +2070,29 @@
                 
                 // 속성이 10 미만이면 속성이 명확하지 않음
                 if (maxValue < 10) {
-                    // 품질만으로 판단
-                    return avgQuality > 4 ? 'high' : 'mid';
+                    // 품질만으로 판단 (완화)
+                    if (avgQuality > 3.5) return 'high';
+                    else if (avgQuality >= 2) return 'mid';
+                    else return 'low';
                 }
                 
                 // 테라리움의 주 속성과 정령의 주 속성 비교
-                // 테라리움에서 정령의 주 속성이 가장 높아야 만족
                 const terrariumMaxAttr = Object.entries(terrarium)
                     .sort((a, b) => b[1] - a[1])[0][0];
                 
-                if (terrariumMaxAttr === maxAttr) {
-                    // 속성 일치 + 품질 높음 = 만족
-                    return 'high';
+                // 속성 일치 확인 (완화: 정령 속성이 테라리움 상위 2개 안에 있으면 OK)
+                const topTerrariumAttrs = Object.entries(terrarium)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(([attr]) => attr);
+                
+                if (topTerrariumAttrs.includes(maxAttr)) {
+                    // 속성 일치 + 품질 적정 = 만족
+                    return avgQuality >= 2.5 ? 'high' : 'mid';
                 } else {
-                    // 속성 불일치하지만 품질이 매우 높으면 보통
-                    return avgQuality > 4 ? 'mid' : 'low';
+                    // 속성 불일치
+                    if (avgQuality > 4) return 'mid';
+                    else return 'low';
                 }
             }
         }
@@ -1914,31 +2160,27 @@
             let medicineSection = '';
             if (spirit && spirit.isSick && medicineCount > 0) {
                 medicineSection = `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border: 2px solid #4caf50;">
-                        <div style="font-weight: 700; color: #2e7d32; margin-bottom: 10px;">💊 치료</div>
-                        <button class="option-btn" onclick="giveMedicineFromModal(${currentSpiritId})" style="background: #4caf50; color: white;">
-                            <span class="option-icon">🌿</span>
-                            <div class="option-info">
-                                <div class="option-name">${MEDICINE.name} ×${medicineCount}</div>
-                                <div class="option-effect">병을 완전히 치료합니다</div>
-                            </div>
-                        </button>
-                    </div>
+                    <button class="option-btn" onclick="giveMedicineFromModal(${currentSpiritId})">
+                        <span class="option-icon">🌿</span>
+                        <div class="option-info">
+                            <div class="option-name">${MEDICINE.name} ×${medicineCount}</div>
+                            <div class="option-effect">병을 완전히 치료합니다</div>
+                        </div>
+                    </button>
                 `;
             } else if (spirit && spirit.isSick) {
                 medicineSection = `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #ffebee; border: 2px solid #f44336;">
-                        <div style="font-weight: 700; color: #c62828; margin-bottom: 5px;">⚠️ 정령이 아픕니다!</div>
-                        <div style="font-size: 0.9rem; color: #666;">약초가 필요합니다. 상점에서 구매하세요.</div>
+                    <div style="margin-bottom: 10px; padding: 10px; background: var(--card); border: 1px solid var(--border);">
+                        <div style="font-size: 0.9rem; color: #666;">정령이 아픕니다! 약초가 필요합니다.</div>
                     </div>
                 `;
             }
 
             const content = `
                 <div class="modal-title">무엇을 먹일까요?</div>
-                ${medicineSection}
                 <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">🍎 먹이</div>
                 <div class="food-grid">
+                    ${medicineSection}
                     ${Object.entries(foodCounts).map(([type, count]) => {
                         const isRare = type === 'light' || type === 'dark';
                         const gain = isRare ? 2 : 1;
@@ -1966,7 +2208,7 @@
 
         function feedSpiritFromInventory(spiritId, foodType) {
             if (isPaused) {
-                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                showNotification('게임이 일시정지 상태입니다');
                 return;
             }
             
@@ -2000,6 +2242,10 @@
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.status = '맛있게 먹었습니다!';
             spirit.parameters.affection += 1;
+            
+            // 먹이 횟수 증가
+            if (!spirit.feedCount) spirit.feedCount = 0;
+            spirit.feedCount += 1;
 
             // 일지 추가
             addLog(spirit, `${FOOD_NAMES[foodType]}를 먹었습니다`);
@@ -2051,7 +2297,7 @@
 
         function playMusic(spiritId, musicType, inventoryIndex) {
             if (isPaused) {
-                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                showNotification('게임이 일시정지 상태입니다');
                 return;
             }
             
@@ -2082,6 +2328,10 @@
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.lastMusicType = musicType; // 마지막으로 들은 음악 저장
             
+            // 음악 청취 횟수 증가
+            if (!spirit.musicListened) spirit.musicListened = 0;
+            spirit.musicListened += 1;
+            
             // 음악 관련 랜덤 메시지
             const musicMessages = [
                 `${spirit.name}이(가) ${musicData.name}을(를) 흥얼거립니다.`,
@@ -2102,12 +2352,12 @@
             saveGame();
             updateSpiritCard(spirit);
             renderInventory();
-            showNotification(`🎵 ${musicData.name}을(를) 들려주었습니다`);
+            showNotification(`${musicData.name}을(를) 들려주었습니다`);
         }
 
         function patSpirit(spiritId) {
             if (isPaused) {
-                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                showNotification('게임이 일시정지 상태입니다');
                 return;
             }
             
@@ -2149,20 +2399,20 @@
                     `${spirit.name}이(가) 조금씩 마음을 엽니다`,
                     `${spirit.name}이(가) 당신을 신뢰하기 시작합니다`,
                     `${spirit.name}이(가) 기분이 좋아 보입니다`,
-                    `${spirit.name}이(가) 당신 곁에 머뭅니다 ✨`
+                    `${spirit.name}이(가) 당신 곁에 머뭅니다`
                 ];
                 notificationEmoji = '😊';
             } else {
                 // 친해짐, 잘 따름
                 messages = [
-                    `${spirit.name}이(가) 당신을 무척 좋아합니다! 💕`,
-                    `${spirit.name}이(가) 당신을 따라다닙니다 ❤️`,
+                    `${spirit.name}이(가) 당신을 무척 좋아합니다!`,
+                    `${spirit.name}이(가) 당신을 따라다닙니다`,
                     `${spirit.name}이(가) 행복하게 당신을 바라봅니다`,
-                    `${spirit.name}이(가) 당신에게 애교를 부립니다 🥰`,
-                    `${spirit.name}이(가) 당신의 손을 비빕니다 💖`,
+                    `${spirit.name}이(가) 당신에게 애교를 부립니다`,
+                    `${spirit.name}이(가) 당신의 손을 비빕니다`,
                     `${spirit.name}이(가) 기뻐하며 날아오릅니다!`,
                     `${spirit.name}이(가) 당신 곁을 떠나지 않으려 합니다`,
-                    `${spirit.name}이(가) 당신의 사랑을 온몸으로 느낍니다 ✨`
+                    `${spirit.name}이(가) 당신의 사랑을 온몸으로 느낍니다`
                 ];
                 notificationEmoji = '🥰';
             }
@@ -2175,13 +2425,13 @@
 
             saveGame();
             updateSpiritCard(spirit);
-            showNotification(`${notificationEmoji} 쓰다듬었습니다 (애정 +1 → ${spirit.parameters.affection})`);
+            showNotification(`쓰다듬었습니다 (애정 +1 상승)`);
         }
         
         // 약 먹이기 함수
         function giveMedicine(spiritId) {
             if (isPaused) {
-                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                showNotification('게임이 일시정지 상태입니다');
                 return;
             }
             
@@ -2211,9 +2461,9 @@
             
             const healMessages = [
                 `${spirit.name}이(가) 약초를 먹고 건강해졌습니다! 💚`,
-                `${spirit.name}의 병이 완전히 나았습니다! ✨`,
+                `${spirit.name}의 병이 완전히 나았습니다!`,
                 `${spirit.name}이(가) 활기를 되찾았습니다! 🌟`,
-                `${spirit.name}이(가) 당신의 보살핌에 감사합니다 💕`
+                `${spirit.name}이(가) 당신의 보살핌에 감사합니다`
             ];
             
             spirit.status = healMessages[Math.floor(Math.random() * healMessages.length)];
@@ -2225,7 +2475,7 @@
             saveGame();
             updateSpiritCard(spirit);
             renderInventory();
-            showNotification(`🌿 ${spirit.name}의 병이 나았습니다!`);
+            showNotification(`${spirit.name}의 병이 나았습니다!`);
         }
 
         function changeTitle() {
@@ -2236,7 +2486,7 @@
                 'none': '없음',
                 'hawk_eye': '🦅 매의 눈',
                 'gatherer': '🍎 채집꾼',
-                'musician': '🎵 음악가',
+                'musician': '음악가',
                 'collector': '💎 수집가'
             };
             
@@ -2250,9 +2500,23 @@
             renderShop();
         }
 
+
+        function changeGatherLocation() {
+            const select = document.getElementById('gatherLocationSelect');
+            currentGatherLocation = select.value;
+            saveGame();
+            
+            const locationNames = {
+                garden: '🌸 정원',
+                lake: '🌊 호수',
+                forest: '🌲 숲'
+            };
+            showNotification(`채집 장소를 ${locationNames[currentGatherLocation]}(으)로 변경했습니다`);
+        }
+
         function goGather() {
             if (isPaused) {
-                showNotification('⏸️ 게임이 일시정지 상태입니다');
+                showNotification('게임이 일시정지 상태입니다');
                 return;
             }
             
@@ -2265,6 +2529,13 @@
                 showNotification(`${remainingTime}초 후에 다시 채집할 수 있습니다`);
                 return;
             }
+            
+            // 선택된 장소에서 바로 채집
+            gatherAtLocation(currentGatherLocation);
+        }
+        
+        function gatherAtLocation(location) {
+            const now = Date.now();
 
             if (!inventory.food) inventory.food = [];
             if (!inventory.music) inventory.music = [];
@@ -2281,55 +2552,78 @@
             };
             
             const baseBonus = currentTitle !== 'none' && titleBonus[currentTitle] ? titleBonus[currentTitle] : 1.0;
-            
-            // 60% 확률로 일반 먹이 발견 (화수풍지)
             const foodBonus = currentTitle === 'gatherer' ? 2.0 : baseBonus;
-            if (Math.random() < (0.6 * foodBonus)) {
-                const foodTypes = ['fire', 'water', 'wind', 'earth'];
-                const randomFood = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+            
+            // 장소별 먹이 타입
+            let locationFoodTypes = [];
+            let locationDecoTypes = [];
+            
+            if (location === 'garden') {
+                locationFoodTypes = ['fire', 'water', 'wind', 'earth'];  // 정원: 모든 기본 속성
+                locationDecoTypes = ['fire', 'water', 'wind', 'earth'];
+            } else if (location === 'lake') {
+                locationFoodTypes = ['water', 'wind'];  // 호수: 물, 바람
+                locationDecoTypes = ['water', 'wind'];
+            } else if (location === 'forest') {
+                locationFoodTypes = ['earth', 'fire'];  // 숲: 땅, 불
+                locationDecoTypes = ['earth', 'fire'];
+            }
+            
+            // 80% 확률로 일반 먹이 발견 (장소 고정)
+            if (Math.random() < (0.8 * foodBonus)) {
+                const randomFood = locationFoodTypes[Math.floor(Math.random() * locationFoodTypes.length)];
                 inventory.food.push(randomFood);
                 discoveries.push(`🍎 ${FOOD_NAMES[randomFood]}`);
             }
 
-            // 30% 확률로 희귀 먹이 발견 (빛암)
-            if (Math.random() < (0.3 * foodBonus)) {
+            // 40% 확률로 희귀 먹이 발견 (빛암)
+            if (Math.random() < (0.4 * foodBonus)) {
                 const rareFoodTypes = ['light', 'dark'];
                 const randomRareFood = rareFoodTypes[Math.floor(Math.random() * rareFoodTypes.length)];
                 inventory.food.push(randomRareFood);
-                discoveries.push(`✨ ${FOOD_NAMES[randomRareFood]}`);
+                discoveries.push(`${FOOD_NAMES[randomRareFood]}`);
             }
 
-            // 장식물 채집 (등급별 확률)
+            // 장식물 채집 (장소별 + 등급별 확률)
             const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
             
-            // 40% 확률로 일반(common) 장식물
-            if (Math.random() < (0.4 * decoBonus)) {
-                const commonDecos = Object.keys(DECORATION_TYPES).filter(key => 
-                    DECORATION_TYPES[key].quality === 'common'
-                );
-                const randomDeco = commonDecos[Math.floor(Math.random() * commonDecos.length)];
-                inventory.decorations.push(randomDeco);
-                discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
+            // 50% 확률로 일반(common) 장식물 (장소 고정)
+            if (Math.random() < (0.5 * decoBonus)) {
+                const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
+                    const deco = DECORATION_TYPES[key];
+                    return deco.quality === 'common' && locationDecoTypes.includes(deco.attribute);
+                });
+                if (commonDecos.length > 0) {
+                    const randomDeco = commonDecos[Math.floor(Math.random() * commonDecos.length)];
+                    inventory.decorations.push(randomDeco);
+                    discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
+                }
             }
             
-            // 15% 확률로 희귀(rare) 장식물
-            if (Math.random() < (0.15 * decoBonus)) {
-                const rareDecos = Object.keys(DECORATION_TYPES).filter(key => 
-                    DECORATION_TYPES[key].quality === 'rare'
-                );
-                const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
-                inventory.decorations.push(randomDeco);
-                discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
+            // 20% 확률로 희귀(rare) 장식물 (장소 고정)
+            if (Math.random() < (0.2 * decoBonus)) {
+                const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
+                    const deco = DECORATION_TYPES[key];
+                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attribute);
+                });
+                if (rareDecos.length > 0) {
+                    const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
+                    inventory.decorations.push(randomDeco);
+                    discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
+                }
             }
             
-            // 5% 확률로 최상급(epic) 장식물
-            if (Math.random() < (0.05 * decoBonus)) {
-                const epicDecos = Object.keys(DECORATION_TYPES).filter(key => 
-                    DECORATION_TYPES[key].quality === 'epic'
-                );
-                const randomDeco = epicDecos[Math.floor(Math.random() * epicDecos.length)];
-                inventory.decorations.push(randomDeco);
-                discoveries.push(`✨ ${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name} (최상급!)`);
+            // 8% 확률로 최상급(epic) 장식물 (장소 고정)
+            if (Math.random() < (0.08 * decoBonus)) {
+                const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
+                    const deco = DECORATION_TYPES[key];
+                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attribute);
+                });
+                if (epicDecos.length > 0) {
+                    const randomDeco = epicDecos[Math.floor(Math.random() * epicDecos.length)];
+                    inventory.decorations.push(randomDeco);
+                    discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name} (최상급!)`);
+                }
             }
 
             // 15% 확률로 음악 레코드 발견
@@ -2338,13 +2632,14 @@
                 const musicKeys = Object.keys(MUSIC_TYPES);
                 const randomMusic = musicKeys[Math.floor(Math.random() * musicKeys.length)];
                 inventory.music.push(randomMusic);
-                discoveries.push(`🎵 ${MUSIC_TYPES[randomMusic].name}`);
+                discoveries.push(`${MUSIC_TYPES[randomMusic].name}`);
             }
 
             if (discoveries.length === 0) {
                 showNotification('아무것도 발견하지 못했습니다...');
             } else {
-                showNotification(`채집: ${discoveries.join(', ')}`);
+                const locationNames = { garden: '🌸 정원', lake: '🌊 호수', forest: '🌲 숲' };
+                showNotification(`${locationNames[location]} 채집: ${discoveries.join(', ')}`);
             }
 
             lastGatherTime = now;
@@ -2363,17 +2658,17 @@
             // 일시정지 중이면 버튼 비활성화
             if (isPaused) {
                 gatherBtn.disabled = true;
-                gatherBtn.textContent = '🌿 채집하기 (일시정지)';
+                gatherBtn.textContent = '채집하기 (일시정지)';
                 return;
             }
 
             if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
                 gatherBtn.disabled = true;
                 const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
-                gatherBtn.textContent = `🌿 채집하기 (${remainingTime}초)`;
+                gatherBtn.textContent = `채집하기 (${remainingTime}초)`;
             } else {
                 gatherBtn.disabled = false;
-                gatherBtn.textContent = '🌿 채집하기';
+                gatherBtn.textContent = '채집하기';
             }
         }
 
@@ -2481,6 +2776,21 @@
             }
         }
 
+
+        function manualCompleteSpirit(spiritId) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+            
+            if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
+                completeSpirit(spirit);
+                saveGame();
+                renderSpirits();
+                showNotification('정령이 진화합니다!');
+            } else {
+                showNotification('아직 진화할 수 없습니다.');
+            }
+        }
+
         function completeSpirit(spirit) {
             // 스탯으로 진화 결정
             const params = spirit.parameters;
@@ -2533,13 +2843,13 @@
             let attributeKey = '';
             let attributeData = null;
             
-            if (maxAttrValue < 50) {
-                // 모든 속성이 50 미만 - 백의 정령
+            if (maxAttrValue < 60) {
+                // 모든 속성이 60 미만 - 백의 정령
                 attributeKey = 'normal';
                 attributeData = { name: '백의 정령', icon: '🤍', desc: '속성이 깃들지 않은 순수한 정령.' };
             } else {
-                // 50 이상인 속성들만 필터링
-                const significantAttrs = sortedAttrs.filter(([_, value]) => value >= 50);
+                // 60 이상인 속성들만 필터링
+                const significantAttrs = sortedAttrs.filter(([_, value]) => value >= 60);
                 
                 if (significantAttrs.length === 1) {
                     // 단일 속성 (하나만 50 이상)
@@ -2587,7 +2897,7 @@
             let finalIcon = '';
             let finalDesc = '';
             
-            // 날개 타입 먼저 결정 (오필리아/오베론 판정에 필요)
+            // 날개 타입 먼저 결정 (티타니아/오베론 판정에 필요)
             if (!spirit.lightTime) spirit.lightTime = 0;
             if (!spirit.darkTime) spirit.darkTime = 0;
             
@@ -2600,15 +2910,15 @@
                 wingType = 'butterfly'; // 동점이면 나비
             }
             
-            // 오필리아/오베론 조건 체크
+            // 티타니아/오베론 조건 체크
             // 모든 스탯 70 이상 + 모든 속성 100 근접 (90 이상)
             const isPerfectStats = params.intelligence >= 70 && params.strength >= 70 && params.charm >= 70;
             const isPerfectAttributes = Object.values(finalAttrs).every(val => val >= 90);
             
             if (isPerfectStats && isPerfectAttributes) {
-                // 완벽한 정령 - 오필리아/오베론
+                // 완벽한 정령 - 티타니아/오베론
                 if (wingType === 'butterfly') {
-                    finalName = '오필리아';
+                    finalName = '티타니아';
                     finalIcon = '🦋✨';
                     finalDesc = '모든 힘을 완벽히 갖춘 나비의 여왕. 빛과 생명을 관장하는 전설적 존재.';
                 } else {
@@ -2646,8 +2956,8 @@
             // evolutionKey 설정 (도감 등록용)
             let finalEvolutionType = evolutionKey;
             if (isPerfectStats && isPerfectAttributes) {
-                // 오필리아/오베론
-                finalEvolutionType = wingType === 'butterfly' ? 'ophelia' : 'oberon';
+                // 티타니아/오베론
+                finalEvolutionType = wingType === 'butterfly' ? 'titania' : 'oberon';
             } else if (hasLowStats) {
                 // 스탯 부족한 경우
                 if (attributeKey === 'normal') {
@@ -2771,8 +3081,8 @@
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                         <div class="param">🧠 지력: ${item.parameters.intelligence}</div>
                         <div class="param">💪 체력: ${item.parameters.strength}</div>
-                        <div class="param">💖 매력: ${item.parameters.charm}</div>
-                        <div class="param">❤️ 애정도: ${item.parameters.affection || 0}</div>
+                        <div class="param">매력: ${item.parameters.charm}</div>
+                        <div class="param">애정도: ${item.parameters.affection || 0}</div>
                     </div>
                 </div>
                 
@@ -2781,9 +3091,9 @@
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🔥 화: ${hiddenAttrs.fire}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">💧 수: ${hiddenAttrs.water}</div>
-                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🍃 풍: ${hiddenAttrs.wind}</div>
+                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌬️ 풍: ${hiddenAttrs.wind}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌱 지: ${hiddenAttrs.earth}</div>
-                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">✨ 빛: ${hiddenAttrs.light}</div>
+                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">빛: ${hiddenAttrs.light}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌙 암: ${hiddenAttrs.dark}</div>
                     </div>
                 </div>
@@ -2910,7 +3220,7 @@
                     spirit.sickTime = Date.now();
                     spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
                     addLog(spirit, '환경이 맞지 않아 병에 걸렸습니다');
-                    showNotification(`⚠️ ${spirit.name}이(가) 병에 걸렸습니다!`);
+                    showNotification(`${spirit.name}이(가) 병에 걸렸습니다!`);
                 }
             }
         }
@@ -3095,6 +3405,12 @@
                 if (!spirit.darkTime) {
                     spirit.darkTime = 0;
                 }
+                if (!spirit.musicListened) {
+                    spirit.musicListened = 0;
+                }
+                if (!spirit.feedCount) {
+                    spirit.feedCount = 0;
+                }
                 
                 // 완성된 정령인 경우 특별한 카드 표시
                 if (spirit.isCompleted && spirit.evolutionData) {
@@ -3122,7 +3438,7 @@
                                     cursor: pointer;
                                     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
                                 ">
-                                    ✨ 확인하기 ✨
+                                    확인하기
                                 </button>
                             </div>
                         </div>
@@ -3130,13 +3446,12 @@
                 }
                 // 외형 묘사 가져오기
                 const appearance = getAppearanceDescription(spirit);
-                const iconTitle = appearance ? `title="${appearance}"` : '';
 
                 return `
                     <div class="spirit-card" style="position: relative;">
                         ${(() => {
                             const satisfaction = spirit.satisfaction || 'mid';
-                            const satisfactionIcons = { high: '😊', mid: '😐', low: '😞' };
+                            const satisfactionIcons = { high: '', mid: '', low: '' };
                             const satisfactionTexts = { high: '만족', mid: '보통', low: '불만' };
                             const satisfactionColors = { high: '#4caf50', mid: '#ff9800', low: '#f44336' };
                             return `
@@ -3147,7 +3462,7 @@
                             `;
                         })()}
                         <div class="spirit-header">
-                            <div class="spirit-icon" ${iconTitle} style="cursor: help;">${icon}</div>
+                            <div class="spirit-icon" onclick="showAppearance(${spirit.id})" style="cursor: pointer;">${icon}</div>
                             <div class="spirit-info">
                                 <div class="spirit-name" onclick="changeName(${spirit.id})">${spirit.name}</div>
                                 <div class="spirit-stage">${STAGE_NAMES[stage]}</div>
@@ -3158,16 +3473,44 @@
                         </div>
                         <div class="progress-text">성장 ${spirit.growth} / ${nextReq}</div>
                         <div class="parameters">
-                            <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}</div>
-                            <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength}</div>
-                            <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
-                            <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
+                            ${(() => {
+                                const bonus = spirit.satisfaction === 'high' ? 2 : 0;
+                                const bonusText = bonus > 0 ? `<span style="color: #4caf50;">+${bonus}</span>` : '';
+                                return `
+                                    <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence} ${bonusText}</div>
+                                    <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength} ${bonusText}</div>
+                                    <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm} ${bonusText}</div>
+                                    <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
+                                `;
+                            })()}
                         </div>
+                        ${(() => {
+                            const keywords = getStatusKeywords(spirit);
+                            if (keywords.length === 0) return '';
+                            return `
+                                <div style="margin: 12px 0; padding: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px;">
+                                    ${keywords.map(kw => `
+                                        <span style="
+                                            display: inline-flex;
+                                            align-items: center;
+                                            padding: 4px 10px;
+                                            background: #f5f5f5;
+                                            border: 1px solid #ddd;
+                                            font-size: 0.8rem;
+                                            font-weight: 600;
+                                            color: ${kw.color};
+                                        ">
+                                            ${kw.text}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            `;
+                        })()}
                         <div class="spirit-status">${spirit.status}</div>
                         ${spirit.logs && spirit.logs.length > 0 ? `
                             <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleLogs(${spirit.id})">
-                                    <span style="font-size: 0.9rem; font-weight: 600;">📝 일지 (${spirit.logs.length}개)</span>
+                                    <span style="font-size: 0.9rem; font-weight: 600;">일지 (${spirit.logs.length}개)</span>
                                     <span id="logToggle${spirit.id}" style="font-size: 0.8rem;">▼</span>
                                 </div>
                                 <div id="logs${spirit.id}" style="display: none; margin-top: 8px; max-height: 200px; overflow-y: auto;">
@@ -3181,7 +3524,7 @@
                         ` : ''}
                         <div class="action-buttons">
                             <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
-                                ${spirit.isSick ? '🌿 ' : ''}먹이주기
+                                ${spirit.isSick ? '' : ''}먹이주기
                             </button>
                             <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
                                 음악 듣기
@@ -3189,6 +3532,11 @@
                             <button onclick="patSpirit(${spirit.id})" ${!canPat ? 'disabled' : ''}>
                                 쓰다듬기
                             </button>
+                            ${spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted ? `
+                                <button onclick="manualCompleteSpirit(${spirit.id})" style="background: #ffd700; color: #000;">
+                                    진화하기
+                                </button>
+                            ` : ''}
                             <button onclick="confirmDeleteSpirit(${spirit.id})">
                                 보내기
                             </button>
@@ -3319,16 +3667,16 @@
             if (currentShopCategory === 'food') {
                 // 약초 구매 (제일 위에 표시)
                 items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #e8f5e9; border: 2px solid #4caf50; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
                             <div>
-                                <div style="font-weight: 700; color: #2e7d32;">${MEDICINE.name}</div>
+                                <div style="font-weight: 700;">${MEDICINE.name}</div>
                                 <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
                                 <div style="font-size: 0.85rem; color: #888;">가격: ${MEDICINE.price}💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('medicine', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px; background: #4caf50; color: white;">구매</button>
+                        <button onclick="buyItem('medicine', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px;">구매</button>
                     </div>
                 `);
                 
@@ -3491,7 +3839,7 @@
                 if (!inventory.food) inventory.food = [];
                 inventory.food.push(type);
                 if (type === 'medicine') {
-                    showNotification(`🌿 ${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
+                    showNotification(`${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
                 } else {
                     showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 구매했습니다`);
                 }
@@ -3527,7 +3875,7 @@
                     attrs: ['normal']
                 },
                 {
-                    title: '🔥💧🍃🌱✨🌙 기본 속성',
+                    title: '🔥💧🌬️🌱✨🌙 기본 속성',
                     attrs: ['fire', 'water', 'wind', 'earth', 'light', 'dark']
                 },
                 {
@@ -3539,7 +3887,7 @@
                     attrs: ['water-wind', 'water-earth', 'water-light', 'water-dark']
                 },
                 {
-                    title: '🍃 질풍 조합',
+                    title: '🌬️ 질풍 조합',
                     attrs: ['wind-earth', 'wind-light', 'wind-dark']
                 },
                 {
@@ -3558,22 +3906,22 @@
             
             let html = '';
             
-            // 전설적 존재 (오필리아/오베론) - 맨 위에 특별 표시
+            // 전설적 존재 (티타니아/오베론) - 맨 위에 특별 표시
             html += `<div style="grid-column: 1 / -1; margin-top: 10px; margin-bottom: 15px;">
                 <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); border-bottom: 3px solid gold; padding-bottom: 10px;">
-                    ✨👑 전설적 존재
+                    전설적 존재
                 </h2>
             </div>`;
             
-            // 오필리아
-            const opheliaCount = encyclopedia['ophelia'] || 0;
-            const opheliaUnlocked = opheliaCount > 0;
+            // 티타니아
+            const titaniaCount = encyclopedia['titania'] || 0;
+            const titaniaUnlocked = titaniaCount > 0;
             html += `
-                <div class="${opheliaUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
-                    <div class="encyclopedia-icon" style="font-size: 3rem;">${opheliaUnlocked ? '🦋✨' : '❓'}</div>
-                    <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${opheliaUnlocked ? '오필리아' : '???????'}</div>
-                    <div class="encyclopedia-count" style="font-size: 0.8rem;">${opheliaUnlocked ? `${opheliaCount}회` : '미달성'}</div>
-                    ${opheliaUnlocked ? '<div style="font-size: 0.7rem; color: gold; margin-top: 5px;">나비의 여왕</div>' : ''}
+                <div class="${titaniaUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${titaniaUnlocked ? '🦋✨' : '?'}</div>
+                    <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${titaniaUnlocked ? '티타니아' : '???????'}</div>
+                    <div class="encyclopedia-count" style="font-size: 0.8rem;">${titaniaUnlocked ? `${titaniaCount}회` : '미달성'}</div>
+                    <div style="font-size: 0.7rem; color: ${titaniaUnlocked ? 'gold' : '#888'}; margin-top: 5px;">${titaniaUnlocked ? ENCYCLOPEDIA_HINTS['titania'] : '나비들의 여왕. 빛의 힘을 다스리는 자.'}</div>
                 </div>
             `;
             
@@ -3582,10 +3930,10 @@
             const oberonUnlocked = oberonCount > 0;
             html += `
                 <div class="${oberonUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
-                    <div class="encyclopedia-icon" style="font-size: 3rem;">${oberonUnlocked ? '🦋🌙' : '❓'}</div>
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${oberonUnlocked ? '🦋🌙' : '?'}</div>
                     <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${oberonUnlocked ? '오베론' : '???????'}</div>
                     <div class="encyclopedia-count" style="font-size: 0.8rem;">${oberonUnlocked ? `${oberonCount}회` : '미달성'}</div>
-                    ${oberonUnlocked ? '<div style="font-size: 0.7rem; color: gold; margin-top: 5px;">나방의 군주</div>' : ''}
+                    <div style="font-size: 0.7rem; color: ${oberonUnlocked ? 'gold' : '#888'}; margin-top: 5px;">${oberonUnlocked ? ENCYCLOPEDIA_HINTS['oberon'] : '나방들의 왕. 밤의 정령들을 거느리는 자.'}</div>
                 </div>
             `;
             
@@ -3612,7 +3960,7 @@
                     statTypes.forEach(statInfo => {
                         let count = 0;
                         let displayName = '???????';
-                        let displayIcon = '❓';
+                        let displayIcon = '?';
                         let isUnlocked = false;
                         
                         if (statInfo.key === 'nostat') {
@@ -3620,7 +3968,7 @@
                             count = encyclopedia[`nostat-${attrType}`] || 0;
                             isUnlocked = count > 0;
                             displayName = isUnlocked ? '(수식어 없음)' : '???????';
-                            displayIcon = isUnlocked ? attributeData.icon : '❓';
+                            displayIcon = isUnlocked ? attributeData.icon : '?';
                         } else {
                             // 스탯 계열 정령
                             const lowCount = encyclopedia[`${statInfo.key}-low-${attrType}`] || 0;
@@ -3646,11 +3994,42 @@
                         const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
                         const countText = isUnlocked ? `${count}회` : '미달성';
                         
+                        // 정령 전체 이름 생성
+                        let fullName = '???????';
+                        let hintKey = '';
+                        
+                        if (isUnlocked) {
+                            if (statInfo.key === 'nostat') {
+                                fullName = attributeData.name;
+                                hintKey = `nostat-${attrType}`;
+                            } else {
+                                const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
+                                fullName = `${statPrefix} ${attributeData.name}`;
+                                hintKey = `${statInfo.key}-${achievedLevel}-${attrType}`;
+                            }
+                        }
+                        
+                        // 잠금 상태에서도 힌트 표시
+                        let hint = '';
+                        if (isUnlocked) {
+                            hint = ENCYCLOPEDIA_HINTS[hintKey] || '';
+                        } else {
+                            // 잠금 상태일 때도 힌트 표시
+                            if (statInfo.key === 'nostat') {
+                                hint = ENCYCLOPEDIA_HINTS[`nostat-${attrType}`] || '???';
+                            } else {
+                                // 임의의 레벨로 힌트 표시 (mid 우선)
+                                hint = ENCYCLOPEDIA_HINTS[`${statInfo.key}-mid-${attrType}`] || 
+                                       ENCYCLOPEDIA_HINTS[`${statInfo.key}-low-${attrType}`] || '???';
+                            }
+                        }
+                        
                         html += `
-                            <div class="${cardClass}" style="min-height: 100px;">
+                            <div class="${cardClass}" style="min-height: 120px;">
                                 <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
-                                <div class="encyclopedia-name" style="font-size: 0.9rem;">${displayName}</div>
-                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${countText}</div>
+                                <div class="encyclopedia-name" style="font-size: 0.85rem; font-weight: 600;">${fullName}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.75rem; margin-top: 4px;">${countText}</div>
+                                ${hint ? `<div style="font-size: 0.7rem; color: #888; margin-top: 6px; line-height: 1.3; padding: 0 8px; text-align: center;">${hint}</div>` : ''}
                             </div>
                         `;
                     });
@@ -3673,7 +4052,11 @@
                 return;
             }
 
-            grid.innerHTML = collection.map((item, index) => {
+            // 역순으로 표시 (최근 것이 맨 앞에)
+            const reversedCollection = [...collection].reverse();
+            
+            grid.innerHTML = reversedCollection.map((item, reverseIndex) => {
+                const index = collection.length - 1 - reverseIndex; // 원본 인덱스
                 // desc는 도감 아이템에 저장되어 있음
                 const desc = item.desc || '';
                 const originalName = item.originalName || item.name || '이름 없음';
@@ -3698,8 +4081,8 @@
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;">
                             <div class="param">🧠 ${item.parameters.intelligence}</div>
                             <div class="param">💪 ${item.parameters.strength}</div>
-                            <div class="param">💖 ${item.parameters.charm}</div>
-                            <div class="param">❤️ ${item.parameters.affection || 0}</div>
+                            <div class="param">${item.parameters.charm}</div>
+                            <div class="param">${item.parameters.affection || 0}</div>
                         </div>
                         <div style="font-size: 0.75rem; color: #999; margin-top: 12px; text-align: center;">📊 클릭하여 상세 정보 보기</div>
                     </div>
@@ -3882,11 +4265,11 @@
         
         // 게임 리셋
         function resetGame() {
-            if (!confirm('⚠️ 정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!')) {
+            if (!confirm('정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!')) {
                 return;
             }
             
-            if (!confirm('⚠️ 다시 한 번 확인합니다.\n정말로 모든 데이터를 삭제하시겠습니까?')) {
+            if (!confirm('다시 한 번 확인합니다.\n정말로 모든 데이터를 삭제하시겠습니까?')) {
                 return;
             }
             
@@ -4240,8 +4623,8 @@
                 if (spirit.isSick && !spirit.sickWarned && minutesSinceInteraction >= 30) {
                     spirit.sickWarned = true;
                     spirit.status = `${spirit.name}이(가) 아파서 괴로워합니다... 🤒💔`;
-                    addLog(spirit, '⚠️ 아픈 상태로 오래 방치되고 있습니다!');
-                    showNotification(`⚠️ ${spirit.name}이(가) 매우 괴로워합니다! 곧 떠날 수 있습니다!`);
+                    addLog(spirit, '아픈 상태로 오래 방치되고 있습니다!');
+                    showNotification(`${spirit.name}이(가) 매우 괴로워합니다! 곧 떠날 수 있습니다!`);
                     saveGame();
                 }
                 
@@ -4331,6 +4714,12 @@
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
                 
+                // 성장도 체크 (100 이상이면 자동 진화)
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
+                    completeSpirit(spirit);
+                    return;
+                }
+                
                 const oldSatisfaction = spirit.satisfaction || 'mid';
                 const newSatisfaction = calculateSatisfaction(spirit);
                 spirit.satisfaction = newSatisfaction;
@@ -4345,7 +4734,7 @@
                 // 만족도가 변경되었을 때 로그
                 if (oldSatisfaction !== newSatisfaction) {
                     const satisfactionTexts = {
-                        high: '매우 만족스러워 보입니다! ✨',
+                        high: '매우 만족스러워 보입니다!',
                         mid: '평온해 보입니다.',
                         low: '불만족스러워 보입니다...'
                     };
