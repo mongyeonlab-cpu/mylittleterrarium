@@ -1898,7 +1898,6 @@
 
         function renderFeedOptions() {
             if (!inventory.food) inventory.food = [];
-            if (!inventory.medicine) inventory.medicine = [];
             
             const modal = document.getElementById('feedModal');
             const spirit = spirits.find(s => s.id === currentSpiritId);
@@ -1908,15 +1907,19 @@
                 foodCounts[f] = (foodCounts[f] || 0) + 1;
             });
             
+            // medicine을 foodCounts에서 분리
+            const medicineCount = foodCounts['medicine'] || 0;
+            delete foodCounts['medicine'];
+            
             let medicineSection = '';
-            if (spirit && spirit.isSick && inventory.medicine.length > 0) {
+            if (spirit && spirit.isSick && medicineCount > 0) {
                 medicineSection = `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px;">
+                    <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border: 2px solid #4caf50;">
                         <div style="font-weight: 700; color: #2e7d32; margin-bottom: 10px;">💊 치료</div>
                         <button class="option-btn" onclick="giveMedicineFromModal(${currentSpiritId})" style="background: #4caf50; color: white;">
                             <span class="option-icon">🌿</span>
                             <div class="option-info">
-                                <div class="option-name">${MEDICINE.name} ×${inventory.medicine.length}</div>
+                                <div class="option-name">${MEDICINE.name} ×${medicineCount}</div>
                                 <div class="option-effect">병을 완전히 치료합니다</div>
                             </div>
                         </button>
@@ -1924,7 +1927,7 @@
                 `;
             } else if (spirit && spirit.isSick) {
                 medicineSection = `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #ffebee; border: 2px solid #f44336; border-radius: 8px;">
+                    <div style="margin-bottom: 20px; padding: 15px; background: #ffebee; border: 2px solid #f44336;">
                         <div style="font-weight: 700; color: #c62828; margin-bottom: 5px;">⚠️ 정령이 아픕니다!</div>
                         <div style="font-size: 0.9rem; color: #666;">약초가 필요합니다. 상점에서 구매하세요.</div>
                     </div>
@@ -2190,14 +2193,15 @@
                 return;
             }
             
-            if (!inventory.medicine) inventory.medicine = [];
-            if (inventory.medicine.length === 0) {
+            if (!inventory.food) inventory.food = [];
+            const medicineIndex = inventory.food.indexOf('medicine');
+            if (medicineIndex === -1) {
                 showNotification('약초가 없습니다. 상점에서 구매하세요!');
                 return;
             }
             
             // 약초 소모
-            inventory.medicine.pop();
+            inventory.food.splice(medicineIndex, 1);
             
             // 병 치료
             spirit.isSick = false;
@@ -3486,7 +3490,11 @@
             if (category === 'food') {
                 if (!inventory.food) inventory.food = [];
                 inventory.food.push(type);
-                showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 구매했습니다`);
+                if (type === 'medicine') {
+                    showNotification(`🌿 ${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
+                } else {
+                    showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 구매했습니다`);
+                }
             } else if (category === 'music') {
                 if (!inventory.music) inventory.music = [];
                 inventory.music.push(type);
@@ -3495,10 +3503,6 @@
                 if (!inventory.decorations) inventory.decorations = [];
                 inventory.decorations.push(type);
                 showNotification(`${DECORATION_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
-            } else if (category === 'medicine') {
-                if (!inventory.medicine) inventory.medicine = [];
-                inventory.medicine.push('medicine');
-                showNotification(`🌿 ${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
             }
 
             saveGame();
