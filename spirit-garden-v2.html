@@ -3513,8 +3513,8 @@
                 const attr = decoData.attr;
                 const power = decoData.power;
                 
-                // 해당 속성 증가 (최대 250까지 - 10개 × 최대 25파워)
-                terrarium[attr] = Math.min(250, terrarium[attr] + power);
+                // 해당 속성 증가 (최대 50까지)
+                terrarium[attr] = Math.min(50, terrarium[attr] + power);
 
                 // 대립 속성 감소 (power만큼)
                 const opposites = {
@@ -3533,10 +3533,10 @@
 
             // 조명 효과 적용
             if (lightMode) {
-                terrarium.light = Math.min(250, terrarium.light + 3);
+                terrarium.light = Math.min(50, terrarium.light + 3);
                 terrarium.dark = Math.max(0, terrarium.dark - 2);
             } else {
-                terrarium.dark = Math.min(250, terrarium.dark + 3);
+                terrarium.dark = Math.min(50, terrarium.dark + 3);
                 terrarium.light = Math.max(0, terrarium.light - 2);
             }
         }
@@ -3699,11 +3699,11 @@
         }
 
         function renderTerrariumManagement() {
-            // 환경 바 업데이트 (최대 250)
+            // 환경 바 업데이트 (최대 50)
             Object.entries(terrarium).forEach(([attr, value]) => {
                 const bar = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Bar`);
                 const valueSpan = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Value`);
-                if (bar) bar.style.width = `${(value / 250) * 100}%`;
+                if (bar) bar.style.width = `${(value / 50) * 100}%`;
                 if (valueSpan) valueSpan.textContent = value;
             });
 
