@@ -2426,6 +2426,7 @@
 
             spirit.growth += growthGain;
             spirit.lastFeed = Date.now();
+            spirit.lastFed = Date.now();  // 배고픔 체크용
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.status = '맛있게 먹었습니다!';
             spirit.parameters.affection += 1;
@@ -2493,23 +2494,28 @@
 
             const musicData = MUSIC_TYPES[musicType];
             
-            // 효과 적용
+            // 만족도 즉시 계산
+            spirit.satisfaction = calculateSatisfaction(spirit);
+            const statBonus = spirit.satisfaction === 'high' ? 2 : 0;
+            
+            // 효과 적용 (만족도 높으면 +2 보너스)
             if (musicType === 'classic') {
-                spirit.parameters.intelligence += 10;
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + statBonus);
             } else if (musicType === 'jazz') {
-                spirit.parameters.charm += 10;
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + statBonus);
             } else if (musicType === 'rock') {
-                spirit.parameters.strength += 10;
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + statBonus);
             } else if (musicType === 'pop') {
-                spirit.parameters.intelligence += 5;
-                spirit.parameters.charm += 5;
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + statBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + statBonus);
             } else if (musicType === 'ballad') {
-                spirit.parameters.strength += 5;
-                spirit.parameters.charm += 5;
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + statBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + statBonus);
             }
 
-            // 애정도 증가 (상호작용)
-            spirit.parameters.affection += 2;
+            // 애정도 증가 (만족도 높으면 +1 보너스)
+            const affectionBonus = spirit.satisfaction === 'high' ? 3 : 2;
+            spirit.parameters.affection = Math.min(100, spirit.parameters.affection + affectionBonus);
 
             spirit.lastMusic = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
@@ -2539,7 +2545,8 @@
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
-            showNotification(`${musicData.name}을(를) 들려주었습니다`);
+            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스 +2!)' : '';
+            showNotification(`${musicData.name}을(를) 들려주었습니다${bonusText}`);
         }
 
         function patSpirit(spiritId) {
@@ -2556,8 +2563,12 @@
                 return;
             }
 
+            // 만족도 즉시 계산
+            spirit.satisfaction = calculateSatisfaction(spirit);
+            
             const currentAffection = spirit.parameters.affection || 0;
-            spirit.parameters.affection += 1;
+            const affectionBonus = spirit.satisfaction === 'high' ? 2 : 1;
+            spirit.parameters.affection = Math.min(100, spirit.parameters.affection + affectionBonus);
             spirit.lastPat = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             
@@ -2612,7 +2623,8 @@
 
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
-            showNotification(`쓰다듬었습니다 (애정 +1 상승)`);
+            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스 +1!)' : '';
+            showNotification(`쓰다듬었습니다 (애정 +${affectionBonus}${bonusText})`);
         }
         
         // 약 먹이기 함수
@@ -3026,14 +3038,14 @@
                 }
             }
 
-            // 속성 분석 (먹이 속성 + 테라리움 속성 합산)
+            // 속성 분석 (먹이 50% + 테라리움 50%)
             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
-            // 최종 속성 = 먹이 속성 + 테라리움 속성 (단순 합산)
+            // 최종 속성 = (먹이 속성 × 0.5) + (테라리움 속성 × 0.5)
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = foodAttrs[attr] + terrariumAttrs[attr];
+                finalAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
             }
             
             const sortedAttrs = Object.entries(finalAttrs)
@@ -3045,18 +3057,24 @@
             let attributeKey = '';
             let attributeData = null;
             
-            if (maxAttrValue < 60) {
-                // 모든 속성이 60 미만 - 백의 정령
+            if (maxAttrValue < 50) {
+                // 모든 속성이 50 미만 - 백의 정령
                 attributeKey = 'normal';
                 attributeData = { name: '백의 정령', icon: '🤍', desc: '속성이 깃들지 않은 순수한 정령.' };
             } else {
-                // 60 이상인 속성들만 필터링
-                const significantAttrs = sortedAttrs.filter(([_, value]) => value >= 60);
+                // 50 이상인 속성들만 필터링
+                const significantAttrs = sortedAttrs.filter(([_, value]) => value >= 50);
                 
                 if (significantAttrs.length === 1) {
-                    // 단일 속성 (하나만 50 이상)
+                    // 단일 속성 (하나만 60 이상)
                     attributeKey = significantAttrs[0][0];
                     attributeData = ATTRIBUTE_NAMES[attributeKey];
+                    if (!attributeData) {
+                        console.error('Missing ATTRIBUTE_NAMES for:', attributeKey);
+                        // 가장 높은 단일 속성으로 폴백
+                        attributeKey = sortedAttrs[0][0];
+                        attributeData = ATTRIBUTE_NAMES[attributeKey] || ATTRIBUTE_NAMES['fire'];
+                    }
                 } else if (significantAttrs.length === 2) {
                     // 2속성: 1위와 2위 차이가 40% 이하면 조합, 초과면 단일
                     const first = significantAttrs[0][1];
@@ -3070,10 +3088,22 @@
                         const comboKey = [attr1, attr2].sort().join('-');
                         attributeData = ATTRIBUTE_NAMES[comboKey];
                         attributeKey = comboKey;
+                        if (!attributeData) {
+                            console.error('Missing ATTRIBUTE_NAMES for combo:', comboKey);
+                            // 조합이 없으면 1순위 단일 속성으로 폴백
+                            attributeKey = attr1;
+                            attributeData = ATTRIBUTE_NAMES[attr1] || ATTRIBUTE_NAMES['fire'];
+                        }
                     } else {
                         // 단일 속성 (차이가 너무 큼)
                         attributeKey = significantAttrs[0][0];
                         attributeData = ATTRIBUTE_NAMES[attributeKey];
+                        if (!attributeData) {
+                            console.error('Missing ATTRIBUTE_NAMES for:', attributeKey);
+                            // 가장 높은 속성으로 폴백
+                            attributeKey = sortedAttrs[0][0];
+                            attributeData = ATTRIBUTE_NAMES[attributeKey] || ATTRIBUTE_NAMES['fire'];
+                        }
                     }
                 } else if (significantAttrs.length >= 3) {
                     // 3속성 이상
@@ -3090,6 +3120,12 @@
                         // 혼돈 (차이 25% 초과)
                         attributeKey = 'multi';
                         attributeData = ATTRIBUTE_NAMES['multi'];
+                    }
+                    if (!attributeData) {
+                        console.error('Missing ATTRIBUTE_NAMES for:', attributeKey);
+                        // 가장 높은 단일 속성으로 폴백
+                        attributeKey = significantAttrs[0][0];
+                        attributeData = ATTRIBUTE_NAMES[attributeKey] || ATTRIBUTE_NAMES['fire'];
                     }
                 }
             }
@@ -3132,27 +3168,73 @@
                 // 속성 없음
                 if (hasLowStats) {
                     // 스탯도 낮음 - 순수한 백의 정령
+                    if (attributeData) {
+                        finalName = attributeData.name;
+                        finalIcon = attributeData.icon;
+                        finalDesc = attributeData.desc;
+                    } else {
+                        finalName = '백의 정령';
+                        finalIcon = '🤍';
+                        finalDesc = '속성이 깃들지 않은 순수한 정령.';
+                    }
+                } else {
+                    // 스탯은 높음 - "스탯 계열 + 백의 정령"
+                    const evolution = EVOLUTION_TYPES[evolutionKey];
+                    if (evolution && attributeData) {
+                        finalName = `${evolution.prefix} ${attributeData.name}`;
+                        finalIcon = `${evolution.icon}${attributeData.icon}`;
+                        finalDesc = attributeData.desc;
+                    } else if (evolution) {
+                        // evolution은 있는데 attributeData가 없으면 백의 정령 사용
+                        finalName = `${evolution.prefix} 백의 정령`;
+                        finalIcon = `${evolution.icon}🤍`;
+                        finalDesc = '속성이 깃들지 않은 순수한 정령.';
+                    } else {
+                        finalName = '백의 정령';
+                        finalIcon = '🤍';
+                        finalDesc = '속성이 깃들지 않은 순수한 정령.';
+                    }
+                }
+            } else if (hasLowStats) {
+                // 스탯 부족하지만 속성 있음 - 속성 이름만
+                if (attributeData) {
                     finalName = attributeData.name;
                     finalIcon = attributeData.icon;
                     finalDesc = attributeData.desc;
                 } else {
-                    // 스탯은 높음 - "스탯 계열 + 백의 정령"
-                    const evolution = EVOLUTION_TYPES[evolutionKey];
-                    finalName = `${evolution.prefix} ${attributeData.name}`;
-                    finalIcon = `${evolution.icon}${attributeData.icon}`;
-                    finalDesc = attributeData.desc;
+                    console.error('attributeData is undefined for key:', attributeKey);
+                    // 가장 높은 단일 속성으로 폴백
+                    const fallbackKey = sortedAttrs[0][0];
+                    const fallbackData = ATTRIBUTE_NAMES[fallbackKey] || ATTRIBUTE_NAMES['fire'];
+                    finalName = fallbackData.name;
+                    finalIcon = fallbackData.icon;
+                    finalDesc = fallbackData.desc;
+                    attributeKey = fallbackKey;
                 }
-            } else if (hasLowStats) {
-                // 스탯 부족하지만 속성 있음 - 속성 이름만
-                finalName = attributeData.name;
-                finalIcon = attributeData.icon;
-                finalDesc = attributeData.desc;
             } else {
                 // 스탯도 있고 속성도 있음 - "스탯 계열 + 속성 이름" 형태
                 const evolution = EVOLUTION_TYPES[evolutionKey];
-                finalName = `${evolution.prefix} ${attributeData.name}`;
-                finalIcon = `${evolution.icon}${attributeData.icon}`;
-                finalDesc = attributeData.desc;
+                if (evolution && attributeData) {
+                    finalName = `${evolution.prefix} ${attributeData.name}`;
+                    finalIcon = `${evolution.icon}${attributeData.icon}`;
+                    finalDesc = attributeData.desc;
+                } else {
+                    console.error('Evolution data missing:', { evolutionKey, attributeKey, evolution, attributeData });
+                    // 폴백: 가장 높은 속성으로 진화
+                    const fallbackKey = sortedAttrs[0][0];
+                    const fallbackData = ATTRIBUTE_NAMES[fallbackKey] || ATTRIBUTE_NAMES['fire'];
+                    const fallbackEvolution = EVOLUTION_TYPES[evolutionKey] || EVOLUTION_TYPES['intelligent-mid'];
+                    if (fallbackEvolution && fallbackData) {
+                        finalName = `${fallbackEvolution.prefix} ${fallbackData.name}`;
+                        finalIcon = `${fallbackEvolution.icon}${fallbackData.icon}`;
+                        finalDesc = fallbackData.desc;
+                    } else {
+                        finalName = fallbackData.name;
+                        finalIcon = fallbackData.icon;
+                        finalDesc = fallbackData.desc;
+                    }
+                    attributeKey = fallbackKey;
+                }
             }
             
             // evolutionKey 설정 (도감 등록용)
@@ -3468,19 +3550,9 @@
                 }
 
                 const timeSinceLastFed = now - spirit.lastFed;
-                const minutes = timeSinceLastFed / 1000 / 60;
-                const hours = minutes / 60;
+                const hours = timeSinceLastFed / 1000 / 60 / 60;
 
-                // 10분 경과 - 배고픔
-                if (minutes >= 10 && minutes < 24 * 60) {
-                    if (getStage(spirit.growth) === 'egg') {
-                        spirit.status = '알이 흔들리고 있습니다... 배고픈 것 같아요';
-                    } else {
-                        spirit.status = '배고파하는 것 같습니다...';
-                    }
-                }
-
-                // 24시간 경과 - 사망
+                // 24시간 경과 - 사망만 체크 (배고픔 메시지는 getRandomMessage에서 처리)
                 if (hours >= 24) {
                     if (getStage(spirit.growth) === 'egg') {
                         spirit.status = '❌ 알이 깨져서 미동이 없습니다...';
@@ -3761,16 +3833,10 @@
                         </div>
                         <div class="progress-text">성장 ${spirit.growth} / ${nextReq}</div>
                         <div class="parameters">
-                            ${(() => {
-                                const bonus = spirit.satisfaction === 'high' ? 2 : 0;
-                                const bonusText = bonus > 0 ? `<span style="color: #4caf50;">+${bonus}</span>` : '';
-                                return `
-                                    <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence} ${bonusText}</div>
-                                    <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength} ${bonusText}</div>
-                                    <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm} ${bonusText}</div>
-                                    <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
-                                `;
-                            })()}
+                            <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}</div>
+                            <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength}</div>
+                            <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
+                            <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
                         </div>
                         ${(() => {
                             const keywords = getStatusKeywords(spirit);
@@ -3811,8 +3877,13 @@
                             </div>
                         ` : ''}
                         <div class="action-buttons">
+                            ${spirit.isSick ? `
+                                <button onclick="giveMedicine(${spirit.id})" style="background: var(--earth); color: white; font-weight: 700;">
+                                    🌿 약초 사용
+                                </button>
+                            ` : ''}
                             <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
-                                ${spirit.isSick ? '' : ''}먹이주기${!canFeed && spirit.lastFeed ? ` (${Math.ceil((10000 - (now - spirit.lastFeed)) / 1000)}초)` : ''}
+                                ${spirit.isSick ? '🤒 ' : ''}먹이주기${!canFeed && spirit.lastFeed ? ` (${Math.ceil((10000 - (now - spirit.lastFeed)) / 1000)}초)` : ''}
                             </button>
                             <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
                                 음악 듣기${!canMusic && spirit.lastMusic ? ` (${Math.max(0, Math.ceil((10000 - (now - spirit.lastMusic)) / 1000))}초)` : ''}
@@ -3905,15 +3976,34 @@
             }
             
             if (currentShopCategory === 'all' || currentShopCategory === 'decoration') {
-                // 장식물 판매 (등급별 정렬)
+                // 장식물 판매 (속성 → 품질 → 이름 순 정렬)
                 if (inventory.decorations && inventory.decorations.length > 0) {
                     const decorCounts = {};
                     inventory.decorations.forEach(d => {
                         decorCounts[d] = (decorCounts[d] || 0) + 1;
                     });
 
-                    // 모든 장식물 키를 가져와서 등급순으로 정렬
-                    Object.keys(decorCounts).forEach(key => {
+                    // 속성별, 품질별, 이름별로 정렬
+                    const sortedDecoKeys = Object.keys(decorCounts).sort((a, b) => {
+                        const dataA = DECORATION_TYPES[a];
+                        const dataB = DECORATION_TYPES[b];
+                        if (!dataA || !dataB) return 0;
+                        
+                        // 1. 속성별 정렬
+                        const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
+                        const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
+                        if (attrDiff !== 0) return attrDiff;
+                        
+                        // 2. 품질별 정렬 (높은 순)
+                        const qualityOrder = { epic: 0, rare: 1, common: 2 };
+                        const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                        if (qualityDiff !== 0) return qualityDiff;
+                        
+                        // 3. 이름별 정렬
+                        return dataA.name.localeCompare(dataB.name);
+                    });
+                    
+                    sortedDecoKeys.forEach(key => {
                         const decoData = DECORATION_TYPES[key];
                         if (!decoData) return; // 데이터 없으면 스킵
                         
@@ -5188,10 +5278,17 @@
             // 환경 재계산
             recalculateTerrariumEnvironment();
 
+            // 만족도 즉시 업데이트
+            spirits.forEach(spirit => {
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    spirit.satisfaction = calculateSatisfaction(spirit);
+                }
+            });
+            
             saveGame();
             renderTerrariumManagement();
             renderInventory();
-            updateAllSpiritCards();
+            renderSpirits();  // 만족도 변경 반영
             showNotification(`${decoData.icon} ${decoData.name} 설치 완료`);
         }
 
@@ -5253,10 +5350,17 @@
                 }
             });
 
+            // 만족도 즉시 업데이트
+            spirits.forEach(spirit => {
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    spirit.satisfaction = calculateSatisfaction(spirit);
+                }
+            });
+            
             saveGame();
             renderTerrariumManagement();
             renderInventory();
-            updateAllSpiritCards();
+            renderSpirits();  // 만족도 변경 반영
             showNotification(`${decoData.icon} ${decoData.name} 회수 완료`);
         }
 
@@ -5271,39 +5375,43 @@
             
             let availableMessages = [];
             
-            // 배고픔 (5분=300초 이상 안 먹임) - 최우선
-            if (timeSinceLastFed > 300) {
+            // 배고픔 (5분=300초 이상 안 먹임) - 70% 확률로 배고픔 메시지
+            if (timeSinceLastFed > 300 && Math.random() < 0.7) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
             }
-            // 최근에 음악 들음 (5분=300초 이내, 30% 확률로 음악 메시지)
-            else if (timeSinceLastMusic < 300 && spirit.lastMusicType && Math.random() < 0.3) {
-                const musicName = MUSIC_TYPES[spirit.lastMusicType].name;
-                availableMessages = RANDOM_MESSAGES.music.map(msg => 
-                    msg.replace('{music}', musicName)
-                );
-            }
-            // 장식물 설치됨 (20% 확률)
-            else if (installedDecorations.length > 0 && Math.random() < 0.2) {
-                const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
-                if (RANDOM_MESSAGES.decorations[randomDeco]) {
-                    availableMessages = [...RANDOM_MESSAGES.decorations[randomDeco]];
+            // 배고픔이 아니거나, 배고픔이지만 30% 확률로 다른 메시지
+            else {
+                // 최근에 음악 들음 (5분=300초 이내, 30% 확률)
+                if (timeSinceLastMusic < 300 && spirit.lastMusicType && Math.random() < 0.3) {
+                    const musicName = MUSIC_TYPES[spirit.lastMusicType].name;
+                    availableMessages = RANDOM_MESSAGES.music.map(msg => 
+                        msg.replace('{music}', musicName)
+                    );
                 }
-            }
-            // 테라리움이 텅 비어있음 (30% 확률)
-            else if (installedDecorations.length === 0 && Math.random() < 0.3) {
-                availableMessages = [
-                    `${spirit.name}이(가) 텅 빈 테라리움 안을 빙글빙글 돌아다닙니다.`,
-                    `${spirit.name}이(가) 심심해 보입니다.`,
-                    `${spirit.name}이(가) 아무것도 없는 공간을 두리번거립니다.`,
-                    `${spirit.name}이(가) 무료해 보입니다.`
-                ];
-            }
-            // 잠 (조명에 따라, 15% 확률)
-            else if (Math.random() < 0.15) {
-                if (lightMode) {
-                    availableMessages = [...RANDOM_MESSAGES.napLight];
-                } else {
-                    availableMessages = [...RANDOM_MESSAGES.sleepDark];
+                // 장식물 설치됨 (30% 확률)
+                else if (installedDecorations.length > 0 && Math.random() < 0.3) {
+                    const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
+                    const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
+                    if (RANDOM_MESSAGES.decorations[decoType]) {
+                        availableMessages = [...RANDOM_MESSAGES.decorations[decoType]];
+                    }
+                }
+                // 테라리움이 텅 비어있음 (30% 확률)
+                else if (installedDecorations.length === 0 && Math.random() < 0.3) {
+                    availableMessages = [
+                        `${spirit.name}이(가) 텅 빈 테라리움 안을 빙글빙글 돌아다닙니다.`,
+                        `${spirit.name}이(가) 심심해 보입니다.`,
+                        `${spirit.name}이(가) 아무것도 없는 공간을 두리번거립니다.`,
+                        `${spirit.name}이(가) 무료해 보입니다.`
+                    ];
+                }
+                // 잠 (조명에 따라, 15% 확률)
+                else if (Math.random() < 0.15) {
+                    if (lightMode) {
+                        availableMessages = [...RANDOM_MESSAGES.napLight];
+                    } else {
+                        availableMessages = [...RANDOM_MESSAGES.sleepDark];
+                    }
                 }
             }
             
@@ -5332,9 +5440,21 @@
         function updateRandomMessages() {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
             
+            const now = Date.now();
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
-                    // 모든 정령의 메시지를 30초마다 랜덤 업데이트
+                    // 최근 10초 이내에 상호작용했으면 메시지 유지
+                    const recentInteraction = (
+                        (spirit.lastFeed && now - spirit.lastFeed < 10000) ||
+                        (spirit.lastPat && now - spirit.lastPat < 10000) ||
+                        (spirit.lastMusic && now - spirit.lastMusic < 10000)
+                    );
+                    
+                    if (recentInteraction) {
+                        return; // 메시지 유지
+                    }
+                    
+                    // 모든 정령의 메시지를 15초마다 랜덤 업데이트
                     const oldStatus = spirit.status;
                     const newStatus = getRandomMessage(spirit);
                     
@@ -5356,6 +5476,11 @@
             const now = Date.now();
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
+                
+                // 알, 애벌레, 번데기 상태에서는 방치 체크 안 함
+                if (!spirit.stage || spirit.stage === 'egg' || spirit.stage === 'larva' || spirit.stage === 'pupa') {
+                    return;
+                }
                 
                 // lastInteraction이 없으면 현재 시간으로 초기화 (구버전 호환)
                 if (!spirit.lastInteraction) {
@@ -5510,10 +5635,18 @@
                 });
                 
                 installedDecorations = [];
+                
+                // 만족도 즉시 업데이트
+                spirits.forEach(spirit => {
+                    if (!spirit.isDead && !spirit.isCompleted) {
+                        spirit.satisfaction = calculateSatisfaction(spirit);
+                    }
+                });
+                
                 saveGame();
-                    renderTerrarium();
+                    renderTerrariumManagement();
                     renderInventory();
-                    updateAllSpiritCards();
+                    renderSpirits();  // 만족도 변경 반영
                     showNotification('모든 장식물을 해제했습니다');
                 }
             );
@@ -5616,7 +5749,7 @@
         }, 60000); // 60초마다
 
         setInterval(updateTimeDisplay, 1000);
-        setInterval(updateRandomMessages, 30000); // 30초마다 랜덤 메시지 업데이트
+        setInterval(updateRandomMessages, 15000); // 15초마다 랜덤 메시지 업데이트
         setInterval(checkNeglect, 60000); // 1분마다 방치 체크
 
         // 모바일 디버깅 정보
