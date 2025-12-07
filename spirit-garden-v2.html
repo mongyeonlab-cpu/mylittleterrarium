@@ -1436,6 +1436,53 @@
                     '{name}이(가) 밤의 정수가 품은 신비에 압도됩니다.',
                     '{name}이(가) 밤의 정수 앞에서 경건해집니다.'
                 ]
+            },
+            // 정령 간 상호작용
+            interaction: {
+                decoration: [
+                    '{name1}과(와) {name2}이(가) 함께 {deco}을(를) 구경합니다.',
+                    '{name1}이(가) {name2}에게 {deco}을(를) 보여줍니다.',
+                    '{name1}과(와) {name2}이(가) {deco} 주위를 빙글빙글 돕니다.',
+                    '{name1}과(와) {name2}이(가) {deco} 옆에서 함께 쉬고 있습니다.',
+                    '{name1}이(가) {name2}와(과) {deco}을(를) 함께 즐기고 있습니다.'
+                ],
+                sharing: [
+                    '{name1}이(가) {name2}에게 먹이를 나눠줍니다.',
+                    '{name1}이(가) {name2}와(과) 먹이를 함께 먹습니다.',
+                    '{name1}과(와) {name2}이(가) 서로의 먹이를 나누고 있습니다.'
+                ],
+                fight: [
+                    '{name1}과(와) {name2}이(가) 서로를 깨뭅니다.',
+                    '{name1}이(가) {name2}와(과) 장난스럽게 싸웁니다.',
+                    '{name1}과(와) {name2}이(가) 으르렁거리며 대치합니다.',
+                    '{name1}이(가) {name2}를(을) 쫓아다닙니다.'
+                ],
+                rest: [
+                    '{name1}과(와) {name2}이(가) 서로에게 기대어 잠이 듭니다.',
+                    '{name1}이(가) {name2} 옆에서 편안히 쉬고 있습니다.',
+                    '{name1}과(와) {name2}이(가) 나란히 낮잠을 자고 있습니다.',
+                    '{name1}이(가) {name2}를(을) 베개 삼아 잠들었습니다.',
+                    '{name1}과(와) {name2}이(가) 함께 꿈나라로 떠났습니다.'
+                ],
+                song: [
+                    '{name1}이(가) {name2}에게 자신이 좋아하는 노래를 불러줍니다.',
+                    '{name1}과(와) {name2}이(가) 함께 노래를 부릅니다.',
+                    '{name1}이(가) {name2}를(을) 위해 음악을 연주합니다.',
+                    '{name1}이(가) {name2}와(과) 함께 춤을 춥니다.'
+                ],
+                play: [
+                    '{name1}과(와) {name2}이(가) 숨바꼭질을 하고 있습니다.',
+                    '{name1}이(가) {name2}와(과) 술래잡기를 즐깁니다.',
+                    '{name1}과(와) {name2}이(가) 재미있게 놀고 있습니다.',
+                    '{name1}이(가) {name2}를(을) 간지럽힙니다.',
+                    '{name1}과(와) {name2}이(가) 함께 웃고 떠들고 있습니다.'
+                ],
+                talk: [
+                    '{name1}과(와) {name2}이(가) 수다를 떨고 있습니다.',
+                    '{name1}이(가) {name2}에게 무언가 이야기하고 있습니다.',
+                    '{name1}과(와) {name2}이(가) 즐겁게 대화를 나눕니다.',
+                    '{name1}이(가) {name2}의 이야기를 경청하고 있습니다.'
+                ]
             }
         };
 
@@ -5478,16 +5525,32 @@
         // 30초마다 랜덤 메시지 업데이트
         // 정령 간 상호작용
         function triggerSpiritInteraction() {
-            if (isPaused) return false;
+            console.log('[상호작용] 체크 시작');
+            
+            if (isPaused) {
+                console.log('[상호작용] 일시정지 중');
+                return false;
+            }
             
             // 살아있고 완성되지 않은 정령만
             const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            console.log('[상호작용] 활성 정령 수:', activeSpirits.length, activeSpirits.map(s => s.name));
             
             // 2마리 이상일 때만 상호작용
-            if (activeSpirits.length < 2) return false;
+            if (activeSpirits.length < 2) {
+                console.log('[상호작용] 정령 부족 (2마리 이상 필요)');
+                return false;
+            }
             
-            // 30% 확률로 상호작용 발생 (더 자주!)
-            if (Math.random() > 0.3) return false;
+            // 50% 확률로 상호작용 발생 (테스트용 높은 확률!)
+            const randomValue = Math.random();
+            console.log('[상호작용] 확률 체크:', randomValue, '/ 0.5');
+            if (randomValue > 0.5) {
+                console.log('[상호작용] 확률 실패');
+                return false;
+            }
+            
+            console.log('[상호작용] 확률 성공! 상호작용 진행');
             
             // 랜덤하게 2마리 선택
             const spirit1 = activeSpirits[Math.floor(Math.random() * activeSpirits.length)];
@@ -5512,26 +5575,40 @@
                 }
             }
             
+            console.log('[상호작용] 선택된 타입:', selectedType, '(랜덤 값:', random, ')');
+            
             // 메시지 선택 및 적용
             const messages = RANDOM_MESSAGES.interaction[selectedType];
+            console.log('[상호작용] 메시지 후보 수:', messages.length);
+            
             let message = messages[Math.floor(Math.random() * messages.length)];
+            console.log('[상호작용] 선택된 메시지 템플릿:', message);
             
             message = message
                 .replace('{name1}', spirit1.name)
                 .replace('{name2}', spirit2.name);
             
+            console.log('[상호작용] 최종 메시지:', message);
+            
             // 장식물 상호작용일 경우 장식물 이름 추가
-            if (selectedType === 'decoration' && installedDecorations.length > 0) {
-                const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
-                const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
-                const decoData = DECORATION_TYPES[decoType];
-                if (decoData) {
-                    message = message.replace('{deco}', decoData.name);
+            if (selectedType === 'decoration') {
+                console.log('[상호작용] 장식물 개수:', installedDecorations.length);
+                if (installedDecorations.length > 0) {
+                    const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
+                    const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
+                    console.log('[상호작용] 선택된 장식물:', decoType);
+                    const decoData = DECORATION_TYPES[decoType];
+                    if (decoData) {
+                        message = message.replace('{deco}', decoData.name);
+                        console.log('[상호작用] 장식물 이름 적용:', decoData.name);
+                    } else {
+                        console.log('[상호작용] 장식물 데이터 없음, 취소');
+                        return false; // 장식물 데이터 없으면 취소
+                    }
                 } else {
-                    return false; // 장식물 데이터 없으면 취소
+                    console.log('[상호작용] 장식물 없음, 취소');
+                    return false; // 장식물 없으면 취소
                 }
-            } else if (selectedType === 'decoration') {
-                return false; // 장식물 없으면 취소
             }
             
             // 효과 적용
@@ -5560,6 +5637,7 @@
             // 두 정령 모두 같은 메시지 표시
             spirit1.status = message;
             spirit2.status = message;
+            console.log('[상호작용] 메시지 적용 완료:', spirit1.name, '/', spirit2.name);
             
             // 상호작용 시간 기록 (메시지 유지용)
             const now = Date.now();
@@ -5568,6 +5646,7 @@
             
             // 일지에 기록
             addLog(spirit1, message);
+            console.log('[상호작용] 일지 기록 완료');
             
             // 성장도 체크 (100 이상이면 진화)
             if (spirit1.growth >= 100 && !spirit1.isCompleted) {
@@ -5580,6 +5659,7 @@
             saveGame();
             updateAllSpiritCards();
             
+            console.log('[상호작용] ✅ 상호작용 성공!');
             return true; // 상호작용 발생!
         }
 
