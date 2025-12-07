@@ -850,7 +850,12 @@
     </div>
 
     <div id="encyclopediaSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">정령 도감</h2>
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 15px;">정령 도감</h2>
+            <button onclick="manualRebuildEncyclopedia()" style="padding: 8px 20px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                📚 앨범에서 도감 복구
+            </button>
+        </div>
         <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
     </div>
 
@@ -1039,6 +1044,19 @@
         </div>
     </div>
 
+
+
+    <!-- 커스텀 확인 모달 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 id="confirmTitle" style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 15px; color: var(--text);"></h3>
+            <p id="confirmMessage" style="margin-bottom: 25px; line-height: 1.6; color: var(--text); white-space: pre-line;"></p>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="confirmCancelBtn" style="background: #888; color: white;">취소</button>
+                <button id="confirmOkBtn" style="background: var(--fire); color: white;">확인</button>
+            </div>
+        </div>
+    </div>
 
     <script>      let spirits = [];
         let collection = [];
@@ -2157,6 +2175,41 @@
             return false;
         }
 
+
+        // 커스텀 확인 창 표시
+        function showConfirm(title, message, onConfirm) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirmModal');
+                const titleEl = document.getElementById('confirmTitle');
+                const messageEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOkBtn');
+                const cancelBtn = document.getElementById('confirmCancelBtn');
+                
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                modal.classList.add('active');
+                
+                // 이전 이벤트 리스너 제거
+                const newOkBtn = okBtn.cloneNode(true);
+                const newCancelBtn = cancelBtn.cloneNode(true);
+                okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+                cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+                
+                // 확인 버튼
+                document.getElementById('confirmOkBtn').onclick = () => {
+                    modal.classList.remove('active');
+                    if (onConfirm) onConfirm();
+                    resolve(true);
+                };
+                
+                // 취소 버튼
+                document.getElementById('confirmCancelBtn').onclick = () => {
+                    modal.classList.remove('active');
+                    resolve(false);
+                };
+            });
+        }
+
         function openFeedModal(spiritId) {
             const spirit = spirits.find(s => s.id === spiritId);
             if (!canDoAction(spirit, 'feed')) {
@@ -2269,7 +2322,7 @@
             spirit.hiddenAttributes[foodType] += attrGain;
 
             spirit.growth += growthGain;
-            spirit.lastFed = Date.now();
+            spirit.lastFeed = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             spirit.status = '맛있게 먹었습니다!';
             spirit.parameters.affection += 1;
@@ -2289,9 +2342,8 @@
 
             closeModal('feedModal');
             saveGame();
-            updateSpiritCard(spirit);
+            renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
-            closeModal('feedModal');  // 모달 닫기 추가
             showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]}를 주었습니다`);
         }
 
@@ -2382,7 +2434,7 @@
 
             closeModal('musicModal');
             saveGame();
-            updateSpiritCard(spirit);
+            renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
             showNotification(`${musicData.name}을(를) 들려주었습니다`);
         }
@@ -2456,7 +2508,7 @@
             addLog(spirit, spirit.status);
 
             saveGame();
-            updateSpiritCard(spirit);
+            renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             showNotification(`쓰다듬었습니다 (애정 +1 상승)`);
         }
         
@@ -2708,9 +2760,11 @@
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
 
-            if (confirm(`정말로 ${spirit.name}을(를) 보내시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
-                deleteSpirit(spiritId);
-            }
+            showConfirm(
+                '정령 보내기',
+                `정말로 ${spirit.name}을(를) 보내시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
+                () => deleteSpirit(spiritId)
+            );
         }
 
         function deleteSpirit(spiritId) {
@@ -3056,8 +3110,11 @@
                 endingMessage = `${spirit.name}이(가) 떠나갑니다.`;
             }
             
-            if (confirm(endingMessage)) {
-                // 앨범에 추가
+            showConfirm(
+                '정령 완성',
+                endingMessage,
+                () => {
+                    // 앨범에 추가
                 collection.push({
                     type: evolutionData.type,
                     attributeType: evolutionData.attributeType,
@@ -3112,9 +3169,10 @@
                     console.warn('자동 백업 실패:', e);
                 }
                 
-                renderSpirits();
-                showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다`);
-            }
+                    renderSpirits();
+                    showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다`);
+                }
+            );
         }
 
         function showAlbumDetail(index) {
@@ -3980,12 +4038,75 @@
             renderInventory();
         }
 
+
+        // 앨범 데이터로부터 도감 재구성
+        function rebuildEncyclopediaFromAlbum() {
+            console.log('앨범에서 도감 재구성 시작...');
+            console.log('앨범 데이터:', collection);
+            
+            const newEncyclopedia = {};
+            
+            collection.forEach(spirit => {
+                let encyclopediaKey;
+                
+                if (spirit.type === 'titania' || spirit.type === 'oberon') {
+                    // 전설적 존재는 고유 키 사용
+                    encyclopediaKey = spirit.type;
+                } else if (spirit.type === 'nostat') {
+                    // 수식어 없는 정령
+                    encyclopediaKey = `nostat-${spirit.attributeType}`;
+                } else {
+                    // 일반 정령 (스탯-속성)
+                    encyclopediaKey = `${spirit.type}-${spirit.attributeType}`;
+                }
+                
+                if (!newEncyclopedia[encyclopediaKey]) {
+                    newEncyclopedia[encyclopediaKey] = 0;
+                }
+                newEncyclopedia[encyclopediaKey]++;
+            });
+            
+            console.log('재구성된 도감:', newEncyclopedia);
+            encyclopedia = newEncyclopedia;
+            saveGame();
+            
+            return Object.keys(newEncyclopedia).length;
+        }
+
+
+        async function manualRebuildEncyclopedia() {
+            if (collection.length === 0) {
+                showNotification('앨범에 데이터가 없어 복구할 수 없습니다');
+                return;
+            }
+            
+            const confirmed = await showConfirm(
+                '도감 복구',
+                `앨범에 있는 ${collection.length}마리의 정령 데이터로 도감을 다시 구성합니다.\n\n기존 도감 데이터는 덮어씌워집니다.\n계속하시겠습니까?`
+            );
+            
+            if (!confirmed) {
+                return;
+            }
+            
+            const recoveredCount = rebuildEncyclopediaFromAlbum();
+            renderEncyclopedia();
+            showNotification(`✅ 도감을 복구했습니다! (${recoveredCount}종)`);
+        }
+
         function renderEncyclopedia() {
             try {
                 const grid = document.getElementById('encyclopediaGrid');
                 if (!grid) {
                     console.error('encyclopediaGrid 엘리먼트를 찾을 수 없습니다');
                     return;
+                }
+                
+                // 도감이 비어있는데 앨범에 데이터가 있으면 자동 복구
+                if (Object.keys(encyclopedia).length === 0 && collection.length > 0) {
+                    console.log('⚠️ 도감이 비어있지만 앨범에 데이터 존재 - 자동 복구 시작');
+                    const recoveredCount = rebuildEncyclopediaFromAlbum();
+                    showNotification(`도감을 복구했습니다! (${recoveredCount}종)`);
                 }
             
             const statTypes = [
@@ -4399,12 +4520,22 @@
         }
         
         // 게임 리셋
-        function resetGame() {
-            if (!confirm('정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!')) {
+        async function resetGame() {
+            const confirm1 = await showConfirm(
+                '게임 초기화',
+                '정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!'
+            );
+            
+            if (!confirm1) {
                 return;
             }
             
-            if (!confirm('다시 한 번 확인합니다.\n정말로 모든 데이터를 삭제하시겠습니까?')) {
+            const confirm2 = await showConfirm(
+                '최종 확인',
+                '다시 한 번 확인합니다.\n정말로 모든 데이터를 삭제하시겠습니까?'
+            );
+            
+            if (!confirm2) {
                 return;
             }
             
@@ -4880,8 +5011,11 @@
                 return;
             }
             
-            if (confirm(`설치된 장식물 ${installedDecorations.length}개를 모두 해제하시겠습니까?`)) {
-                // 모든 장식물을 인벤토리로 반환
+            showConfirm(
+                '장식물 전체 해제',
+                `설치된 장식물 ${installedDecorations.length}개를 모두 해제하시겠습니까?`,
+                () => {
+                    // 모든 장식물을 인벤토리로 반환
                 installedDecorations.forEach(deco => {
                     inventory.decorations.push(deco);
                     
@@ -4894,13 +5028,13 @@
                 
                 installedDecorations = [];
                 saveGame();
-                renderTerrarium();
-                renderInventory();
-                updateAllSpiritCards();
-                showNotification('모든 장식물을 해제했습니다');
-            }
+                    renderTerrarium();
+                    renderInventory();
+                    updateAllSpiritCards();
+                    showNotification('모든 장식물을 해제했습니다');
+                }
+            );
         }
-
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
