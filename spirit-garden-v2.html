@@ -4290,6 +4290,7 @@
                         let displayName = '???????';
                         let displayIcon = '?';
                         let isUnlocked = false;
+                        let achievedLevel = 'mid'; // 기본값 설정 (모든 경로에서 사용 가능)
                         
                         if (statInfo.key === 'nostat') {
                             // 수식어 없는 정령
@@ -4305,8 +4306,7 @@
                             count = lowCount + midCount + highCount;
                             isUnlocked = count > 0;
                             
-                            // 달성된 레벨 찾기 (우선순위: high > mid > low) - 스코프 밖으로 이동
-                            let achievedLevel = 'mid';
+                            // 달성된 레벨 찾기 (우선순위: high > mid > low)
                             if (highCount > 0) achievedLevel = 'high';
                             else if (midCount > 0) achievedLevel = 'mid';
                             else if (lowCount > 0) achievedLevel = 'low';
