@@ -941,7 +941,7 @@
                 <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: var(--text);">
                     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                         <span>버전</span>
-                        <span style="font-weight: 700;">0</span>
+                        <span style="font-weight: 700;">2.1.0</span>
                     </div>
                 </div>
             </div>
@@ -1024,9 +1024,14 @@
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">테라리움 환경</h2>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
-                        <span style="font-weight: 600; color: #666;">전체 품질:</span>
-                        <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
+                            <span style="font-weight: 600; color: #666;">전체 품질:</span>
+                            <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
+                        </div>
+                        <button onclick="removeAllDecorations()" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            전체 해제
+                        </button>
                     </div>
                 </div>
                 <div class="env-bars" style="display: grid; gap: 12px;">
@@ -1160,7 +1165,7 @@
             light: 0,
             dark: 0
         };
-        let installedDecorations = []; // 설치된 장식물 목록
+        let installedDecorations = []; // 설치된 장식물 목록 (객체 배열: { type, index })
         let lightMode = true; // 조명 모드 (true: 빛, false: 어둠)
         let coins = 0; // 화폐
         let currentSpiritId = null;
@@ -1905,6 +1910,15 @@
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
                 installedDecorations = data.installedDecorations || [];
+                
+                // 기존 문자열 배열을 객체 배열로 변환 (하위 호환성)
+                installedDecorations = installedDecorations.map((d, index) => {
+                    if (typeof d === 'string') {
+                        return { type: d, index: index };
+                    }
+                    return d;
+                });
+                
                 lightMode = data.lightMode !== undefined ? data.lightMode : true;
                 coins = data.coins || 0;
                 lastGatherTime = data.lastGatherTime || null;
@@ -2154,7 +2168,9 @@
             if (installedDecorations.length === 0) return 0;
             
             let totalQuality = 0;
-            installedDecorations.forEach(key => {
+            installedDecorations.forEach(deco => {
+                // 문자열 또는 객체 모두 지원
+                const key = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[key];
                 if (decoData) {
                     totalQuality += getQualityScore(decoData.quality);
@@ -4014,11 +4030,11 @@
                     } else if (type !== buyFilter) {
                         return; // 다른 속성이면 숨김
                     }
-                    
+    
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">🍎</span>
+                                <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
                                     <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
@@ -4043,7 +4059,7 @@
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">✨</span>
+                                <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
                                     <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
@@ -4053,9 +4069,7 @@
                         </div>
                     `);
                 });
-            }
 
-            
 
             if (currentShopCategory === 'all' || currentShopCategory === 'music') {
                 // 음악 구매
@@ -4766,7 +4780,9 @@
             };
 
             // 설치된 모든 장식물을 순회하며 환경 계산
-            installedDecorations.forEach(decoKey => {
+            installedDecorations.forEach(deco => {
+                // 문자열 또는 객체 모두 지원
+                const decoKey = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[decoKey];
                 if (!decoData) return;
                 
@@ -5014,12 +5030,34 @@
             } else {
                 const installedCounts = {};
                 installedDecorations.forEach(d => {
-                    installedCounts[d] = (installedCounts[d] || 0) + 1;
+                    // 문자열 또는 객체 모두 지원
+                    const decoType = typeof d === 'string' ? d : d.type;
+                    installedCounts[decoType] = (installedCounts[decoType] || 0) + 1;
                 });
 
+                // 속성별, 이름별로 정렬 (순서 고정)
+                const sortedEntries = Object.entries(installedCounts).sort((a, b) => {
+                    const dataA = DECORATION_TYPES[a[0]];
+                    const dataB = DECORATION_TYPES[b[0]];
+                    if (!dataA || !dataB) return 0;
+                    
+                    // 1. 속성별 정렬
+                    const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
+                    const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
+                    if (attrDiff !== 0) return attrDiff;
+                    
+                    // 2. 품질별 정렬 (높은 순)
+                    const qualityOrder = { epic: 0, rare: 1, common: 2 };
+                    const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                    if (qualityDiff !== 0) return qualityDiff;
+                    
+                    // 3. 이름별 정렬
+                    return dataA.name.localeCompare(dataB.name);
+                });
+                
                 installedContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        ${Object.entries(installedCounts).map(([key, count]) => {
+                        ${sortedEntries.map(([key, count]) => {
                             const decoData = DECORATION_TYPES[key];
                             if (!decoData) return '';
                             
@@ -5059,9 +5097,29 @@
 
             const canInstall = installedDecorations.length < 20;
 
+            // 속성별, 품질별, 이름별로 정렬 (순서 고정)
+            const sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
+                const dataA = DECORATION_TYPES[a[0]];
+                const dataB = DECORATION_TYPES[b[0]];
+                if (!dataA || !dataB) return 0;
+                
+                // 1. 속성별 정렬
+                const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
+                const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
+                if (attrDiff !== 0) return attrDiff;
+                
+                // 2. 품질별 정렬 (높은 순)
+                const qualityOrder = { epic: 0, rare: 1, common: 2 };
+                const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                if (qualityDiff !== 0) return qualityDiff;
+                
+                // 3. 이름별 정렬
+                return dataA.name.localeCompare(dataB.name);
+            });
+
             listContainer.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    ${Object.entries(decorCounts).map(([key, count]) => {
+                    ${sortedDecorEntries.map(([key, count]) => {
                         const decoData = DECORATION_TYPES[key];
                         if (!decoData) return '';
                         
@@ -5094,14 +5152,36 @@
                 return;
             }
 
-            const index = inventory.decorations.indexOf(decorationType);
-            if (index === -1) return;
+            const invIndex = inventory.decorations.indexOf(decorationType);
+            if (invIndex === -1) return;
 
             const decoData = DECORATION_TYPES[decorationType];
 
-            // 인벤토리에서 제거하고 설치 목록에 추가
-            inventory.decorations.splice(index, 1);
-            installedDecorations.push(decorationType);
+            // 같은 타입의 장식물이 있는지 확인 (위치 고정을 위해)
+            const existingIndices = installedDecorations
+                .map((d, i) => ({ type: typeof d === 'string' ? d : d.type, index: i }))
+                .filter(d => d.type === decorationType)
+                .map(d => d.index);
+            
+            let targetIndex = installedDecorations.length; // 기본값: 맨 뒤
+            
+            if (existingIndices.length > 0) {
+                // 같은 타입이 있으면 그 다음 위치에 배치
+                targetIndex = Math.max(...existingIndices) + 1;
+            }
+
+            // 인벤토리에서 제거
+            inventory.decorations.splice(invIndex, 1);
+            
+            // 설치 목록에 추가 (위치 정보 포함)
+            installedDecorations.splice(targetIndex, 0, { type: decorationType, index: targetIndex });
+            
+            // 인덱스 재정렬
+            installedDecorations.forEach((d, i) => {
+                if (typeof d === 'object') {
+                    d.index = i;
+                }
+            });
 
             // 환경 재계산
             recalculateTerrariumEnvironment();
@@ -5114,13 +5194,24 @@
         }
 
         function removeDecorationFromTerrarium(decorationType) {
-            const index = installedDecorations.indexOf(decorationType);
+            // 문자열 또는 객체 모두 지원
+            const index = installedDecorations.findIndex(d => 
+                (typeof d === 'string' ? d : d.type) === decorationType
+            );
             if (index === -1) return;
 
             const decoData = DECORATION_TYPES[decorationType];
 
             // 설치 목록에서 제거하고 인벤토리에 추가
             installedDecorations.splice(index, 1);
+            
+            // 인덱스 재정렬
+            installedDecorations.forEach((d, i) => {
+                if (typeof d === 'object') {
+                    d.index = i;
+                }
+            });
+            
             if (!inventory.decorations) inventory.decorations = [];
             inventory.decorations.push(decorationType);
 
@@ -5405,10 +5496,12 @@
                 () => {
                     // 모든 장식물을 인벤토리로 반환
                 installedDecorations.forEach(deco => {
-                    inventory.decorations.push(deco);
+                    // 문자열 또는 객체 모두 지원
+                    const decoType = typeof deco === 'string' ? deco : deco.type;
+                    inventory.decorations.push(decoType);
                     
                     // 테라리움 속성 감소
-                    const decoData = DECORATION_TYPES[deco];
+                    const decoData = DECORATION_TYPES[decoType];
                     if (decoData && terrarium[decoData.attr] !== undefined) {
                         terrarium[decoData.attr] = Math.max(0, terrarium[decoData.attr] - decoData.power);
                     }
