@@ -5478,16 +5478,16 @@
         // 30초마다 랜덤 메시지 업데이트
         // 정령 간 상호작용
         function triggerSpiritInteraction() {
-            if (isPaused) return;
+            if (isPaused) return false;
             
             // 살아있고 완성되지 않은 정령만
             const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
             
             // 2마리 이상일 때만 상호작용
-            if (activeSpirits.length < 2) return;
+            if (activeSpirits.length < 2) return false;
             
-            // 20% 확률로 상호작용 발생
-            if (Math.random() > 0.2) return;
+            // 30% 확률로 상호작용 발생 (더 자주!)
+            if (Math.random() > 0.3) return false;
             
             // 랜덤하게 2마리 선택
             const spirit1 = activeSpirits[Math.floor(Math.random() * activeSpirits.length)];
@@ -5528,10 +5528,10 @@
                 if (decoData) {
                     message = message.replace('{deco}', decoData.name);
                 } else {
-                    return; // 장식물 데이터 없으면 취소
+                    return false; // 장식물 데이터 없으면 취소
                 }
             } else if (selectedType === 'decoration') {
-                return; // 장식물 없으면 취소
+                return false; // 장식물 없으면 취소
             }
             
             // 효과 적용
@@ -5561,6 +5561,11 @@
             spirit1.status = message;
             spirit2.status = message;
             
+            // 상호작용 시간 기록 (메시지 유지용)
+            const now = Date.now();
+            spirit1.lastSpiritInteraction = now;
+            spirit2.lastSpiritInteraction = now;
+            
             // 일지에 기록
             addLog(spirit1, message);
             
@@ -5574,15 +5579,25 @@
             
             saveGame();
             updateAllSpiritCards();
+            
+            return true; // 상호작용 발생!
         }
 
         function updateRandomMessages() {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
             
+            // 정령 간 상호작용 먼저 시도 (메시지 덮어쓰기 방지)
+            const interactionOccurred = triggerSpiritInteraction();
+            
             const now = Date.now();
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
-                    // 최근 10초 이내에 상호작용했으면 메시지 유지
+                    // 정령 간 상호작용이 발생했으면 해당 정령 메시지 유지
+                    if (interactionOccurred && spirit.lastSpiritInteraction && now - spirit.lastSpiritInteraction < 15000) {
+                        return;
+                    }
+                    
+                    // 최근 10초 이내에 플레이어 상호작용했으면 메시지 유지
                     const recentInteraction = (
                         (spirit.lastFeed && now - spirit.lastFeed < 10000) ||
                         (spirit.lastPat && now - spirit.lastPat < 10000) ||
@@ -5605,9 +5620,6 @@
                     spirit.status = newStatus;
                 }
             });
-            
-            // 정령 간 상호작용 시도
-            triggerSpiritInteraction();
             
             updateAllSpiritCards();
         }
