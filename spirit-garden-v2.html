@@ -817,6 +817,7 @@
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
+        <button class="tab" onclick="switchTab('settings')">⚙️</button>
     </div>
 
     <div id="gardenSection" class="section active">
@@ -876,18 +877,75 @@
     </div>
 
     <div id="encyclopediaSection" class="section">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 15px;">정령 도감</h2>
-            <button onclick="manualRebuildEncyclopedia()" style="padding: 8px 20px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
-                📚 앨범에서 도감 복구
-            </button>
-        </div>
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">정령 도감</h2>
         <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
     </div>
 
     <div id="albumSection" class="section">
         <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
         <div class="collection-grid" id="collectionGrid"></div>
+    </div>
+
+
+    <!-- 설정 섹션 -->
+    <div id="settingsSection" class="section">
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">설정</h2>
+        
+        <div style="max-width: 600px; margin: 0 auto;">
+            <!-- 데이터 관리 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">데이터 관리</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button onclick="exportGameData()" style="padding: 14px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        게임 데이터 내보내기
+                    </button>
+                    
+                    <button onclick="importGameData()" style="padding: 14px; background: var(--wind); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        게임 데이터 불러오기
+                    </button>
+                    
+                    <button onclick="manualRebuildEncyclopedia()" style="padding: 14px; background: var(--earth); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        앨범에서 도감 복구
+                    </button>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
+                    💡 데이터 내보내기를 통해 게임 진행상황을 백업할 수 있습니다.<br>
+                    다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.
+                </div>
+            </div>
+            
+            <!-- 화면 설정 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">화면 설정</h3>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 8px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">다크 모드 고정</div>
+                        <div style="font-size: 0.85rem; color: #888;">활성화 시 조명 상태와 무관하게 다크 모드 유지</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 60px; height: 32px;">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkModeLock()" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 32px;">
+                            <span id="darkModeSlider" style="position: absolute; content: ''; height: 24px; width: 24px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 게임 정보 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">게임 정보</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: var(--text);">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span>버전</span>
+                        <span style="font-weight: 700;">2.1.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- 앨범 상세 정보 모달 -->
@@ -1087,6 +1145,7 @@
     <script>      let spirits = [];
         let collection = [];
         let encyclopedia = {}; // 도감: { evolutionKey: count }
+        let darkModeLocked = false; // 다크 모드 고정 여부
         let inventory = {
             music: [],
             decorations: [],
@@ -1851,6 +1910,7 @@
                 lastGatherTime = data.lastGatherTime || null;
                 currentTitle = data.currentTitle || 'none';
                 isPaused = data.isPaused || false;
+                darkModeLocked = data.darkModeLocked || false;
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -1896,7 +1956,8 @@
                 lastGatherTime,
                 currentTitle,
                 currentGatherLocation,
-                isPaused
+                isPaused,
+                darkModeLocked
             }));
         }
 
@@ -4554,12 +4615,143 @@
                     document.querySelector('.tab:nth-child(5)').classList.add('active');
                     document.getElementById('albumSection').classList.add('active');
                     renderCollection();
+                } else if (tab === 'settings') {
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
+                    document.getElementById('settingsSection').classList.add('active');
+                    updateSettingsInfo();
                 }
             } catch (error) {
                 console.error('탭 전환 오류:', error);
                 console.error('오류 스택:', error.stack);
                 showNotification('탭 전환 중 오류가 발생했습니다');
             }
+        }
+
+
+        // 설정 정보 업데이트
+        function updateSettingsInfo() {
+            // 다크모드 토글 상태 업데이트
+            const toggle = document.getElementById('darkModeToggle');
+            const slider = document.getElementById('darkModeSlider');
+            if (toggle) {
+                toggle.checked = darkModeLocked;
+                if (darkModeLocked) {
+                    slider.style.transform = 'translateX(28px)';
+                    slider.parentElement.style.backgroundColor = '#4CAF50';
+                } else {
+                    slider.style.transform = 'translateX(0)';
+                    slider.parentElement.style.backgroundColor = '#ccc';
+                }
+            }
+        }
+        
+        // 다크 모드 고정 토글
+        function toggleDarkModeLock() {
+            darkModeLocked = !darkModeLocked;
+            
+            const slider = document.getElementById('darkModeSlider');
+            if (darkModeLocked) {
+                slider.style.transform = 'translateX(28px)';
+                slider.parentElement.style.backgroundColor = '#4CAF50';
+                showNotification('🌙 다크 모드가 고정되었습니다');
+            } else {
+                slider.style.transform = 'translateX(0)';
+                slider.parentElement.style.backgroundColor = '#ccc';
+                showNotification('🌓 조명에 따라 테마가 변경됩니다');
+            }
+            
+            applyLightMode();
+            saveGame();
+        }
+        
+        // 게임 데이터 내보내기
+        function exportGameData() {
+            const gameData = {
+                version: '2.1.0',
+                exportDate: new Date().toISOString(),
+                spirits: spirits,
+                collection: collection,
+                encyclopedia: encyclopedia,
+                inventory: inventory,
+                coins: coins,
+                terrarium: terrarium,
+                installedDecorations: installedDecorations,
+                lightMode: lightMode,
+                isPaused: isPaused,
+                darkModeLocked: darkModeLocked
+            };
+            
+            const dataStr = JSON.stringify(gameData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `spirit-garden-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('✅ 게임 데이터를 내보냈습니다');
+        }
+        
+        // 게임 데이터 불러오기
+        function importGameData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const gameData = JSON.parse(text);
+                    
+                    // 데이터 유효성 검사
+                    if (!gameData.spirits || !gameData.collection || !gameData.inventory) {
+                        throw new Error('올바른 게임 데이터 파일이 아닙니다');
+                    }
+                    
+                    const confirmed = await showConfirm(
+                        '데이터 불러오기',
+                        `백업 파일을 불러오시겠습니까?\n\n백업 일시: ${new Date(gameData.exportDate).toLocaleString()}\n정령 수: ${gameData.spirits.length}\n앨범: ${gameData.collection.length}\n\n현재 데이터는 덮어씌워집니다.`
+                    );
+                    
+                    if (!confirmed) return;
+                    
+                    // 데이터 복원
+                    spirits = gameData.spirits || [];
+                    collection = gameData.collection || [];
+                    encyclopedia = gameData.encyclopedia || {};
+                    inventory = gameData.inventory || { food: [], music: [], decorations: [], medicine: [] };
+                    coins = gameData.coins || 0;
+                    terrarium = gameData.terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                    installedDecorations = gameData.installedDecorations || [];
+                    lightMode = gameData.lightMode !== undefined ? gameData.lightMode : true;
+                    isPaused = gameData.isPaused || false;
+                    darkModeLocked = gameData.darkModeLocked || false;
+                    
+                    saveGame();
+                    
+                    // UI 새로고침
+                    renderSpirits();
+                    renderInventory();
+                    updateCoinDisplay();
+                    applyLightMode();
+                    updateSettingsInfo();
+                    
+                    showNotification('✅ 게임 데이터를 불러왔습니다');
+                    switchTab('garden');
+                } catch (error) {
+                    console.error('데이터 불러오기 오류:', error);
+                    showNotification('❌ 데이터 불러오기 실패: ' + error.message);
+                }
+            };
+            
+            input.click();
         }
 
         function recalculateTerrariumEnvironment() {
@@ -4674,6 +4866,14 @@
 
         function applyLightMode() {
             const icon = document.getElementById('lightIcon');
+            
+            // 다크 모드 고정이 활성화되어 있으면 조명 상태 무시
+            if (darkModeLocked) {
+                document.body.classList.add('dark-mode');
+                if (icon) icon.textContent = '🌙';
+                return;
+            }
+            
             if (lightMode) {
                 document.body.classList.remove('dark-mode');
                 if (icon) icon.textContent = '☀️';
