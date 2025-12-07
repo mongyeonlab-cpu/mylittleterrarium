@@ -878,6 +878,7 @@
                 
                 <!-- 카테고리 선택 드롭다운 -->
                 <select id="shopCategorySelect" onchange="changeShopCategory()" style="padding: 12px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; min-width: 200px;">
+                    <option value="all">📦 전체</option>
                     <option value="food">🍎 먹이</option>
                     <option value="decoration">🌳 장식물</option>
                     <option value="music">레코드</option>
@@ -1036,7 +1037,7 @@
         let lastGatherTime = null;
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
-        let currentShopCategory = 'food'; // 현재 상점 카테고리 (food, decoration, music)
+        let currentShopCategory = 'all'; // 현재 상점 카테고리 (all, food, decoration, music)
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
@@ -2112,7 +2113,7 @@
             const cooldown = 10000; // 10초
 
             if (action === 'feed') {
-                return !spirit.lastFed || (now - spirit.lastFed > cooldown);
+                return !spirit.lastFeed || (now - spirit.lastFeed > cooldown);
             }
             if (action === 'music') {
                 return !spirit.lastMusic || (now - spirit.lastMusic > cooldown);
@@ -3393,6 +3394,7 @@
 
         function renderSpirits() {
             const grid = document.getElementById('spiritsGrid');
+            const now = Date.now(); // 쿨타임 계산용
             
             if (spirits.length === 0) {
                 grid.innerHTML = `
@@ -3562,13 +3564,13 @@
                         ` : ''}
                         <div class="action-buttons">
                             <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
-                                ${spirit.isSick ? '' : ''}먹이주기
+                                ${spirit.isSick ? '' : ''}먹이주기${!canFeed && spirit.lastFeed ? ` (${Math.ceil((10000 - (now - spirit.lastFeed)) / 1000)}초)` : ''}
                             </button>
                             <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
-                                음악 듣기
+                                음악 듣기${!canMusic && spirit.lastMusic ? ` (${Math.max(0, Math.ceil((10000 - (now - spirit.lastMusic)) / 1000))}초)` : ''}
                             </button>
                             <button onclick="patSpirit(${spirit.id})" ${!canPat ? 'disabled' : ''}>
-                                쓰다듬기
+                                쓰다듬기${!canPat && spirit.lastPat ? ` (${Math.max(0, Math.ceil((10000 - (now - spirit.lastPat)) / 1000))}초)` : ''}
                             </button>
                             ${spirit.growth >= 100 && !spirit.isCompleted ? `
                                 <button onclick="manualCompleteSpirit(${spirit.id})" style="background: #ffd700; color: #000; font-weight: 700;">
@@ -3603,7 +3605,7 @@
 
             const items = [];
 
-            if (currentShopCategory === 'food') {
+            if (currentShopCategory === 'all' || currentShopCategory === 'food') {
                 // 먹이 판매 (순서 고정)
                 if (inventory.food && inventory.food.length > 0) {
                     const foodCounts = {};
@@ -3630,7 +3632,9 @@
                         `);
                     });
                 }
-            } else if (currentShopCategory === 'decoration') {
+            }
+            
+            if (currentShopCategory === 'all' || currentShopCategory === 'decoration') {
                 // 장식물 판매 (등급별 정렬)
                 if (inventory.decorations && inventory.decorations.length > 0) {
                     const decorCounts = {};
@@ -3661,7 +3665,11 @@
                         `);
                     });
                 }
-            } else if (currentShopCategory === 'music') {
+            }
+
+            
+
+            if (currentShopCategory === 'all' || currentShopCategory === 'music') {
                 // 음악 판매 (순서 고정)
                 if (inventory.music && inventory.music.length > 0) {
                     const musicCounts = {};
@@ -3702,7 +3710,7 @@
 
             const items = [];
             
-            if (currentShopCategory === 'food') {
+            if (currentShopCategory === 'all' || currentShopCategory === 'food') {
                 // 약초 구매 (제일 위에 표시)
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3749,7 +3757,11 @@
                         </div>
                     `);
                 });
-            } else if (currentShopCategory === 'music') {
+            }
+
+            
+
+            if (currentShopCategory === 'all' || currentShopCategory === 'music') {
                 // 음악 구매
                 Object.keys(MUSIC_TYPES).forEach(type => {
                     const musicData = MUSIC_TYPES[type];
@@ -3766,7 +3778,9 @@
                         </div>
                     `);
                 });
-            } else if (currentShopCategory === 'decoration') {
+            }
+            
+            if (currentShopCategory === 'all' || currentShopCategory === 'decoration') {
                 // 장식물 구매 (등급별 그룹화)
                 const decorationsByQuality = {
                     common: [],
@@ -4774,6 +4788,34 @@
                 reader.readAsText(file);
             };
             input.click();
+        }
+
+
+        function removeAllDecorations() {
+            if (installedDecorations.length === 0) {
+                showNotification('설치된 장식물이 없습니다');
+                return;
+            }
+            
+            if (confirm(`설치된 장식물 ${installedDecorations.length}개를 모두 해제하시겠습니까?`)) {
+                // 모든 장식물을 인벤토리로 반환
+                installedDecorations.forEach(deco => {
+                    inventory.decorations.push(deco);
+                    
+                    // 테라리움 속성 감소
+                    const decoData = DECORATION_TYPES[deco];
+                    if (decoData && terrarium[decoData.attr] !== undefined) {
+                        terrarium[decoData.attr] = Math.max(0, terrarium[decoData.attr] - decoData.power);
+                    }
+                });
+                
+                installedDecorations = [];
+                saveGame();
+                renderTerrarium();
+                renderInventory();
+                updateAllSpiritCards();
+                showNotification('모든 장식물을 해제했습니다');
+            }
         }
 
         function closeModal(modalId) {
