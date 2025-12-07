@@ -2592,7 +2592,7 @@
             if (Math.random() < (0.5 * decoBonus)) {
                 const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'common' && locationDecoTypes.includes(deco.attribute);
+                    return deco.quality === 'common' && locationDecoTypes.includes(deco.attr);
                 });
                 if (commonDecos.length > 0) {
                     const randomDeco = commonDecos[Math.floor(Math.random() * commonDecos.length)];
@@ -2605,7 +2605,7 @@
             if (Math.random() < (0.2 * decoBonus)) {
                 const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attribute);
+                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attr);
                 });
                 if (rareDecos.length > 0) {
                     const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
@@ -2618,7 +2618,7 @@
             if (Math.random() < (0.08 * decoBonus)) {
                 const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attribute);
+                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attr);
                 });
                 if (epicDecos.length > 0) {
                     const randomDeco = epicDecos[Math.floor(Math.random() * epicDecos.length)];
