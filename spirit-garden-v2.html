@@ -1179,6 +1179,8 @@
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
+        let pausedAt = null; // 일시정지 시작 시간
+        let totalPausedTime = 0; // 총 일시정지 시간
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -2496,26 +2498,27 @@
             
             // 만족도 즉시 계산
             spirit.satisfaction = calculateSatisfaction(spirit);
-            const statBonus = spirit.satisfaction === 'high' ? 2 : 0;
+            const singleStatBonus = spirit.satisfaction === 'high' ? 2 : 0; // 단일 스탯 +2
+            const dualStatBonus = spirit.satisfaction === 'high' ? 1 : 0;   // 복수 스탯 각 +1
             
-            // 효과 적용 (만족도 높으면 +2 보너스)
+            // 효과 적용 (만족도 높으면 보너스)
             if (musicType === 'classic') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + statBonus);
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + singleStatBonus);
             } else if (musicType === 'jazz') {
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + statBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + singleStatBonus);
             } else if (musicType === 'rock') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + statBonus);
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + singleStatBonus);
             } else if (musicType === 'pop') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + statBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + statBonus);
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
             } else if (musicType === 'ballad') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + statBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + statBonus);
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
             }
 
             // 애정도 증가 (만족도 높으면 +1 보너스)
             const affectionBonus = spirit.satisfaction === 'high' ? 3 : 2;
-            spirit.parameters.affection = Math.min(100, spirit.parameters.affection + affectionBonus);
+            spirit.parameters.affection += affectionBonus;
 
             spirit.lastMusic = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
@@ -2545,7 +2548,7 @@
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
-            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스 +2!)' : '';
+            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
             showNotification(`${musicData.name}을(를) 들려주었습니다${bonusText}`);
         }
 
@@ -2568,7 +2571,7 @@
             
             const currentAffection = spirit.parameters.affection || 0;
             const affectionBonus = spirit.satisfaction === 'high' ? 2 : 1;
-            spirit.parameters.affection = Math.min(100, spirit.parameters.affection + affectionBonus);
+            spirit.parameters.affection += affectionBonus;
             spirit.lastPat = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             
@@ -2623,7 +2626,7 @@
 
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
-            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스 +1!)' : '';
+            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
             showNotification(`쓰다듬었습니다 (애정 +${affectionBonus}${bonusText})`);
         }
         
@@ -4997,11 +5000,17 @@
             const pauseBtn = document.getElementById('pauseBtn');
             
             if (isPaused) {
+                pausedAt = Date.now(); // 일시정지 시작 시간 기록
                 pauseBtn.textContent = '▶️';
                 pauseBtn.classList.add('paused');
                 pauseBtn.title = '재개';
                 showNotification('⏸️ 게임이 일시정지되었습니다');
             } else {
+                if (pausedAt) {
+                    // 일시정지했던 시간을 누적
+                    totalPausedTime += (Date.now() - pausedAt);
+                    pausedAt = null;
+                }
                 pauseBtn.textContent = '⏸️';
                 pauseBtn.classList.remove('paused');
                 pauseBtn.title = '일시정지';
@@ -5058,6 +5067,8 @@
             currentTitle = 'none';
             lastGatherTime = null;
             isPaused = false;
+            pausedAt = null;
+            totalPausedTime = 0;
             
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
@@ -5488,7 +5499,11 @@
                     return;
                 }
                 
-                const timeSinceLastInteraction = (now - spirit.lastInteraction) / 1000; // 초
+                // 일시정지 시간 제외한 실제 경과 시간 계산
+                const currentPausedTime = isPaused ? (now - pausedAt) : 0;
+                const effectivePausedTime = totalPausedTime + currentPausedTime;
+                
+                const timeSinceLastInteraction = (now - spirit.lastInteraction - effectivePausedTime) / 1000; // 초
                 const minutesSinceInteraction = timeSinceLastInteraction / 60;
                 
                 // 5분마다 애정도 -1 감소
@@ -5497,7 +5512,7 @@
                     spirit.lastAffectionDrop = now;
                 }
                 
-                const timeSinceAffectionDrop = (now - spirit.lastAffectionDrop) / 1000; // 초
+                const timeSinceAffectionDrop = (now - spirit.lastAffectionDrop - effectivePausedTime) / 1000; // 초
                 if (timeSinceAffectionDrop >= 300) { // 5분 = 300초
                     if (spirit.parameters.affection > 0) {
                         spirit.parameters.affection -= 1;
@@ -5729,7 +5744,7 @@
                 
                 // 만족도에 따른 애정도 변화
                 if (newSatisfaction === 'high') {
-                    spirit.parameters.affection = Math.min(100, spirit.parameters.affection + 1);
+                    spirit.parameters.affection += 1;
                 } else if (newSatisfaction === 'low') {
                     spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 1);
                 }
