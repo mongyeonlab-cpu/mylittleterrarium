@@ -5476,6 +5476,106 @@
         
         // 30초마다 랜덤 메시지 업데이트
         // 30초마다 랜덤 메시지 업데이트
+        // 정령 간 상호작용
+        function triggerSpiritInteraction() {
+            if (isPaused) return;
+            
+            // 살아있고 완성되지 않은 정령만
+            const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            
+            // 2마리 이상일 때만 상호작용
+            if (activeSpirits.length < 2) return;
+            
+            // 20% 확률로 상호작용 발생
+            if (Math.random() > 0.2) return;
+            
+            // 랜덤하게 2마리 선택
+            const spirit1 = activeSpirits[Math.floor(Math.random() * activeSpirits.length)];
+            let spirit2;
+            do {
+                spirit2 = activeSpirits[Math.floor(Math.random() * activeSpirits.length)];
+            } while (spirit2.id === spirit1.id);
+            
+            // 상호작용 종류 결정
+            const interactionTypes = ['decoration', 'sharing', 'fight', 'rest', 'song', 'play', 'talk'];
+            const weights = [20, 10, 5, 15, 10, 25, 15]; // 가중치 (%)
+            
+            let random = Math.random() * 100;
+            let selectedType = 'play'; // 기본값
+            let cumulative = 0;
+            
+            for (let i = 0; i < interactionTypes.length; i++) {
+                cumulative += weights[i];
+                if (random < cumulative) {
+                    selectedType = interactionTypes[i];
+                    break;
+                }
+            }
+            
+            // 메시지 선택 및 적용
+            const messages = RANDOM_MESSAGES.interaction[selectedType];
+            let message = messages[Math.floor(Math.random() * messages.length)];
+            
+            message = message
+                .replace('{name1}', spirit1.name)
+                .replace('{name2}', spirit2.name);
+            
+            // 장식물 상호작용일 경우 장식물 이름 추가
+            if (selectedType === 'decoration' && installedDecorations.length > 0) {
+                const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
+                const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
+                const decoData = DECORATION_TYPES[decoType];
+                if (decoData) {
+                    message = message.replace('{deco}', decoData.name);
+                } else {
+                    return; // 장식물 데이터 없으면 취소
+                }
+            } else if (selectedType === 'decoration') {
+                return; // 장식물 없으면 취소
+            }
+            
+            // 효과 적용
+            switch (selectedType) {
+                case 'sharing': // 먹이 나눔 - 둘 다 성장 +1
+                    spirit1.growth = Math.min(100, spirit1.growth + 1);
+                    spirit2.growth = Math.min(100, spirit2.growth + 1);
+                    break;
+                    
+                case 'song': // 노래 - 랜덤 스탯 +1
+                    const statTypes = ['intelligence', 'strength', 'charm'];
+                    const randomStat = statTypes[Math.floor(Math.random() * statTypes.length)];
+                    spirit2.parameters[randomStat] = Math.min(100, spirit2.parameters[randomStat] + 1);
+                    break;
+                    
+                case 'fight': // 싸움 - 약간의 스트레스, 애정도 -1
+                    spirit1.parameters.affection = Math.max(0, spirit1.parameters.affection - 1);
+                    spirit2.parameters.affection = Math.max(0, spirit2.parameters.affection - 1);
+                    break;
+                    
+                case 'rest': // 휴식 - 만족도 회복
+                    // 특별한 효과 없음, 메시지만
+                    break;
+            }
+            
+            // 두 정령 모두 같은 메시지 표시
+            spirit1.status = message;
+            spirit2.status = message;
+            
+            // 일지에 기록
+            addLog(spirit1, message);
+            
+            // 성장도 체크 (100 이상이면 진화)
+            if (spirit1.growth >= 100 && !spirit1.isCompleted) {
+                completeSpirit(spirit1);
+            }
+            if (spirit2.growth >= 100 && !spirit2.isCompleted) {
+                completeSpirit(spirit2);
+            }
+            
+            saveGame();
+            updateAllSpiritCards();
+        }
+
         function updateRandomMessages() {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
             
@@ -5505,6 +5605,10 @@
                     spirit.status = newStatus;
                 }
             });
+            
+            // 정령 간 상호작용 시도
+            triggerSpiritInteraction();
+            
             updateAllSpiritCards();
         }
         
