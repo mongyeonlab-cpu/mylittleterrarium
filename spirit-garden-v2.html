@@ -289,6 +289,10 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         button:hover {
@@ -304,6 +308,27 @@
             opacity: 0.4;
             cursor: not-allowed;
         }
+
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-family: 'Gowun Batang', serif;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        
+        select:focus {
+            outline: 2px solid var(--fire);
+            outline-offset: 2px;
+        }
+
 
         .new-spirit-btn {
             width: 100%;
@@ -359,6 +384,7 @@
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             border: 1px solid var(--border);
         }
 
@@ -3774,7 +3800,13 @@
                     const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
                     foodOrder.filter(type => foodCounts[type]).forEach(type => {
                         // 속성 필터 체크
-                        if (sellFilter !== 'all' && type !== sellFilter) return;
+                        if (sellFilter === 'all') {
+                            // 전체 보기
+                        } else if (['intelligence', 'strength', 'charm'].includes(sellFilter)) {
+                            return; // 스탯 필터 시 먹이 숨김
+                        } else if (type !== sellFilter) {
+                            return; // 다른 속성이면 숨김
+                        }
                         
                         const count = foodCounts[type];
                         const isRare = type === 'light' || type === 'dark';
@@ -3805,9 +3837,19 @@
 
                     // 모든 장식물 키를 가져와서 등급순으로 정렬
                     Object.keys(decorCounts).forEach(key => {
-                        const count = decorCounts[key];
                         const decoData = DECORATION_TYPES[key];
                         if (!decoData) return; // 데이터 없으면 스킵
+                        
+                        // 속성 필터 체크
+                        if (sellFilter === 'all') {
+                            // 전체 보기
+                        } else if (['intelligence', 'strength', 'charm'].includes(sellFilter)) {
+                            return; // 스탯 필터 시 장식물 숨김
+                        } else if (decoData.attr !== sellFilter) {
+                            return; // 다른 속성이면 숨김
+                        }
+                        
+                        const count = decorCounts[key];
                         
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
                         const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
@@ -3904,7 +3946,13 @@
                 // 일반 먹이 구매
                 ['fire', 'water', 'wind', 'earth'].forEach(type => {
                     // 속성 필터 체크
-                    if (sellFilter !== 'all' && type !== sellFilter) return;
+                    if (buyFilter === 'all') {
+                        // 전체 보기
+                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
+                        return; // 스탯 필터 시 먹이 숨김
+                    } else if (type !== buyFilter) {
+                        return; // 다른 속성이면 숨김
+                    }
                     
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3923,7 +3971,13 @@
                 // 희귀 먹이 구매
                 ['light', 'dark'].forEach(type => {
                     // 속성 필터 체크
-                    if (sellFilter !== 'all' && type !== sellFilter) return;
+                    if (buyFilter === 'all') {
+                        // 전체 보기
+                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
+                        return; // 스탯 필터 시 먹이 숨김
+                    } else if (type !== buyFilter) {
+                        return; // 다른 속성이면 숨김
+                    }
                     
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3984,6 +4038,16 @@
                 
                 Object.keys(DECORATION_TYPES).forEach(key => {
                     const decoData = DECORATION_TYPES[key];
+                    
+                    // 속성 필터 체크
+                    if (buyFilter === 'all') {
+                        // 전체 보기
+                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
+                        return; // 스탯 필터 시 장식물 숨김
+                    } else if (decoData.attr !== buyFilter) {
+                        return; // 다른 속성이면 숨김
+                    }
+                    
                     decorationsByQuality[decoData.quality].push({ key, data: decoData });
                 });
                 
@@ -4394,7 +4458,13 @@
         }
 
         function renderCollection() {
-            const grid = document.getElementById('collectionGrid');
+            try {
+                console.log('앨범 렌더링 시작');
+                const grid = document.getElementById('collectionGrid');
+                if (!grid) {
+                    console.error('collectionGrid 엘리먼트를 찾을 수 없습니다');
+                    return;
+                }
             
             if (collection.length === 0) {
                 grid.innerHTML = `
@@ -4442,34 +4512,53 @@
                     </div>
                 `;
             }).join('');
+            } catch (error) {
+                console.error('앨범 렌더링 오류:', error);
+                console.error('오류 스택:', error.stack);
+                const grid = document.getElementById('collectionGrid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="color: #f44336; font-size: 1.2rem; margin-bottom: 20px;">⚠️ 앨범 렌더링 오류</div>
+                            <div style="color: #666;">오류: ${error.message}</div>
+                        </div>
+                    `;
+                }
+            }
         }
 
         function switchTab(tab) {
-            console.log('탭 전환:', tab);
-            currentTab = tab; // 현재 탭 저장
-            
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            
-            if (tab === 'garden') {
-                document.querySelector('.tab:nth-child(1)').classList.add('active');
-                document.getElementById('gardenSection').classList.add('active');
-            } else if (tab === 'terrarium') {
-                document.querySelector('.tab:nth-child(2)').classList.add('active');
-                document.getElementById('terrariumSection').classList.add('active');
-                renderTerrariumManagement();
-            } else if (tab === 'shop') {
-                document.querySelector('.tab:nth-child(3)').classList.add('active');
-                document.getElementById('shopSection').classList.add('active');
-                renderShop();
-            } else if (tab === 'encyclopedia') {
-                document.querySelector('.tab:nth-child(4)').classList.add('active');
-                document.getElementById('encyclopediaSection').classList.add('active');
-                renderEncyclopedia();
-            } else if (tab === 'album') {
-                document.querySelector('.tab:nth-child(5)').classList.add('active');
-                document.getElementById('albumSection').classList.add('active');
-                renderCollection();
+            try {
+                console.log('탭 전환:', tab);
+                currentTab = tab; // 현재 탭 저장
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                
+                if (tab === 'garden') {
+                    document.querySelector('.tab:nth-child(1)').classList.add('active');
+                    document.getElementById('gardenSection').classList.add('active');
+                } else if (tab === 'terrarium') {
+                    document.querySelector('.tab:nth-child(2)').classList.add('active');
+                    document.getElementById('terrariumSection').classList.add('active');
+                    renderTerrariumManagement();
+                } else if (tab === 'shop') {
+                    document.querySelector('.tab:nth-child(3)').classList.add('active');
+                    document.getElementById('shopSection').classList.add('active');
+                    renderShop();
+                } else if (tab === 'encyclopedia') {
+                    document.querySelector('.tab:nth-child(4)').classList.add('active');
+                    document.getElementById('encyclopediaSection').classList.add('active');
+                    renderEncyclopedia();
+                } else if (tab === 'album') {
+                    document.querySelector('.tab:nth-child(5)').classList.add('active');
+                    document.getElementById('albumSection').classList.add('active');
+                    renderCollection();
+                }
+            } catch (error) {
+                console.error('탭 전환 오류:', error);
+                console.error('오류 스택:', error.stack);
+                showNotification('탭 전환 중 오류가 발생했습니다');
             }
         }
 
@@ -5235,13 +5324,34 @@
         setInterval(updateRandomMessages, 30000); // 30초마다 랜덤 메시지 업데이트
         setInterval(checkNeglect, 60000); // 1분마다 방치 체크
 
+        // 모바일 디버깅 정보
+        console.log('=== 모바일 디버깅 정보 ===');
+        console.log('User Agent:', navigator.userAgent);
+        console.log('화면 크기:', window.innerWidth, 'x', window.innerHeight);
+        console.log('터치 지원:', 'ontouchstart' in window);
+        console.log('현재 시간:', new Date().toISOString());
+        
         // 초기화
-        loadGame();
-        renderSpirits();
-        renderInventory();
-        updateTimeDisplay();
-        applyLightMode();
-        updateCoinDisplay();
+        try {
+            console.log('게임 초기화 시작...');
+            loadGame();
+            console.log('✅ loadGame 완료');
+            renderSpirits();
+            console.log('✅ renderSpirits 완료');
+            renderInventory();
+            console.log('✅ renderInventory 완료');
+            updateTimeDisplay();
+            console.log('✅ updateTimeDisplay 완료');
+            applyLightMode();
+            console.log('✅ applyLightMode 완료');
+            updateCoinDisplay();
+            console.log('✅ updateCoinDisplay 완료');
+            console.log('🎉 게임 초기화 완료!');
+        } catch (error) {
+            console.error('❌ 초기화 오류:', error);
+            console.error('오류 스택:', error.stack);
+            alert('게임 초기화 중 오류가 발생했습니다: ' + error.message);
+        }
 
         // 모달 배경 클릭 시 닫기
         document.querySelectorAll('.modal').forEach(modal => {
