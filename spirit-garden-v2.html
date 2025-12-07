@@ -4305,13 +4305,13 @@
                             count = lowCount + midCount + highCount;
                             isUnlocked = count > 0;
                             
+                            // 달성된 레벨 찾기 (우선순위: high > mid > low) - 스코프 밖으로 이동
+                            let achievedLevel = 'mid';
+                            if (highCount > 0) achievedLevel = 'high';
+                            else if (midCount > 0) achievedLevel = 'mid';
+                            else if (lowCount > 0) achievedLevel = 'low';
+                            
                             if (isUnlocked) {
-                                // 달성된 레벨 찾기 (우선순위: high > mid > low)
-                                let achievedLevel = 'mid';
-                                if (highCount > 0) achievedLevel = 'high';
-                                else if (midCount > 0) achievedLevel = 'mid';
-                                else if (lowCount > 0) achievedLevel = 'low';
-                                
                                 const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
                                 const statIcon = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].icon;
                                 displayName = statPrefix;
