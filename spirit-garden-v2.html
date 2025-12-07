@@ -3396,6 +3396,58 @@
             });
         }
 
+
+        // 쿨타임 텍스트만 업데이트 (성능 최적화)
+        function updateCooldownDisplay() {
+            if (currentTab !== 'garden' || isPaused) return;
+            
+            const now = Date.now();
+            spirits.forEach((spirit, index) => {
+                const cards = document.querySelectorAll('.spirit-card');
+                const card = cards[index];
+                if (!card) return;
+                
+                // 버튼들 찾기
+                const buttons = card.querySelectorAll('button');
+                buttons.forEach(button => {
+                    const text = button.textContent;
+                    
+                    // 먹이주기 버튼
+                    if (text.includes('먹이주기')) {
+                        const canFeed = !isPaused && canDoAction(spirit, 'feed') && !spirit.isDead;
+                        if (!canFeed && spirit.lastFeed) {
+                            const remaining = Math.max(0, Math.ceil((10000 - (now - spirit.lastFeed)) / 1000));
+                            button.textContent = `${spirit.isSick ? '🤢 ' : ''}먹이주기 (${remaining}초)`;
+                        } else if (canFeed) {
+                            button.textContent = `${spirit.isSick ? '🤢 ' : ''}먹이주기`;
+                        }
+                    }
+                    
+                    // 음악 듣기 버튼
+                    if (text.includes('음악 듣기')) {
+                        const canMusic = !isPaused && canDoAction(spirit, 'music') && !spirit.isDead;
+                        if (!canMusic && spirit.lastMusic) {
+                            const remaining = Math.max(0, Math.ceil((10000 - (now - spirit.lastMusic)) / 1000));
+                            button.textContent = `음악 듣기 (${remaining}초)`;
+                        } else if (canMusic) {
+                            button.textContent = `음악 듣기`;
+                        }
+                    }
+                    
+                    // 쓰다듬기 버튼
+                    if (text.includes('쓰다듬기')) {
+                        const canPat = !isPaused && canDoAction(spirit, 'pat') && !spirit.isDead;
+                        if (!canPat && spirit.lastPat) {
+                            const remaining = Math.max(0, Math.ceil((10000 - (now - spirit.lastPat)) / 1000));
+                            button.textContent = `쓰다듬기 (${remaining}초)`;
+                        } else if (canPat) {
+                            button.textContent = `쓰다듬기`;
+                        }
+                    }
+                });
+            });
+        }
+
         function updateSpiritCard(spirit) {
             const cards = document.querySelectorAll('.spirit-card');
             const index = spirits.findIndex(s => s.id === spirit.id);
@@ -3791,10 +3843,17 @@
                         const musicData = MUSIC_TYPES[type];
                         
                         // 스탯 필터 체크 (음악 전용)
-                        if (sellFilter === 'intelligence' && type !== 'classic') return;
-                        if (sellFilter === 'strength' && type !== 'rock') return;
-                        if (sellFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
-                        if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) return; // 속성 필터 시 음악 숨김
+                        if (sellFilter === 'all') {
+                            // 전체 보기일 때는 필터링 안 함
+                        } else if (sellFilter === 'intelligence') {
+                            if (type !== 'classic') return;
+                        } else if (sellFilter === 'strength') {
+                            if (type !== 'rock') return;
+                        } else if (sellFilter === 'charm') {
+                            if (!['jazz', 'pop', 'ballad'].includes(type)) return;
+                        } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) {
+                            return; // 속성 필터 시 음악 숨김
+                        }
                         
                         const count = musicCounts[type];
                         items.push(`
@@ -3887,10 +3946,17 @@
                 // 음악 구매
                 Object.keys(MUSIC_TYPES).forEach(type => {
                     // 스탯 필터 체크 (음악 전용)
-                    if (buyFilter === 'intelligence' && type !== 'classic') return;
-                    if (buyFilter === 'strength' && type !== 'rock') return;
-                    if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
-                    if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) return; // 속성 필터 시 음악 숨김
+                    if (buyFilter === 'all') {
+                        // 전체 보기일 때는 필터링 안 함
+                    } else if (buyFilter === 'intelligence') {
+                        if (type !== 'classic') return;
+                    } else if (buyFilter === 'strength') {
+                        if (type !== 'rock') return;
+                    } else if (buyFilter === 'charm') {
+                        if (!['jazz', 'pop', 'ballad'].includes(type)) return;
+                    } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
+                        return; // 속성 필터 시 음악 숨김
+                    }
                     
                     const musicData = MUSIC_TYPES[type];
                     items.push(`
@@ -4096,17 +4162,31 @@
 
         function renderEncyclopedia() {
             try {
+                console.log('도감 렌더링 시작');
+                console.log('현재 도감:', encyclopedia);
+                console.log('현재 앨범:', collection);
+                
                 const grid = document.getElementById('encyclopediaGrid');
                 if (!grid) {
                     console.error('encyclopediaGrid 엘리먼트를 찾을 수 없습니다');
                     return;
                 }
                 
+                // encyclopedia가 null이거나 undefined인 경우 초기화
+                if (!encyclopedia || typeof encyclopedia !== 'object') {
+                    console.warn('⚠️ 도감 데이터가 유효하지 않음 - 초기화');
+                    encyclopedia = {};
+                }
+                
                 // 도감이 비어있는데 앨범에 데이터가 있으면 자동 복구
-                if (Object.keys(encyclopedia).length === 0 && collection.length > 0) {
+                if (Object.keys(encyclopedia).length === 0 && collection && collection.length > 0) {
                     console.log('⚠️ 도감이 비어있지만 앨범에 데이터 존재 - 자동 복구 시작');
-                    const recoveredCount = rebuildEncyclopediaFromAlbum();
-                    showNotification(`도감을 복구했습니다! (${recoveredCount}종)`);
+                    try {
+                        const recoveredCount = rebuildEncyclopediaFromAlbum();
+                        showNotification(`도감을 복구했습니다! (${recoveredCount}종)`);
+                    } catch (rebuildError) {
+                        console.error('도감 복구 실패:', rebuildError);
+                    }
                 }
             
             const statTypes = [
@@ -4287,9 +4367,28 @@
             grid.innerHTML = html;
             } catch (error) {
                 console.error('도감 렌더링 오류:', error);
+                console.error('오류 스택:', error.stack);
+                console.error('현재 도감 데이터:', encyclopedia);
+                console.error('현재 앨범 데이터:', collection);
+                
                 const grid = document.getElementById('encyclopediaGrid');
                 if (grid) {
-                    grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">도감을 불러오는 중 오류가 발생했습니다.<br>새로고침해주세요.</div>';
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="color: #f44336; font-size: 1.2rem; margin-bottom: 20px;">⚠️ 도감 렌더링 오류</div>
+                            <div style="color: #666; margin-bottom: 20px;">
+                                오류: ${error.message}<br>
+                                도감 항목: ${Object.keys(encyclopedia).length}개<br>
+                                앨범 항목: ${collection.length}개
+                            </div>
+                            <button onclick="manualRebuildEncyclopedia()" style="padding: 12px 24px; background: var(--water); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-right: 10px;">
+                                📚 앨범에서 도감 복구
+                            </button>
+                            <button onclick="renderEncyclopedia()" style="padding: 12px 24px; background: var(--fire); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                                🔄 다시 시도
+                            </button>
+                        </div>
+                    `;
                 }
             }
         }
@@ -5076,6 +5175,7 @@
             checkSpiritStatus();
             // garden 탭이 활성화된 경우에만 카드 업데이트
             if (currentTab === 'garden') {
+                updateCooldownDisplay();  // 쿨타임 텍스트만 업데이트 (성능 최적화)
                 spirits.forEach(spirit => {
                     updateSpiritCard(spirit);
                 });
