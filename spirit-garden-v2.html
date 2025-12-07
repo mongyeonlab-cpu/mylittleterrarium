@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>나의 작은 테라리움 - Spirit Garden</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -888,13 +888,41 @@
             <div class="shop-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
                 <!-- 판매 (소지품 → 코인) -->
                 <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
-                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--fire);">💸 판매하기</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0; color: var(--fire);">💸 판매하기</h3>
+                        <select id="sellFilterSelect" onchange="changeSellFilter()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;">
+                            <option value="all">전체</option>
+                            <option value="fire">🔥 불</option>
+                            <option value="water">💧 물</option>
+                            <option value="wind">🌬️ 바람</option>
+                            <option value="earth">🌱 땅</option>
+                            <option value="light">✨ 빛</option>
+                            <option value="dark">🌙 어둠</option>
+                            <option value="intelligence">🧠 지력</option>
+                            <option value="strength">💪 체력</option>
+                            <option value="charm">💖 매력</option>
+                        </select>
+                    </div>
                     <div id="sellList"></div>
                 </div>
 
                 <!-- 구매 (코인 → 아이템) -->
                 <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
-                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--water);">🛒 구매하기</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0; color: var(--water);">🛒 구매하기</h3>
+                        <select id="buyFilterSelect" onchange="changeBuyFilter()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;">
+                            <option value="all">전체</option>
+                            <option value="fire">🔥 불</option>
+                            <option value="water">💧 물</option>
+                            <option value="wind">🌬️ 바람</option>
+                            <option value="earth">🌱 땅</option>
+                            <option value="light">✨ 빛</option>
+                            <option value="dark">🌙 어둠</option>
+                            <option value="intelligence">🧠 지력</option>
+                            <option value="strength">💪 체력</option>
+                            <option value="charm">💖 매력</option>
+                        </select>
+                    </div>
                     <div id="buyList"></div>
                 </div>
             </div>
@@ -1038,6 +1066,8 @@
         let currentTab = 'garden'; // 현재 활성 탭
         let currentTitle = 'none'; // 현재 칭호 (none, hawk_eye, gatherer, musician, collector)
         let currentShopCategory = 'all'; // 현재 상점 카테고리 (all, food, decoration, music)
+        let sellFilter = 'all'; // 판매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
+        let buyFilter = 'all'; // 구매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
@@ -2792,10 +2822,15 @@
             }
             
             if (spirit.growth >= 100 && !spirit.isCompleted) {
-                completeSpirit(spirit);
-                saveGame();
-                renderSpirits();
-                showNotification('정령이 진화합니다!');
+                try {
+                    completeSpirit(spirit);
+                    saveGame();
+                    renderSpirits();
+                    showNotification('✨ 정령이 진화합니다!');
+                } catch (error) {
+                    console.error('진화 오류:', error);
+                    showNotification('진화 중 오류가 발생했습니다: ' + error.message);
+                }
             } else {
                 showNotification(`아직 진화할 수 없습니다. (성장도: ${Math.floor(spirit.growth)}/100)`);
             }
@@ -3593,6 +3628,19 @@
             });
         }
 
+
+        function changeSellFilter() {
+            const select = document.getElementById('sellFilterSelect');
+            sellFilter = select.value;
+            renderSellList();
+        }
+
+        function changeBuyFilter() {
+            const select = document.getElementById('buyFilterSelect');
+            buyFilter = select.value;
+            renderBuyList();
+        }
+
         function renderShop() {
             updateCoinDisplay();
             renderSellList();
@@ -3615,6 +3663,9 @@
 
                     const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
                     foodOrder.filter(type => foodCounts[type]).forEach(type => {
+                        // 속성 필터 체크
+                        if (sellFilter !== 'all' && type !== sellFilter) return;
+                        
                         const count = foodCounts[type];
                         const isRare = type === 'light' || type === 'dark';
                         const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
@@ -3679,8 +3730,15 @@
 
                     const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
                     musicOrder.filter(type => musicCounts[type]).forEach(type => {
-                        const count = musicCounts[type];
                         const musicData = MUSIC_TYPES[type];
+                        
+                        // 스탯 필터 체크 (음악 전용)
+                        if (sellFilter === 'intelligence' && type !== 'classic') return;
+                        if (sellFilter === 'strength' && type !== 'rock') return;
+                        if (sellFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
+                        if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) return; // 속성 필터 시 음악 숨김
+                        
+                        const count = musicCounts[type];
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -3728,6 +3786,9 @@
                 
                 // 일반 먹이 구매
                 ['fire', 'water', 'wind', 'earth'].forEach(type => {
+                    // 속성 필터 체크
+                    if (sellFilter !== 'all' && type !== sellFilter) return;
+                    
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -3744,6 +3805,9 @@
 
                 // 희귀 먹이 구매
                 ['light', 'dark'].forEach(type => {
+                    // 속성 필터 체크
+                    if (sellFilter !== 'all' && type !== sellFilter) return;
+                    
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -3764,6 +3828,12 @@
             if (currentShopCategory === 'all' || currentShopCategory === 'music') {
                 // 음악 구매
                 Object.keys(MUSIC_TYPES).forEach(type => {
+                    // 스탯 필터 체크 (음악 전용)
+                    if (buyFilter === 'intelligence' && type !== 'classic') return;
+                    if (buyFilter === 'strength' && type !== 'rock') return;
+                    if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
+                    if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) return; // 속성 필터 시 음악 숨김
+                    
                     const musicData = MUSIC_TYPES[type];
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3794,7 +3864,7 @@
                 });
                 
                 // 일반 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #f0f0f0; font-weight: 700;">🏠 일반 장식물</div>`);
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700;">🏠 일반 장식물</div>`);
                 decorationsByQuality.common.forEach(({ key, data }) => {
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3811,7 +3881,7 @@
                 });
                 
                 // 희귀 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #e3f2fd; font-weight: 700;">💎 희귀 장식물</div>`);
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700;">💎 희귀 장식물</div>`);
                 decorationsByQuality.rare.forEach(({ key, data }) => {
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3828,7 +3898,7 @@
                 });
                 
                 // 최상급 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #fff3e0; font-weight: 700;">⭐ 최상급 장식물</div>`);
+                items.push(`<div style="margin: 20px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700;">⭐ 최상급 장식물</div>`);
                 decorationsByQuality.epic.forEach(({ key, data }) => {
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -3911,7 +3981,12 @@
         }
 
         function renderEncyclopedia() {
-            const grid = document.getElementById('encyclopediaGrid');
+            try {
+                const grid = document.getElementById('encyclopediaGrid');
+                if (!grid) {
+                    console.error('encyclopediaGrid 엘리먼트를 찾을 수 없습니다');
+                    return;
+                }
             
             const statTypes = [
                 { key: 'nostat', name: '(수식어 없음)' },
@@ -4089,6 +4164,13 @@
             });
             
             grid.innerHTML = html;
+            } catch (error) {
+                console.error('도감 렌더링 오류:', error);
+                const grid = document.getElementById('encyclopediaGrid');
+                if (grid) {
+                    grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">도감을 불러오는 중 오류가 발생했습니다.<br>새로고침해주세요.</div>';
+                }
+            }
         }
 
         function renderCollection() {
@@ -4143,6 +4225,7 @@
         }
 
         function switchTab(tab) {
+            console.log('탭 전환:', tab);
             currentTab = tab; // 현재 탭 저장
             
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
