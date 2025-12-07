@@ -2260,6 +2260,7 @@
             saveGame();
             updateSpiritCard(spirit);
             renderInventory();
+            closeModal('feedModal');  // 모달 닫기 추가
             showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]}를 주었습니다`);
         }
 
@@ -2778,16 +2779,24 @@
 
 
         function manualCompleteSpirit(spiritId) {
-            const spirit = spirits.find(s => s.id === spiritId);
-            if (!spirit) return;
+            if (isPaused) {
+                showNotification('게임이 일시정지 상태입니다');
+                return;
+            }
             
-            if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) {
+                showNotification('정령을 찾을 수 없습니다.');
+                return;
+            }
+            
+            if (spirit.growth >= 100 && !spirit.isCompleted) {
                 completeSpirit(spirit);
                 saveGame();
                 renderSpirits();
                 showNotification('정령이 진화합니다!');
             } else {
-                showNotification('아직 진화할 수 없습니다.');
+                showNotification(`아직 진화할 수 없습니다. (성장도: ${Math.floor(spirit.growth)}/100)`);
             }
         }
 
@@ -3029,15 +3038,44 @@
                 });
                 
                 // 도감에 등록 (진화 타입별 카운트)
-                const encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType || 'normal'}`;
+                let encyclopediaKey;
+                if (evolutionData.type === 'titania' || evolutionData.type === 'oberon') {
+                    // 전설적 존재는 고유 키 사용
+                    encyclopediaKey = evolutionData.type;
+                } else if (evolutionData.type === 'nostat') {
+                    // 수식어 없는 정령
+                    encyclopediaKey = `nostat-${evolutionData.attributeType}`;
+                } else {
+                    // 일반 정령 (스탯-레벨-속성)
+                    encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType}`;
+                }
+                
                 if (!encyclopedia[encyclopediaKey]) {
                     encyclopedia[encyclopediaKey] = 0;
                 }
                 encyclopedia[encyclopediaKey]++;
                 
+                console.log('도감 등록:', encyclopediaKey, '카운트:', encyclopedia[encyclopediaKey]);
+                
                 // 정령 제거
                 spirits = spirits.filter(s => s.id !== spiritId);
                 saveGame();
+                
+                // 자동 로컬 백업 (최근 10개 유지)
+                try {
+                    const backups = JSON.parse(localStorage.getItem('spiritGarden_autoBackups') || '[]');
+                    backups.unshift({
+                        timestamp: Date.now(),
+                        collection: [...collection],
+                        encyclopedia: {...encyclopedia}
+                    });
+                    // 최근 10개만 유지
+                    if (backups.length > 10) backups.length = 10;
+                    localStorage.setItem('spiritGarden_autoBackups', JSON.stringify(backups));
+                } catch (e) {
+                    console.warn('자동 백업 실패:', e);
+                }
+                
                 renderSpirits();
                 showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다`);
             }
@@ -3532,8 +3570,8 @@
                             <button onclick="patSpirit(${spirit.id})" ${!canPat ? 'disabled' : ''}>
                                 쓰다듬기
                             </button>
-                            ${spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted ? `
-                                <button onclick="manualCompleteSpirit(${spirit.id})" style="background: #ffd700; color: #000;">
+                            ${spirit.growth >= 100 && !spirit.isCompleted ? `
+                                <button onclick="manualCompleteSpirit(${spirit.id})" style="background: #ffd700; color: #000; font-weight: 700;">
                                     진화하기
                                 </button>
                             ` : ''}
@@ -3581,7 +3619,7 @@
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span style="font-size: 1.5rem;">${isRare ? '✨' : '🍎'}</span>
+                                    <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                     <div>
                                         <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
@@ -4663,6 +4701,79 @@
                 }
             });
             updateAllSpiritCards();
+        }
+
+
+        // 데이터 백업 시스템
+        function createBackup() {
+            const backupData = {
+                version: GAME_VERSION,
+                collection: collection,
+                encyclopedia: encyclopedia,
+                timestamp: Date.now()
+            };
+            
+            const backupJson = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([backupJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `spirit-garden-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('백업 파일이 다운로드되었습니다!');
+        }
+        
+        function importBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const backupData = JSON.parse(event.target.result);
+                        
+                        // 백업 데이터 병합 (기존 데이터 유지)
+                        if (backupData.collection && Array.isArray(backupData.collection)) {
+                            backupData.collection.forEach(item => {
+                                // 중복 체크 (같은 정령이 이미 있는지)
+                                const exists = collection.some(c => 
+                                    c.name === item.name && 
+                                    c.originalName === item.originalName &&
+                                    c.completedAt === item.completedAt
+                                );
+                                if (!exists) {
+                                    collection.push(item);
+                                }
+                            });
+                        }
+                        
+                        if (backupData.encyclopedia && typeof backupData.encyclopedia === 'object') {
+                            // 도감 데이터 병합 (카운트 누적)
+                            for (let key in backupData.encyclopedia) {
+                                if (!encyclopedia[key]) {
+                                    encyclopedia[key] = 0;
+                                }
+                                encyclopedia[key] += backupData.encyclopedia[key];
+                            }
+                        }
+                        
+                        saveGame();
+                        renderCollection();
+                        renderEncyclopedia();
+                        showNotification(`백업 복원 완료! (앨범 ${backupData.collection?.length || 0}개 복원)`);
+                    } catch (err) {
+                        showNotification('백업 파일을 읽을 수 없습니다: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         }
 
         function closeModal(modalId) {
