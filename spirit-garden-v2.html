@@ -2471,19 +2471,46 @@
 
         function renderMusicOptions() {
             const container = document.getElementById('musicOptions');
-            container.innerHTML = '<div class="music-grid">' + 
-                inventory.music.map((music, index) => {
-                    const musicData = MUSIC_TYPES[music];
+            
+            // 음악 개수 세기
+            const musicCounts = {};
+            inventory.music.forEach(m => {
+                musicCounts[m] = (musicCounts[m] || 0) + 1;
+            });
+            
+            // 순서대로 표시 (classic, jazz, rock, pop, ballad)
+            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+            const musicHTML = musicOrder
+                .filter(type => musicCounts[type])
+                .map(type => {
+                    const musicData = MUSIC_TYPES[type];
+                    const count = musicCounts[type];
                     return `
-                        <button class="option-btn" onclick="playMusic(${currentSpiritId}, '${music}', ${index})">
+                        <button class="option-btn" onclick="playMusicByType('${type}')">
                             <span class="option-icon">${musicData.icon}</span>
                             <div class="option-info">
-                                <div class="option-name">${musicData.name}</div>
+                                <div class="option-name">${musicData.name} ×${count}</div>
                                 <div class="option-effect">${musicData.effect}</div>
                             </div>
                         </button>
                     `;
-                }).join('') + '</div>';
+                }).join('');
+            
+            container.innerHTML = '<div class="music-grid">' + musicHTML + '</div>';
+        }
+
+        function playMusicByType(musicType) {
+            const spiritId = currentSpiritId;
+            
+            // 해당 타입의 음악 찾기
+            const musicIndex = inventory.music.indexOf(musicType);
+            if (musicIndex === -1) {
+                showNotification('해당 음악이 없습니다');
+                return;
+            }
+            
+            // 기존 playMusic 함수 호출
+            playMusic(spiritId, musicType, musicIndex);
         }
 
         function playMusic(spiritId, musicType, inventoryIndex) {
