@@ -883,6 +883,20 @@
     </style>
 </head>
 <body>
+    <!-- 오프닝 스토리 팝업 -->
+    <div id="openingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; justify-content: center; align-items: center;">
+        <div style="max-width: 500px; width: 90%; padding: 40px; text-align: center;">
+            <div id="openingText" style="color: #e0e0e0; font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; line-height: 2; opacity: 0; transition: opacity 1s;">
+            </div>
+            <button id="openingNextBtn" onclick="nextOpeningScene()" style="display: none; margin-top: 30px; padding: 12px 40px; background: transparent; border: 1px solid #888; color: #888; font-family: 'Gowun Batang', serif; font-size: 1rem; cursor: pointer; transition: all 0.3s;">
+                다음
+            </button>
+            <button id="openingSkipBtn" onclick="skipOpening()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #666; font-size: 0.9rem; cursor: pointer;">
+                건너뛰기
+            </button>
+        </div>
+    </div>
+
     <div class="bottom-buttons">
         <button class="bottom-btn pause-btn" id="pauseBtn" onclick="togglePause()" title="일시정지">⏸️</button>
         <button class="bottom-btn light-btn" onclick="toggleLight()" title="조명 켜기/끄기">
@@ -899,7 +913,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
-        <button class="tab" onclick="switchTab('minigame')">미니게임</button>
+        <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -5423,6 +5437,7 @@
             
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
+            localStorage.removeItem('spiritGarden_openingSeen'); // 오프닝도 다시 보이게
             
             // UI 업데이트
             renderSpirits();
@@ -5444,6 +5459,13 @@
             }
             
             showNotification('🔄 게임이 초기화되었습니다');
+            
+            // 육성 탭으로 이동 후 오프닝 표시 (약간의 딜레이)
+            switchTab('garden');
+            setTimeout(() => {
+                console.log('오프닝 표시 시도...');
+                showOpening();
+            }, 500);
         }
 
         function renderTerrariumManagement() {
@@ -6774,6 +6796,92 @@
         setInterval(updateRandomMessages, 15000); // 15초마다 랜덤 메시지 업데이트
         setInterval(checkNeglect, 60000); // 1분마다 방치 체크
 
+        // 오프닝 스토리
+        const OPENING_SCENES = [
+            "멀지 않은 미래...",
+            "지구에서 정령의 수가 급감하기 시작했다.",
+            "정령이 사라진 자리,\n자연은 서서히 황폐해져 갔다.",
+            "황폐해진 자연 속에서\n정령들은 더 이상 알을 낳지 않았다.",
+            "뒤늦게 위기를 깨달은 인간들은\n남은 정령의 알을 수집하기 시작했다.",
+            "그리고 작은 유리병 안에서\n정령을 키워 자연으로 돌려보내는\n이들이 나타났다.",
+            "사람들은 그들을\n'테라리스트'라 불렀다.",
+            "이것은 작은 테라리움에서 시작되는\n당신의 이야기."
+        ];
+        
+        let currentOpeningScene = 0;
+        
+        function showOpening() {
+            console.log('showOpening 함수 실행됨');
+            const modal = document.getElementById('openingModal');
+            console.log('모달 요소:', modal);
+            if (modal) {
+                modal.style.display = 'flex';
+                currentOpeningScene = 0;
+                showOpeningText();
+                console.log('오프닝 모달 표시됨');
+            } else {
+                console.error('오프닝 모달을 찾을 수 없음!');
+            }
+        }
+        
+        function showOpeningText() {
+            const textEl = document.getElementById('openingText');
+            const nextBtn = document.getElementById('openingNextBtn');
+            
+            textEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                textEl.innerHTML = OPENING_SCENES[currentOpeningScene].replace(/\n/g, '<br>');
+                textEl.style.opacity = '1';
+                
+                setTimeout(() => {
+                    nextBtn.style.display = 'inline-block';
+                    if (currentOpeningScene === OPENING_SCENES.length - 1) {
+                        nextBtn.textContent = '시작하기';
+                    } else {
+                        nextBtn.textContent = '다음';
+                    }
+                }, 500);
+            }, 300);
+        }
+        
+        function nextOpeningScene() {
+            const nextBtn = document.getElementById('openingNextBtn');
+            nextBtn.style.display = 'none';
+            
+            currentOpeningScene++;
+            
+            if (currentOpeningScene >= OPENING_SCENES.length) {
+                closeOpening();
+            } else {
+                showOpeningText();
+            }
+        }
+        
+        function skipOpening() {
+            closeOpening();
+        }
+        
+        function closeOpening() {
+            const modal = document.getElementById('openingModal');
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.5s';
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.style.opacity = '1';
+                // 오프닝 본 것으로 저장
+                localStorage.setItem('spiritGarden_openingSeen', 'true');
+            }, 500);
+        }
+        
+        function checkAndShowOpening() {
+            const seen = localStorage.getItem('spiritGarden_openingSeen');
+            if (!seen) {
+                showOpening();
+            }
+        }
+
         // 모바일 디버깅 정보
         console.log('=== 모바일 디버깅 정보 ===');
         console.log('User Agent:', navigator.userAgent);
@@ -6796,6 +6904,7 @@
             console.log('✅ applyLightMode 완료');
             updateCoinDisplay();
             console.log('✅ updateCoinDisplay 완료');
+            checkAndShowOpening(); // 오프닝 체크
             console.log('🎉 게임 초기화 완료!');
         } catch (error) {
             console.error('❌ 초기화 오류:', error);
