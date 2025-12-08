@@ -4740,44 +4740,48 @@
         
         // 질병 체크 함수
         function checkForDisease(spirit) {
-            // 정령의 주 속성 찾기
-            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-            let maxAttr = null;
-            let maxValue = 0;
+            // 이미 아프면 체크 안 함
+            if (spirit.isSick) return;
             
-            for (let attr in attrs) {
-                if (attrs[attr] > maxValue) {
-                    maxValue = attrs[attr];
-                    maxAttr = attr;
+            let shouldCheck = false;
+            let reason = '';
+            
+            // 조건 1: 체력 20 이하이고 속성 불균형 (최고 속성과 30 이상 차이)
+            if (spirit.parameters.strength <= 20) {
+                const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                const attrValues = Object.values(attrs);
+                const maxAttr = Math.max(...attrValues);
+                const minAttr = Math.min(...attrValues);
+                
+                if (maxAttr - minAttr >= 30) {
+                    shouldCheck = true;
+                    reason = '체력이 약해 속성 불균형을 이기지 못하고 병에 걸렸습니다';
                 }
             }
             
-            // 속성이 너무 낮으면 체크 안 함
-            if (maxValue < 20) return;
-            
-            // 대립 속성 정의
-            const opposites = {
-                fire: 'water',
-                water: 'fire',
-                wind: 'earth',
-                earth: 'wind',
-                light: 'dark',
-                dark: 'light'
-            };
-            
-            const oppositeAttr = opposites[maxAttr];
-            if (!oppositeAttr) return;
-            
-            // 테라리움의 대립 속성이 정령의 주 속성보다 높으면 질병 위험
-            if (terrarium[oppositeAttr] > terrarium[maxAttr] && terrarium[oppositeAttr] >= 10) {
-                // 20% 확률로 질병 발생
-                if (Math.random() < 0.2) {
-                    spirit.isSick = true;
-                    spirit.sickTime = Date.now();
-                    spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
-                    addLog(spirit, '환경이 맞지 않아 병에 걸렸습니다');
-                    showNotification(`${spirit.name}이(가) 병에 걸렸습니다!`);
+            // 조건 2: 5분 이상 상호작용 없음
+            if (!shouldCheck) {
+                const now = Date.now();
+                const lastFeed = spirit.lastFed || spirit.birthTime;
+                const lastMusic = spirit.lastMusic || spirit.birthTime;
+                const lastPat = spirit.lastPat || spirit.birthTime;
+                
+                const lastInteraction = Math.max(lastFeed, lastMusic, lastPat);
+                const minutesSinceInteraction = (now - lastInteraction) / 1000 / 60;
+                
+                if (minutesSinceInteraction >= 5) {
+                    shouldCheck = true;
+                    reason = '오랫동안 돌봄을 받지 못해 병에 걸렸습니다';
                 }
+            }
+            
+            // 조건 충족 시 20% 확률로 질병 발생
+            if (shouldCheck && Math.random() < 0.2) {
+                spirit.isSick = true;
+                spirit.sickTime = Date.now();
+                spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
+                addLog(spirit, reason);
+                showNotification(`${spirit.name}이(가) 병에 걸렸습니다!`);
             }
         }
 
