@@ -918,7 +918,6 @@
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
-        <button class="tab" onclick="switchTab('fusion')">🧬 합성</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -991,61 +990,6 @@
     </div>
 
 
-    <!-- 합성 섹션 -->
-    <div id="fusionSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">🧬 정령 교배</h2>
-        
-        <div style="max-width: 800px; margin: 0 auto;">
-            <!-- 안내 문구 -->
-            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
-                <p style="color: var(--text); font-size: 1rem; margin: 0;">
-                    🌿 같은 테라리움에서 자란 정령들은 서로를 형제자매로 인식합니다.<br>
-                    <span style="color: #888; font-size: 0.9rem;">다른 테라리움(다른 사람)의 정령과만 교배할 수 있어요!</span>
-                </p>
-            </div>
-            
-            <!-- 교배 코드 공유 -->
-            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="margin-bottom: 16px; font-size: 1.2rem;">🔗 교배 코드 공유</h3>
-                <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">내 정령의 교배 코드를 생성하여 친구에게 공유하거나,<br>친구의 코드를 입력해서 특별한 정령을 만들어요!</p>
-                
-                <!-- 코드 생성 -->
-                <div style="background: var(--bg); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-                    <h4 style="margin-bottom: 12px; font-size: 1rem;">📤 내 정령 코드 생성</h4>
-                    <select id="shareSpritSelect" onchange="updateShareCode()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); margin-bottom: 10px;">
-                        <option value="">완성된 정령 선택...</option>
-                    </select>
-                    <div id="shareCodeDisplay" style="display: none; margin-top: 10px;">
-                        <div style="display: flex;">
-                            <input type="text" id="shareCodeInput" readonly style="flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 6px 0 0 6px; background: var(--bg); color: var(--text); font-family: monospace; font-size: 0.85rem;">
-                            <button onclick="copyShareCode()" style="padding: 10px 16px; border: 1px solid var(--border); border-left: none; border-radius: 0 6px 6px 0; cursor: pointer; background: var(--card);">📋 복사</button>
-                        </div>
-                        <p style="font-size: 0.8rem; color: #888; margin-top: 8px;">⏰ 코드는 24시간 동안 유효합니다</p>
-                    </div>
-                </div>
-                
-                <!-- 코드 입력 -->
-                <div style="background: var(--bg); padding: 16px; border-radius: 8px;">
-                    <h4 style="margin-bottom: 12px; font-size: 1rem;">📥 친구 코드로 교배</h4>
-                    <select id="myBreedSpirit" onchange="updateBreedPreview()" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); margin-bottom: 10px;">
-                        <option value="">내 정령 선택...</option>
-                    </select>
-                    <input type="text" id="friendCodeInput" placeholder="친구의 교배 코드 입력..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); margin-bottom: 10px; font-family: monospace;">
-                    <div id="friendCodePreview" style="display: none; padding: 12px; background: var(--card); border-radius: 6px; margin-bottom: 10px; font-size: 0.9rem;"></div>
-                    <div id="breedPreview" style="display: none; padding: 12px; background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0.05)); border-radius: 6px; margin-bottom: 10px; text-align: center;"></div>
-                    <button onclick="breedWithCode()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 600;">🧬 교배하기 (50💰)</button>
-                    <p style="font-size: 0.8rem; color: #888; margin-top: 8px; text-align: center;">내 정령은 유지되고, 새로운 알이 태어납니다!</p>
-                </div>
-            </div>
-            
-            <!-- 합성 전용 정령 목록 -->
-            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px;">
-                <h3 style="margin-bottom: 16px; font-size: 1.2rem;">✨ 교배 전용 정령 도감</h3>
-                <p style="color: #888; font-size: 0.9rem; margin-bottom: 16px;">특별한 조합의 교배를 통해서만 얻을 수 있는 희귀 정령들입니다.</p>
-                <div id="fusionEncyclopedia" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;"></div>
-            </div>
-        </div>
-    </div>
 
 
     <!-- 설정 섹션 -->
@@ -1068,6 +1012,10 @@
                     
                     <button onclick="manualRebuildEncyclopedia()" style="padding: 14px; background: var(--earth); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
                         앨범에서 도감 복구
+                    </button>
+                    
+                    <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        🔧 교배 정령 관리
                     </button>
                 </div>
                 
@@ -2266,6 +2214,13 @@
         let fusionSlot2Spirit = null;
         const FUSION_COST = 100;
         const BREED_COST = 50;
+        
+        // 모달 z-index 관리
+        let currentZIndex = 10000;
+        function getNextZIndex() {
+            currentZIndex += 10;
+            return currentZIndex;
+        }
 
         function loadGame() {
             const saved = localStorage.getItem('spiritGardenV2');
@@ -2390,6 +2345,10 @@
             '하얀색 알', '무지개 알', '작은 알', '큰 알',
             '따뜻한 알', '차가운 알', '부드러운 알', '단단한 알'
         ];
+        
+        function generateSpiritName() {
+            return EGG_NAMES[Math.floor(Math.random() * EGG_NAMES.length)];
+        }
 
         function addLog(spirit, message) {
             if (!spirit.logs) spirit.logs = [];
@@ -3327,15 +3286,70 @@
         function confirmDeleteSpirit(spiritId) {
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
-
-            showConfirm(
-                '정령 보내기',
-                `정말로 ${spirit.name}을(를) 보내시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
-                () => deleteSpirit(spiritId)
-            );
+            
+            // 교배로 태어난 정령인 경우 코드 반환 옵션 제공
+            if (spirit.isBred && spirit.breedCode) {
+                showBreedDeleteConfirm(spirit);
+            } else {
+                showConfirm(
+                    '정령 보내기',
+                    `정말로 ${spirit.name}을(를) 보내시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`,
+                    () => deleteSpirit(spiritId, false)
+                );
+            }
+        }
+        
+        async function showBreedDeleteConfirm(spirit) {
+            // 교배 정령 삭제 시 선택지 제공
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'breedDeleteModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 400px;">
+                    <h3 style="margin-bottom: 16px;">🥚 교배 정령 보내기</h3>
+                    <p style="margin-bottom: 8px;">${spirit.name}은(는) 교배로 태어난 정령입니다.</p>
+                    <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">보내기 방식을 선택해주세요.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button onclick="deleteSpirit(${spirit.id}, false); closeBreedDeleteModal();" style="padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+                            🌿 그냥 보내기<br>
+                            <span style="font-size: 0.8rem; color: #888;">교배 코드는 사용된 상태로 유지</span>
+                        </button>
+                        <button onclick="deleteSpirit(${spirit.id}, true); closeBreedDeleteModal();" style="padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔄 코드 반환하고 보내기<br>
+                            <span style="font-size: 0.85rem; opacity: 0.9;">교배 코드를 다시 사용 가능하게</span>
+                        </button>
+                        <button onclick="closeBreedDeleteModal();" style="padding: 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: #888;">
+                            취소
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function closeBreedDeleteModal() {
+            const modal = document.getElementById('breedDeleteModal');
+            if (modal) modal.remove();
         }
 
-        function deleteSpirit(spiritId) {
+        function deleteSpirit(spiritId, returnBreedCode = false) {
+            const spirit = spirits.find(s => s.id === spiritId);
+            if (!spirit) return;
+            
+            // 교배 코드 반환 처리
+            if (returnBreedCode && spirit.breedCode) {
+                // 앨범에서도 해당 코드 사용 기록 제거
+                if (collection) {
+                    collection.forEach(s => {
+                        if (s.breedCode === spirit.breedCode) {
+                            delete s.breedCode;
+                        }
+                    });
+                }
+                showNotification('🔄 교배 코드가 반환되었습니다. 다시 사용 가능합니다!');
+            }
+            
             spirits = spirits.filter(s => s.id !== spiritId);
             saveGame();
             renderSpirits();
@@ -3825,6 +3839,9 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalContent = document.getElementById('modalContent');
             
+            // 최신 z-index 적용
+            modal.style.zIndex = getNextZIndex();
+            
             modalTitle.textContent = item.name;
             
             // 날개 정보
@@ -3842,6 +3859,10 @@
             // 숨겨진 속성 정보
             const hiddenAttrs = item.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
+            // 애정도 체크
+            const affection = item.parameters?.affection || 0;
+            const canBreed = affection >= 50;
+            
             modalContent.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 4rem; margin-bottom: 10px;">${item.icon}${wingInfo ? '🦋' : ''}</div>
@@ -3855,8 +3876,8 @@
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                         <div class="param">🧠 지력: ${item.parameters.intelligence}</div>
                         <div class="param">💪 체력: ${item.parameters.strength}</div>
-                        <div class="param">매력: ${item.parameters.charm}</div>
-                        <div class="param">애정도: ${item.parameters.affection || 0}</div>
+                        <div class="param">💖 매력: ${item.parameters.charm}</div>
+                        <div class="param">❤️ 애정도: ${affection}</div>
                     </div>
                 </div>
                 
@@ -3867,12 +3888,12 @@
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">💧 수: ${hiddenAttrs.water}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌬️ 풍: ${hiddenAttrs.wind}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌱 지: ${hiddenAttrs.earth}</div>
-                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">빛: ${hiddenAttrs.light}</div>
+                        <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">✨ 빛: ${hiddenAttrs.light}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🌙 암: ${hiddenAttrs.dark}</div>
                     </div>
                 </div>
                 
-                <div style="background: var(--bg); padding: 15px; border-radius: 8px;">
+                <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">⏱️ 육성 정보</h3>
                     <div style="font-size: 0.85rem; line-height: 1.6;">
                         <div>☀️ 빛 시간: ${lightMinutes}분</div>
@@ -3880,9 +3901,368 @@
                         <div style="margin-top: 8px; color: #888;">등록 날짜: ${new Date(item.completedAt).toLocaleString('ko-KR')}</div>
                     </div>
                 </div>
+                
+                <!-- 교배 섹션 -->
+                <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🧬 교배</h3>
+                    ${canBreed ? `
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유하거나, 친구 코드로 교배할 수 있어요.</p>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="openBreedCodeModal(${index})" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+                                📤 코드 생성
+                            </button>
+                            <button onclick="openBreedWithCodeModal(${index})" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+                                📥 교배하기
+                            </button>
+                        </div>
+                    ` : `
+                        <p style="font-size: 0.85rem; color: #e74c3c;">❤️ 애정도 50 이상이어야 교배할 수 있습니다. (현재: ${affection})</p>
+                    `}
+                </div>
             `;
             
             modal.style.display = 'flex';
+        }
+        
+        // 교배 코드 생성 모달
+        function openBreedCodeModal(albumIndex) {
+            const item = collection[albumIndex];
+            if (!item) return;
+            
+            // 앨범 아이템에 id가 없으면 생성
+            const spiritForCode = {
+                ...item,
+                id: item.id || `album-${albumIndex}`,
+                attributes: item.hiddenAttributes || {},
+                albumIndex: albumIndex  // 자기 자신 교배 방지용
+            };
+            
+            const code = encodeSpiritData(spiritForCode);
+            
+            const modal = document.createElement('div');
+            modal.id = 'breedCodeModal';
+            const zIndex = getNextZIndex();
+            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
+            modal.innerHTML = `
+                <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 400px; width: 90%; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 16px;">📤 교배 코드 생성</h3>
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 2.5rem;">${item.icon}</div>
+                        <div style="font-weight: 700;">${item.name}</div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <input type="text" id="generatedBreedCode" value="${code}" readonly style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; font-size: 0.8rem; box-sizing: border-box;">
+                    </div>
+                    <button onclick="copyGeneratedCode()" style="width: 100%; padding: 12px; background: var(--water); color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 8px;">
+                        📋 코드 복사
+                    </button>
+                    <p style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 12px;">📋 코드는 1회만 사용 가능합니다</p>
+                    <button onclick="closeBreedCodeModal()" style="width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                        닫기
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function copyGeneratedCode() {
+            const input = document.getElementById('generatedBreedCode');
+            input.select();
+            document.execCommand('copy');
+            showNotification('📋 코드가 복사되었습니다!');
+        }
+        
+        function closeBreedCodeModal() {
+            const modal = document.getElementById('breedCodeModal');
+            if (modal) modal.remove();
+        }
+        
+        // 교배하기 모달
+        function openBreedWithCodeModal(albumIndex) {
+            const item = collection[albumIndex];
+            if (!item) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'breedWithCodeModal';
+            const zIndex = getNextZIndex();
+            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
+            modal.innerHTML = `
+                <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 450px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border);">
+                    <h3 style="margin-bottom: 16px;">📥 친구 코드로 교배</h3>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
+                        <div style="font-size: 2rem;">${item.icon}</div>
+                        <div>
+                            <div style="font-weight: 700;">${item.name}</div>
+                            <div style="font-size: 0.85rem; color: #888;">내 정령</div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <input type="text" id="friendBreedCodeInput" placeholder="친구의 교배 코드 입력..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; box-sizing: border-box;">
+                    </div>
+                    <div id="friendBreedPreview" style="display: none; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;"></div>
+                    <div id="breedResultPreview" style="display: none; padding: 12px; background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0.05)); border-radius: 8px; margin-bottom: 12px; text-align: center;"></div>
+                    <button onclick="executeBreedFromAlbum(${albumIndex})" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-bottom: 8px;">
+                        🧬 교배하기 (50💰)
+                    </button>
+                    <p style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 12px;">내 정령은 유지되고, 새로운 알이 태어납니다!</p>
+                    <button onclick="closeBreedWithCodeModal()" style="width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                        닫기
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // 코드 입력 이벤트 리스너
+            setTimeout(() => {
+                const input = document.getElementById('friendBreedCodeInput');
+                if (input) {
+                    input.addEventListener('input', () => updateBreedPreviewInModal(albumIndex));
+                }
+            }, 100);
+        }
+        
+        function closeBreedWithCodeModal() {
+            const modal = document.getElementById('breedWithCodeModal');
+            if (modal) modal.remove();
+        }
+        
+        function updateBreedPreviewInModal(albumIndex) {
+            const item = collection[albumIndex];
+            const codeInput = document.getElementById('friendBreedCodeInput');
+            const friendPreview = document.getElementById('friendBreedPreview');
+            const resultPreview = document.getElementById('breedResultPreview');
+            
+            const code = codeInput.value.trim();
+            if (!code) {
+                friendPreview.style.display = 'none';
+                resultPreview.style.display = 'none';
+                return;
+            }
+            
+            const friendData = decodeSpiritData(code);
+            if (!friendData) {
+                friendPreview.innerHTML = '❌ 유효하지 않은 코드입니다.';
+                friendPreview.style.display = 'block';
+                friendPreview.style.color = '#e74c3c';
+                resultPreview.style.display = 'none';
+                return;
+            }
+            
+            // 자기 자신 체크 - 내 정령의 코드와 비교
+            const myCode = encodeSpiritData({
+                ...item,
+                id: item.id || `album-${albumIndex}`,
+                attributes: item.hiddenAttributes || {}
+            });
+            if (code === myCode) {
+                friendPreview.innerHTML = '❌ 자기 자신과는 교배할 수 없습니다.';
+                friendPreview.style.display = 'block';
+                friendPreview.style.color = '#e74c3c';
+                resultPreview.style.display = 'none';
+                return;
+            }
+            
+            const attr = ATTRIBUTE_NAMES[friendData.attribute] || ATTRIBUTE_NAMES.normal;
+            const friendAttrs = friendData.attributes || {};
+            const attrDisplay = [];
+            ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(a => {
+                if (friendAttrs[a] && friendAttrs[a] > 0) {
+                    attrDisplay.push(`${ENV_ICONS[a]}${friendAttrs[a]}`);
+                }
+            });
+            
+            const originalNameDisplay = (friendData.originalName && friendData.originalName !== friendData.name) 
+                ? `<div style="color: #aaa; font-size: 0.8rem; font-style: italic;">본명: ${friendData.originalName}</div>` 
+                : '';
+            
+            friendPreview.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 2rem;">${attr.icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700;">✅ ${friendData.name}</div>
+                        ${originalNameDisplay}
+                        <div style="font-size: 0.85rem; color: #888;">${attr.name}</div>
+                        <div style="font-size: 0.85rem; margin-top: 4px;">
+                            🧠${friendData.parameters.intelligence} | 💪${friendData.parameters.strength} | 💖${friendData.parameters.charm}
+                        </div>
+                        ${attrDisplay.length > 0 ? `<div style="font-size: 0.8rem; margin-top: 4px;">${attrDisplay.join(' ')}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            friendPreview.style.display = 'block';
+            friendPreview.style.color = 'var(--text)';
+            
+            // 예상 결과 계산
+            const mySpirit = {
+                ...item,
+                attributes: item.hiddenAttributes || {}
+            };
+            const prediction = predictBreedResult(mySpirit, friendData);
+            
+            // 예상 상속 스탯
+            const inheritParams = {
+                intelligence: Math.floor(((item.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 2),
+                strength: Math.floor(((item.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 2),
+                charm: Math.floor(((item.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 2)
+            };
+            
+            resultPreview.innerHTML = `
+                <div style="font-size: 0.85rem; color: #888; margin-bottom: 8px;">🥚 예상 결과</div>
+                <div style="font-size: 2rem;">${prediction.icon}</div>
+                <div style="font-weight: 700; margin: 4px 0;">${prediction.name}</div>
+                <div style="font-size: 0.8rem; color: ${getRarityColor(prediction.rarity)}; margin-bottom: 8px;">${getRarityText(prediction.rarity)}</div>
+                <div style="font-size: 0.8rem; color: #888;">
+                    📊 상속 스탯: 🧠${inheritParams.intelligence} | 💪${inheritParams.strength} | 💖${inheritParams.charm}
+                </div>
+            `;
+            resultPreview.style.display = 'block';
+        }
+        
+        async function executeBreedFromAlbum(albumIndex) {
+            const item = collection[albumIndex];
+            if (!item) return;
+            
+            const codeInput = document.getElementById('friendBreedCodeInput');
+            const breedCode = codeInput.value.trim();
+            
+            if (!breedCode) {
+                showNotification('❌ 친구 코드를 입력해주세요');
+                return;
+            }
+            
+            // 정령 슬롯 체크
+            if (spirits.length >= 6) {
+                showNotification('❌ 정원이 가득 찼습니다! (최대 6마리)');
+                return;
+            }
+            
+            // 중복 코드 체크
+            const allSpiritsAndAlbum = [...spirits, ...(collection || [])];
+            const usedCode = allSpiritsAndAlbum.find(s => s.breedCode === breedCode);
+            if (usedCode) {
+                showNotification('❌ 이미 사용된 교배 코드입니다!');
+                return;
+            }
+            
+            const friendData = decodeSpiritData(breedCode);
+            if (!friendData) {
+                showNotification('❌ 유효하지 않은 코드입니다');
+                return;
+            }
+            
+            // 자기 자신과 교배 방지 - 코드 비교
+            const myCode = encodeSpiritData({
+                ...item,
+                id: item.id || `album-${albumIndex}`,
+                attributes: item.hiddenAttributes || {}
+            });
+            if (breedCode === myCode) {
+                showNotification('❌ 자기 자신과는 교배할 수 없습니다!');
+                return;
+            }
+            
+            if (coins < BREED_COST) {
+                showNotification(`❌ 코인이 부족합니다 (필요: ${BREED_COST}💰)`);
+                return;
+            }
+            
+            const mySpirit = {
+                ...item,
+                attributes: item.hiddenAttributes || {}
+            };
+            const prediction = predictBreedResult(mySpirit, friendData);
+            
+            const confirmed = await showConfirm('교배 확인',
+                `${item.name}와(과) ${friendData.name}을(를) 교배하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
+            
+            if (!confirmed) return;
+            
+            // 교배 결과 계산
+            const newParams = {
+                intelligence: Math.floor(((item.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 2),
+                strength: Math.floor(((item.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 2),
+                charm: Math.floor(((item.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 2),
+                affection: 0
+            };
+            
+            const myAttrs = item.hiddenAttributes || {};
+            const friendAttrs = friendData.attributes || {};
+            const newAttrs = {};
+            ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
+                const avg = Math.floor(((myAttrs[attr] || 0) + (friendAttrs[attr] || 0)) / 2);
+                if (avg > 0) newAttrs[attr] = avg;
+            });
+            
+            const isFusionType = prediction.key && FUSION_TYPES[prediction.key];
+            
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            
+            const inheritInfo = [];
+            if (newParams.intelligence > 0) inheritInfo.push(`🧠${newParams.intelligence}`);
+            if (newParams.strength > 0) inheritInfo.push(`💪${newParams.strength}`);
+            if (newParams.charm > 0) inheritInfo.push(`💖${newParams.charm}`);
+            const attrInfo = Object.entries(newAttrs).map(([k, v]) => `${ENV_ICONS[k]}${v}`).join(' ');
+            
+            const newSpirit = {
+                id: Date.now(),
+                name: isFusionType ? prediction.name : generateSpiritName(),
+                originalName: null,
+                growth: 0,
+                parameters: newParams,
+                hiddenAttributes: {
+                    fire: newAttrs.fire || 0,
+                    water: newAttrs.water || 0,
+                    wind: newAttrs.wind || 0,
+                    earth: newAttrs.earth || 0,
+                    light: newAttrs.light || 0,
+                    dark: newAttrs.dark || 0
+                },
+                satisfaction: 'mid',
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                lastInteraction: Date.now(),
+                status: '알이 따뜻합니다...',
+                birthTime: Date.now(),
+                logs: [
+                    { time: timestamp, message: `🔗 ${item.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
+                    { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
+                ],
+                lightTime: 0,
+                darkTime: 0,
+                musicListened: 0,
+                feedCount: 0,
+                bredWith: friendData.name,
+                breedCode: breedCode,
+                fusionType: prediction.key || null,
+                fusionRarity: prediction.rarity || 'common',
+                isBred: true
+            };
+            
+            spirits.push(newSpirit);
+            coins -= BREED_COST;
+            
+            if (isFusionType && prediction.key) {
+                if (!encyclopedia[prediction.key]) {
+                    encyclopedia[prediction.key] = { firstSeen: new Date().toISOString(), count: 1 };
+                    showNotification(`🎉 새로운 교배 정령 "${prediction.name}" 도감 등록!`);
+                } else {
+                    encyclopedia[prediction.key].count++;
+                }
+            }
+            
+            saveGame();
+            renderSpirits();
+            updateCoinDisplay();
+            
+            closeBreedWithCodeModal();
+            closeAlbumDetail();
+            
+            showNotification(`🎉 교배 성공! ${newSpirit.name}이(가) 태어났습니다!`);
+            switchTab('garden');
         }
         
         function closeAlbumDetail() {
@@ -4830,6 +5210,194 @@
             renderEncyclopedia();
             showNotification(`✅ 도감을 복구했습니다! (${recoveredCount}종)`);
         }
+        
+        // 교배 정령 관리 기능
+        async function repairBrokenSpirits() {
+            // 교배로 태어난 정령 찾기
+            const bredSpirits = spirits.filter(spirit => spirit.isBred || spirit.breedCode);
+            
+            if (bredSpirits.length === 0) {
+                showNotification('교배로 태어난 정령이 없습니다.');
+                return;
+            }
+            
+            // 교배 정령 목록 표시
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'repairModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="margin-bottom: 16px;">🔧 교배 정령 관리</h3>
+                    <p style="margin-bottom: 16px; color: #888;">교배로 태어난 정령: ${bredSpirits.length}마리</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                        ${bredSpirits.map(spirit => {
+                            const stage = getStage(spirit.growth);
+                            return `
+                            <div style="padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <span style="font-size: 1.5rem;">${STAGE_ICONS[stage] || '🥚'}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${spirit.name || '이름 없음'}</div>
+                                        <div style="font-size: 0.8rem; color: #888;">${STAGE_NAMES[stage] || '알'} · 성장 ${spirit.growth || 0}</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.85rem; color: #888; margin-bottom: 8px;">
+                                    🔗 ${spirit.bredWith || '알 수 없음'}의 코드로 교배
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="repairSpirit(${spirit.id})" style="flex: 1; padding: 8px; background: var(--water); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                                        🔧 복구
+                                    </button>
+                                    <button onclick="deleteBrokenSpirit(${spirit.id}, true)" style="flex: 1; padding: 8px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                                        🗑️ 삭제 (코드반환)
+                                    </button>
+                                </div>
+                            </div>
+                        `}).join('')}
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="repairAllSpirits()" style="flex: 1; padding: 12px; background: var(--water); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔧 모두 복구
+                        </button>
+                        <button onclick="closeRepairModal()" style="flex: 1; padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        function closeRepairModal() {
+            const modal = document.getElementById('repairModal');
+            if (modal) modal.remove();
+        }
+        
+        function repairSpirit(spiritId) {
+            const spirit = spirits.find(s => String(s.id) === String(spiritId));
+            if (!spirit) {
+                showNotification('❌ 정령을 찾을 수 없습니다');
+                return;
+            }
+            
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            
+            // 필수 필드 복구
+            if (!spirit.parameters) {
+                spirit.parameters = { intelligence: 0, strength: 0, charm: 0, affection: 0 };
+            }
+            if (spirit.parameters.affection === undefined) spirit.parameters.affection = 0;
+            
+            if (!spirit.hiddenAttributes) {
+                spirit.hiddenAttributes = { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            }
+            
+            if (!spirit.satisfaction) spirit.satisfaction = 'mid';
+            if (!spirit.status) spirit.status = '복구되었습니다';
+            if (!spirit.birthTime) spirit.birthTime = Date.now();
+            if (!spirit.lastInteraction) spirit.lastInteraction = Date.now();
+            if (spirit.lightTime === undefined) spirit.lightTime = 0;
+            if (spirit.darkTime === undefined) spirit.darkTime = 0;
+            if (spirit.musicListened === undefined) spirit.musicListened = 0;
+            if (spirit.feedCount === undefined) spirit.feedCount = 0;
+            if (spirit.growth === undefined) spirit.growth = 0;
+            
+            // logs 형식 복구
+            if (!spirit.logs) {
+                spirit.logs = [];
+            } else if (spirit.logs.length > 0 && typeof spirit.logs[0] === 'string') {
+                // 문자열 배열을 객체 배열로 변환
+                spirit.logs = spirit.logs.map(msg => ({
+                    time: timestamp,
+                    message: msg
+                }));
+            }
+            
+            // 복구 로그 추가
+            spirit.logs.unshift({ time: timestamp, message: '🔧 데이터가 복구되었습니다.' });
+            
+            saveGame();
+            renderSpirits();
+            closeRepairModal();
+            showNotification(`✅ ${spirit.name} 복구 완료!`);
+        }
+        
+        function repairAllSpirits() {
+            const bredSpirits = spirits.filter(spirit => spirit.isBred || spirit.breedCode);
+            
+            bredSpirits.forEach(spirit => {
+                repairSpiritSilent(spirit);
+            });
+            
+            saveGame();
+            renderSpirits();
+            closeRepairModal();
+            showNotification(`✅ ${bredSpirits.length}마리 정령 복구 완료!`);
+        }
+        
+        function repairSpiritSilent(spirit) {
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            
+            if (!spirit.parameters) {
+                spirit.parameters = { intelligence: 0, strength: 0, charm: 0, affection: 0 };
+            }
+            if (spirit.parameters.affection === undefined) spirit.parameters.affection = 0;
+            
+            if (!spirit.hiddenAttributes) {
+                spirit.hiddenAttributes = { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            }
+            
+            if (!spirit.satisfaction) spirit.satisfaction = 'mid';
+            if (!spirit.status) spirit.status = '복구되었습니다';
+            if (!spirit.birthTime) spirit.birthTime = Date.now();
+            if (!spirit.lastInteraction) spirit.lastInteraction = Date.now();
+            if (spirit.lightTime === undefined) spirit.lightTime = 0;
+            if (spirit.darkTime === undefined) spirit.darkTime = 0;
+            if (spirit.musicListened === undefined) spirit.musicListened = 0;
+            if (spirit.feedCount === undefined) spirit.feedCount = 0;
+            if (spirit.growth === undefined) spirit.growth = 0;
+            
+            if (!spirit.logs) {
+                spirit.logs = [];
+            } else if (spirit.logs.length > 0 && typeof spirit.logs[0] === 'string') {
+                spirit.logs = spirit.logs.map(msg => ({ time: timestamp, message: msg }));
+            }
+            
+            spirit.logs.unshift({ time: timestamp, message: '🔧 데이터가 복구되었습니다.' });
+        }
+        
+        function deleteBrokenSpirit(spiritId, returnCode) {
+            const spirit = spirits.find(s => String(s.id) === String(spiritId));
+            if (!spirit) {
+                console.log('Spirit not found:', spiritId);
+                showNotification('❌ 정령을 찾을 수 없습니다');
+                return;
+            }
+            
+            if (returnCode && spirit.breedCode) {
+                // 앨범에서도 해당 코드 사용 기록 제거
+                if (collection) {
+                    collection.forEach(s => {
+                        if (s.breedCode === spirit.breedCode) {
+                            delete s.breedCode;
+                        }
+                    });
+                }
+                showNotification('🔄 교배 코드가 반환되었습니다!');
+            }
+            
+            spirits = spirits.filter(s => String(s.id) !== String(spiritId));
+            saveGame();
+            renderSpirits();
+            closeRepairModal();
+            showNotification(`🗑️ ${spirit.name} 삭제 완료`);
+        }
 
         // ========== 합성 시스템 ==========
         
@@ -5299,11 +5867,6 @@
                 // 유효성 검사
                 if (!data.n || !data.ts) return null;
                 
-                // 24시간 이내 코드만 유효
-                if (Date.now() - data.ts > 24 * 60 * 60 * 1000) {
-                    return { expired: true };
-                }
-                
                 return {
                     name: data.n,
                     originalName: data.o || data.n, // 본명 추가
@@ -5371,11 +5934,6 @@
                         preview.style.display = 'block';
                         preview.style.color = '#e74c3c';
                         document.getElementById('breedPreview').style.display = 'none';
-                    } else if (data.expired) {
-                        preview.innerHTML = '❌ 만료된 코드입니다. (24시간 유효)';
-                        preview.style.display = 'block';
-                        preview.style.color = '#e74c3c';
-                        document.getElementById('breedPreview').style.display = 'none';
                     } else {
                         const attr = ATTRIBUTE_NAMES[data.attribute] || ATTRIBUTE_NAMES.normal;
                         
@@ -5418,9 +5976,24 @@
         async function breedWithCode() {
             const mySelect = document.getElementById('myBreedSpirit');
             const codeInput = document.getElementById('friendCodeInput');
+            const breedCode = codeInput.value.trim();
             
             if (!mySelect.value) {
                 showNotification('❌ 내 정령을 선택해주세요');
+                return;
+            }
+            
+            // 정령 슬롯 체크 (최대 6마리)
+            if (spirits.length >= 6) {
+                showNotification('❌ 정원이 가득 찼습니다! (최대 6마리) 정령을 자연으로 보내주세요.');
+                return;
+            }
+            
+            // 중복 코드 체크 (이미 사용된 코드인지)
+            const allSpiritsAndAlbum = [...spirits, ...(collection || [])];
+            const usedCode = allSpiritsAndAlbum.find(s => s.breedCode === breedCode);
+            if (usedCode) {
+                showNotification('❌ 이미 사용된 교배 코드입니다!');
                 return;
             }
             
@@ -5432,14 +6005,9 @@
                 return;
             }
             
-            const friendData = decodeSpiritData(codeInput.value.trim());
+            const friendData = decodeSpiritData(breedCode);
             if (!friendData) {
                 showNotification('❌ 유효하지 않은 코드입니다');
-                return;
-            }
-            
-            if (friendData.expired) {
-                showNotification('❌ 만료된 코드입니다');
                 return;
             }
             
@@ -5490,27 +6058,60 @@
             if (newParams.charm > 0) inheritInfo.push(`💖${newParams.charm}`);
             const attrInfo = Object.entries(newAttrs).map(([k, v]) => `${ENV_ICONS[k]}${v}`).join(' ');
             
-            // 새 알 생성
+            // 로그 시간 포맷
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // 새 알 생성 (createNewSpirit과 동일한 구조)
             const newSpirit = {
-                id: Date.now().toString(),
+                id: Date.now(),
                 name: isFusionType ? prediction.name : generateSpiritName(),
-                stage: 'egg',
+                originalName: null,
                 growth: 0,
+                // 공개 스탯 (부모에게서 상속)
                 parameters: newParams,
-                attributes: newAttrs,
-                createdAt: new Date().toISOString(),
+                // 숨겨진 속성 (부모에게서 상속)
+                hiddenAttributes: {
+                    fire: newAttrs.fire || 0,
+                    water: newAttrs.water || 0,
+                    wind: newAttrs.wind || 0,
+                    earth: newAttrs.earth || 0,
+                    light: newAttrs.light || 0,
+                    dark: newAttrs.dark || 0
+                },
+                satisfaction: 'mid',
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                lastInteraction: Date.now(),
+                status: '알이 따뜻합니다...',
+                birthTime: Date.now(),
                 logs: [
-                    `🔗 ${mySpirit.name}와(과) ${friendData.name}(친구 정령)의 교배로 태어났습니다.`,
-                    `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}`
+                    { time: timestamp, message: `🔗 ${mySpirit.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
+                    { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
                 ],
+                lightTime: 0,
+                darkTime: 0,
+                musicListened: 0,
+                feedCount: 0,
+                // 교배 관련 정보
                 bredWith: friendData.name,
+                breedCode: breedCode,
                 fusionType: prediction.key || null,
                 fusionRarity: prediction.rarity || 'common',
-                isBred: true // 교배로 태어났음을 표시
+                isBred: true
             };
             
             spirits.push(newSpirit);
             coins -= BREED_COST;
+            
+            console.log('🥚 새 알 생성됨:', newSpirit);
+            console.log('📋 현재 spirits:', spirits);
             
             // 합성 도감 등록
             if (isFusionType && prediction.key) {
@@ -5527,13 +6128,16 @@
             updateCoinDisplay();
             renderFusionEncyclopedia();
             
-            showNotification(`🎉 교배 성공! ${isFusionType ? prediction.name : '새로운 알'}이(가) 태어났습니다!`);
+            showNotification(`🎉 교배 성공! ${isFusionType ? prediction.name : newSpirit.name}이(가) 태어났습니다!`);
             
             // 입력 초기화
             codeInput.value = '';
             mySelect.value = '';
             document.getElementById('friendCodePreview').style.display = 'none';
             document.getElementById('breedPreview').style.display = 'none';
+            
+            // 정원 탭으로 이동해서 새 알 보여주기
+            switchTab('garden');
         }
         
         function predictBreedResult(mySpirit, friendData) {
@@ -5599,7 +6203,7 @@
             const mySpirit = allCompleted.find(s => s.id === mySelect.value);
             const friendData = decodeSpiritData(codeInput.value.trim());
             
-            if (!mySpirit || !friendData || friendData.expired) {
+            if (!mySpirit || !friendData) {
                 preview.style.display = 'none';
                 return;
             }
@@ -5965,21 +6569,16 @@
                     if (minigameActive) {
                         pauseMinigame();
                     }
-                } else if (tab === 'fusion') {
-                    document.querySelector('.tab:nth-child(5)').classList.add('active');
-                    document.getElementById('fusionSection').classList.add('active');
-                    updateShareSpiritList();
-                    renderFusionEncyclopedia();
                 } else if (tab === 'encyclopedia') {
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
+                    document.querySelector('.tab:nth-child(5)').classList.add('active');
                     document.getElementById('encyclopediaSection').classList.add('active');
                     renderEncyclopedia();
                 } else if (tab === 'album') {
-                    document.querySelector('.tab:nth-child(7)').classList.add('active');
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('albumSection').classList.add('active');
                     renderCollection();
                 } else if (tab === 'settings') {
-                    document.querySelector('.tab:nth-child(8)').classList.add('active');
+                    document.querySelector('.tab:nth-child(7)').classList.add('active');
                     document.getElementById('settingsSection').classList.add('active');
                     updateSettingsInfo();
                 }
