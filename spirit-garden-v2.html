@@ -796,11 +796,77 @@
         body.dark-mode button:disabled {
             color: #888;
         }
+        
+        /* 미니게임 모바일 대응 */
+        @media (max-width: 768px) {
+            #minigameArea {
+                height: 300px !important;
+            }
+            
+            #minigameSpirit {
+                font-size: 2.5rem !important;
+                bottom: 10px !important;
+            }
+            
+            #shieldEffect {
+                width: 80px !important;
+                height: 80px !important;
+            }
+            
+            .minigame-word {
+                font-size: 0.85rem !important;
+                padding: 6px 10px !important;
+            }
+            
+            #minigameInput {
+                font-size: 1.1rem !important;
+                padding: 14px 16px !important;
+            }
+            
+            /* 미니게임 플레이 중 화면 고정 */
+            body.minigame-active {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+            
+            body.minigame-active #minigamePlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 9999;
+                background: var(--bg);
+                padding: 10px;
+                display: flex !important;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            
+            body.minigame-active #minigameArea {
+                flex: 1;
+                height: auto !important;
+                min-height: 200px;
+            }
+            
+            body.minigame-active #minigameInput {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
+                z-index: 10000;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="bottom-buttons">
-        <button class="bottom-btn reset-btn" onclick="resetGame()" title="게임 초기화">🔄</button>
         <button class="bottom-btn pause-btn" id="pauseBtn" onclick="togglePause()" title="일시정지">⏸️</button>
         <button class="bottom-btn light-btn" onclick="toggleLight()" title="조명 켜기/끄기">
             <span id="lightIcon">☀️</span>
@@ -816,6 +882,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
+        <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -935,6 +1002,20 @@
                 </div>
             </div>
             
+            <!-- 게임 초기화 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">게임 초기화</h3>
+                
+                <button onclick="resetGame()" style="width: 100%; padding: 14px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                    🔄 게임 초기화
+                </button>
+                
+                <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #e74c3c;">
+                    ⚠️ 주의: 모든 정령, 아이템, 진행 상황이 삭제됩니다.<br>
+                    초기화 전 데이터 내보내기를 권장합니다.
+                </div>
+            </div>
+            
             <!-- 게임 정보 -->
             <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">게임 정보</h3>
@@ -1015,6 +1096,103 @@
                     </div>
                     <div id="buyList"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 미니게임 섹션 -->
+    <div id="minigameSection" class="section">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🎮 정령 지키기</h2>
+            <p style="text-align: center; color: #888; margin-bottom: 30px;">떨어지는 해충과 독버섯으로부터 정령을 지켜주세요!</p>
+            
+            <!-- 게임 시작 전 화면 -->
+            <div id="minigameIntro" style="background: var(--card); border: 1px solid var(--border); padding: 40px; text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🛡️</div>
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">게임 방법</h3>
+                <div style="text-align: left; max-width: 400px; margin: 0 auto 30px; line-height: 1.8; color: var(--text);">
+                    <p>• 위에서 해충과 독버섯이 떨어집니다</p>
+                    <p>• 단어를 타이핑해서 제거하세요</p>
+                    <p>• 바닥에 닿으면 정령이 다칩니다</p>
+                    <p>• 목숨 3개가 모두 소진되면 게임 오버!</p>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; margin-right: 10px;">난이도:</label>
+                    <select id="minigameDifficulty" style="padding: 10px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text);">
+                        <option value="easy" selected>쉬움</option>
+                        <option value="hard">어려움 (보상 2배)</option>
+                    </select>
+                </div>
+                <button onclick="startMinigame()" style="padding: 16px 48px; font-size: 1.2rem; font-weight: 700; background: var(--fire); color: white; border: none; border-radius: 12px; cursor: pointer;">
+                    게임 시작
+                </button>
+            </div>
+            
+            <!-- 게임 플레이 화면 -->
+            <div id="minigamePlay" style="display: none;">
+                <!-- 게임 상태 바 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 15px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 8px;">
+                    <div style="font-size: 1.2rem;">
+                        <span style="color: #e74c3c;">❤️</span> 
+                        <span id="minigameLives">❤️❤️❤️</span>
+                    </div>
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--text);">
+                        점수: <span id="minigameScore">0</span>
+                    </div>
+                    <button onclick="endMinigame()" style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 6px; cursor: pointer;">포기</button>
+                </div>
+                
+                <!-- 게임 영역 -->
+                <div id="minigameArea" style="position: relative; width: 100%; height: 500px; background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #90EE90 95%, #228B22 100%); border: 3px solid var(--border); border-radius: 12px; overflow: hidden; user-select: none;">
+                    <!-- 떨어지는 단어들이 여기에 생성됨 -->
+                    
+                    <!-- 정령 (하단) -->
+                    <div id="minigameSpirit" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); font-size: 4rem; transition: all 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">
+                        🐛
+                    </div>
+                    
+                    <!-- 보호막 이펙트 -->
+                    <div id="shieldEffect" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(100,200,255,0.3) 0%, transparent 70%); opacity: 0; transition: opacity 0.2s;"></div>
+                </div>
+                
+                <!-- 입력 영역 -->
+                <div style="margin-top: 15px;">
+                    <input type="text" id="minigameInput" placeholder="단어를 입력하세요..." autocomplete="off" autocapitalize="off" spellcheck="false"
+                        style="width: 100%; padding: 18px 24px; font-size: 1.3rem; border: 3px solid var(--border); border-radius: 12px; text-align: center; font-family: 'Gowun Batang', serif; background: var(--card); color: var(--text); box-sizing: border-box;">
+                </div>
+            </div>
+            
+            <!-- 게임 결과 화면 -->
+            <div id="minigameResult" style="display: none; background: var(--card); border: 1px solid var(--border); padding: 40px; text-align: center;">
+                <div id="resultIcon" style="font-size: 5rem; margin-bottom: 20px;">🎉</div>
+                <h3 id="resultTitle" style="font-family: 'Nanum Myeongjo', serif; font-size: 1.8rem; margin-bottom: 15px;">게임 종료!</h3>
+                <div style="font-size: 1.5rem; margin-bottom: 10px; color: var(--text);">
+                    최종 점수: <span id="finalScore" style="font-weight: 700; color: var(--fire);">0</span>
+                </div>
+                <div style="font-size: 1.1rem; margin-bottom: 30px; color: #888;">
+                    처치한 해충: <span id="defeatedCount">0</span>마리
+                </div>
+                
+                <!-- 보상 선택 -->
+                <div id="rewardSection" style="margin-bottom: 30px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 20px; color: var(--text);">보상을 선택하세요</h4>
+                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="claimReward('coin')" class="reward-btn" style="padding: 20px 30px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; border: none; border-radius: 12px; cursor: pointer; min-width: 150px;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">💰</div>
+                            <div style="font-weight: 700;">코인 받기</div>
+                            <div id="coinRewardAmount" style="font-size: 0.9rem; margin-top: 4px;">+0</div>
+                        </button>
+                        <button onclick="claimReward('item')" class="reward-btn" style="padding: 20px 30px; background: linear-gradient(135deg, #9B59B6, #8E44AD); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 150px;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">🎁</div>
+                            <div style="font-weight: 700;">아이템 받기</div>
+                            <div style="font-size: 0.9rem; margin-top: 4px;">랜덤 보상</div>
+                        </button>
+                    </div>
+                </div>
+                
+                <button onclick="backToMinigameIntro()" style="padding: 14px 40px; font-size: 1rem; background: var(--border); color: var(--text); border: none; border-radius: 8px; cursor: pointer;">
+                    돌아가기
+                </button>
             </div>
         </div>
     </div>
@@ -1635,47 +1813,53 @@
         };
 
         const DECORATION_TYPES = {
-            // 불 속성 (5개)
+            // 불 속성 (6개)
             fire_common1: { name: '용암석', icon: '🔥', attr: 'fire', power: 1, quality: 'common', price: 30 },
             fire_common2: { name: '화산재', icon: '🌋', attr: 'fire', power: 1, quality: 'common', price: 30 },
             fire_rare1: { name: '불꽃 조각상', icon: '🔆', attr: 'fire', power: 2, quality: 'rare', price: 60 },
             fire_rare2: { name: '타오르는 램프', icon: '🏮', attr: 'fire', power: 2, quality: 'rare', price: 60 },
             fire_epic: { name: '불사조 깃털', icon: '🦅', attr: 'fire', power: 3, quality: 'epic', price: 100 },
+            fire_legendary: { name: '태초의 불꽃', icon: '🔱', attr: 'fire', power: 5, quality: 'legendary', price: 999 },
             
-            // 물 속성 (5개)
+            // 물 속성 (6개)
             water_common1: { name: '분수', icon: '💧', attr: 'water', power: 1, quality: 'common', price: 30 },
             water_common2: { name: '조약돌', icon: '🪨', attr: 'water', power: 1, quality: 'common', price: 30 },
             water_rare1: { name: '산호 장식', icon: '🪸', attr: 'water', power: 2, quality: 'rare', price: 60 },
             water_rare2: { name: '물방울 구슬', icon: '💎', attr: 'water', power: 2, quality: 'rare', price: 60 },
             water_epic: { name: '인어의 눈물', icon: '🧜', attr: 'water', power: 3, quality: 'epic', price: 100 },
+            water_legendary: { name: '심해의 심장', icon: '🫀', attr: 'water', power: 5, quality: 'legendary', price: 999 },
             
-            // 바람 속성 (5개)
+            // 바람 속성 (6개)
             wind_common1: { name: '바람개비', icon: '🌬️', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_common2: { name: '부드러운 깃털', icon: '🪶', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_rare1: { name: '풍경', icon: '🎐', attr: 'wind', power: 2, quality: 'rare', price: 60 },
             wind_rare2: { name: '나비 표본', icon: '🦋', attr: 'wind', power: 2, quality: 'rare', price: 60 },
             wind_epic: { name: '하늘의 깃털', icon: '☁️', attr: 'wind', power: 3, quality: 'epic', price: 100 },
+            wind_legendary: { name: '폭풍의 눈', icon: '🌀', attr: 'wind', power: 5, quality: 'legendary', price: 999 },
             
-            // 땅 속성 (5개)
+            // 땅 속성 (6개)
             earth_common1: { name: '화분', icon: '🌱', attr: 'earth', power: 1, quality: 'common', price: 30 },
             earth_common2: { name: '이끼돌', icon: '🪵', attr: 'earth', power: 1, quality: 'common', price: 30 },
             earth_rare1: { name: '나무 조각', icon: '🌳', attr: 'earth', power: 2, quality: 'rare', price: 60 },
             earth_rare2: { name: '버섯 군락', icon: '🍄', attr: 'earth', power: 2, quality: 'rare', price: 60 },
             earth_epic: { name: '세계수 가지', icon: '🌲', attr: 'earth', power: 3, quality: 'epic', price: 100 },
+            earth_legendary: { name: '대지의 정수', icon: '💎', attr: 'earth', power: 5, quality: 'legendary', price: 999 },
             
-            // 빛 속성 (5개)
+            // 빛 속성 (6개)
             light_common1: { name: '수정', icon: '✨', attr: 'light', power: 1, quality: 'common', price: 30 },
             light_common2: { name: '반짝이 가루', icon: '⭐', attr: 'light', power: 1, quality: 'common', price: 30 },
             light_rare1: { name: '빛나는 보석', icon: '💠', attr: 'light', power: 2, quality: 'rare', price: 60 },
             light_rare2: { name: '태양석', icon: '☀️', attr: 'light', power: 2, quality: 'rare', price: 60 },
             light_epic: { name: '별의 파편', icon: '🌟', attr: 'light', power: 3, quality: 'epic', price: 100 },
+            light_legendary: { name: '천상의 광휘', icon: '👼', attr: 'light', power: 5, quality: 'legendary', price: 999 },
             
-            // 어둠 속성 (5개)
+            // 어둠 속성 (6개)
             dark_common1: { name: '흑요석', icon: '🌙', attr: 'dark', power: 1, quality: 'common', price: 30 },
             dark_common2: { name: '검은 모래', icon: '🖤', attr: 'dark', power: 1, quality: 'common', price: 30 },
             dark_rare1: { name: '달빛석', icon: '🌑', attr: 'dark', power: 2, quality: 'rare', price: 60 },
             dark_rare2: { name: '그림자 수정', icon: '🔮', attr: 'dark', power: 2, quality: 'rare', price: 60 },
-            dark_epic: { name: '밤의 정수', icon: '🌌', attr: 'dark', power: 3, quality: 'epic', price: 100 }
+            dark_epic: { name: '밤의 정수', icon: '🌌', attr: 'dark', power: 3, quality: 'epic', price: 100 },
+            dark_legendary: { name: '영원한 어둠', icon: '🕳️', attr: 'dark', power: 5, quality: 'legendary', price: 999 }
         };
 
         const FOOD_NAMES = {
@@ -2199,8 +2383,8 @@
                 }
             }
             
-            // 속성값이 60 미만이면 normal (100에서 60으로 낮춤)
-            if (maxValue < 60) {
+            // 최고 속성값이 50 미만이면 normal (백의 정령)
+            if (maxValue < 50) {
                 return 'normal';
             }
             
@@ -4859,16 +5043,23 @@
                     document.querySelector('.tab:nth-child(3)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
                     renderShop();
-                } else if (tab === 'encyclopedia') {
+                } else if (tab === 'minigame') {
                     document.querySelector('.tab:nth-child(4)').classList.add('active');
+                    document.getElementById('minigameSection').classList.add('active');
+                    // 미니게임 탭 전환 시 게임 중이면 일시정지
+                    if (minigameActive) {
+                        pauseMinigame();
+                    }
+                } else if (tab === 'encyclopedia') {
+                    document.querySelector('.tab:nth-child(5)').classList.add('active');
                     document.getElementById('encyclopediaSection').classList.add('active');
                     renderEncyclopedia();
                 } else if (tab === 'album') {
-                    document.querySelector('.tab:nth-child(5)').classList.add('active');
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('albumSection').classList.add('active');
                     renderCollection();
                 } else if (tab === 'settings') {
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
+                    document.querySelector('.tab:nth-child(7)').classList.add('active');
                     document.getElementById('settingsSection').classList.add('active');
                     updateSettingsInfo();
                 }
@@ -5958,6 +6149,491 @@
                 }
             );
         }
+        // ==================== 미니게임: 정령 지키기 ====================
+        let minigameActive = false;
+        let minigameScore = 0;
+        let minigameLives = 3;
+        let minigameWords = [];
+        let minigameInterval = null;
+        let minigameSpawnInterval = null;
+        let minigameDifficulty = 'normal';
+        let minigameDefeated = 0;
+        let minigamePaused = false;
+        
+        // 떨어지는 단어 목록 (해충, 독초, 잡초 등)
+        const MINIGAME_ENEMIES = {
+            easy: [
+                // 해충
+                { word: '애벌레', icon: '🐛' },
+                { word: '해충', icon: '🪲' },
+                { word: '바퀴', icon: '🪳' },
+                { word: '진딧물', icon: '🐜' },
+                { word: '달팽이', icon: '🐌' },
+                { word: '지렁이', icon: '🪱' },
+                { word: '딱정벌레', icon: '🪲' },
+                { word: '메뚜기', icon: '🦗' },
+                { word: '귀뚜라미', icon: '🦗' },
+                { word: '하루살이', icon: '🪰' },
+                { word: '나비유충', icon: '🐛' },
+                // 독초/잡초
+                { word: '독풀', icon: '🌿' },
+                { word: '엉겅퀴', icon: '🌾' },
+                { word: '쐐기풀', icon: '🌿' },
+                { word: '덩굴', icon: '🌱' },
+                { word: '가시덤불', icon: '🌵' },
+                { word: '독버섯', icon: '🍄' },
+                { word: '곰팡이', icon: '🦠' },
+                { word: '이끼류', icon: '🪨' },
+                // 기타
+                { word: '거미줄', icon: '🕸️' },
+                { word: '먼지', icon: '💨' }
+            ],
+            hard: [
+                // 해충
+                { word: '바퀴벌레', icon: '🪳' },
+                { word: '집게벌레', icon: '🪲' },
+                { word: '하늘소', icon: '🪲' },
+                { word: '노린재', icon: '🪲' },
+                { word: '총채벌레', icon: '🦟' },
+                { word: '응애', icon: '🕷️' },
+                { word: '진드기', icon: '🕷️' },
+                { word: '독거미', icon: '🕷️' },
+                { word: '지네', icon: '🐛' },
+                { word: '그리마', icon: '🐛' },
+                { word: '말벌', icon: '🐝' },
+                { word: '땅벌', icon: '🐝' },
+                { word: '쌀바구미', icon: '🪲' },
+                { word: '흰개미', icon: '🐜' },
+                { word: '기생충', icon: '🪱' },
+                // 독초/잡초
+                { word: '독미나리', icon: '🌿' },
+                { word: '투구꽃', icon: '🌸' },
+                { word: '미치광이풀', icon: '🌿' },
+                { word: '협죽도', icon: '🌺' },
+                { word: '천남성', icon: '🌱' },
+                { word: '삿갓나물', icon: '🍀' },
+                { word: '애기똥풀', icon: '🌼' },
+                { word: '광대싸리', icon: '🌿' },
+                { word: '독말풀', icon: '🌸' },
+                { word: '곰팡이균', icon: '🦠' },
+                // 기타
+                { word: '해충떼', icon: '🪲' },
+                { word: '독거미줄', icon: '🕸️' }
+            ]
+        };
+        
+        // 난이도별 설정
+        const MINIGAME_SETTINGS = {
+            easy: { spawnRate: 1700, fallSpeed: 2.2, maxWords: 5, coinMultiplier: 1 },
+            hard: { spawnRate: 1200, fallSpeed: 2.8, maxWords: 8, coinMultiplier: 2 }
+        };
+        
+        function startMinigame() {
+            minigameDifficulty = document.getElementById('minigameDifficulty').value;
+            minigameActive = true;
+            minigameScore = 0;
+            minigameLives = 3;
+            minigameWords = [];
+            minigameDefeated = 0;
+            minigamePaused = false;
+            
+            // 모바일 대응: body에 클래스 추가
+            document.body.classList.add('minigame-active');
+            
+            // 화면 전환
+            document.getElementById('minigameIntro').style.display = 'none';
+            document.getElementById('minigamePlay').style.display = 'block';
+            document.getElementById('minigameResult').style.display = 'none';
+            
+            // UI 초기화
+            updateMinigameUI();
+            
+            // 입력 필드 포커스
+            const input = document.getElementById('minigameInput');
+            input.value = '';
+            
+            // 모바일: 약간 딜레이 후 포커스 (키보드 올라오게)
+            setTimeout(() => {
+                input.focus();
+            }, 100);
+            
+            // 입력 이벤트 리스너 (한글 조합 완료 후 처리)
+            let isComposing = false;
+            
+            input.addEventListener('compositionstart', () => {
+                isComposing = true;
+            });
+            
+            input.addEventListener('compositionend', (e) => {
+                isComposing = false;
+                handleMinigameInput();
+            });
+            
+            input.addEventListener('input', () => {
+                if (!isComposing) {
+                    handleMinigameInput();
+                }
+            });
+            
+            // 게임 시작
+            const settings = MINIGAME_SETTINGS[minigameDifficulty];
+            
+            // 단어 생성 인터벌
+            minigameSpawnInterval = setInterval(() => {
+                if (!minigamePaused && minigameWords.length < settings.maxWords) {
+                    spawnMinigameWord();
+                }
+            }, settings.spawnRate);
+            
+            // 게임 루프 (단어 이동)
+            minigameInterval = setInterval(() => {
+                if (!minigamePaused) {
+                    updateMinigameWords();
+                }
+            }, 50);
+            
+            // 첫 단어 바로 생성
+            spawnMinigameWord();
+        }
+        
+        function spawnMinigameWord() {
+            const area = document.getElementById('minigameArea');
+            const areaWidth = area.offsetWidth;
+            const enemies = MINIGAME_ENEMIES[minigameDifficulty];
+            const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+            
+            // 단어 길이에 따른 예상 너비 계산 (글자당 약 18px + 패딩 + 아이콘)
+            const estimatedWidth = (enemy.word.length * 18) + 60;
+            // 최소 20px 여백, 최대 (화면너비 - 예상너비 - 20px)
+            const maxX = Math.max(20, areaWidth - estimatedWidth - 20);
+            
+            const wordObj = {
+                id: Date.now() + Math.random(),
+                word: enemy.word,
+                icon: enemy.icon,
+                x: Math.random() * maxX + 10,
+                y: -50,
+                speed: MINIGAME_SETTINGS[minigameDifficulty].fallSpeed + (Math.random() * 0.5)
+            };
+            
+            // DOM 요소 생성
+            const wordEl = document.createElement('div');
+            wordEl.id = 'word-' + wordObj.id;
+            wordEl.className = 'minigame-word';
+            wordEl.style.cssText = `
+                position: absolute;
+                left: ${wordObj.x}px;
+                top: ${wordObj.y}px;
+                background: linear-gradient(135deg, #2c3e50, #34495e);
+                color: white;
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 1rem;
+                font-weight: 600;
+                white-space: nowrap;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                z-index: 10;
+                transition: transform 0.1s;
+            `;
+            wordEl.innerHTML = `${enemy.word}`;
+            
+            area.appendChild(wordEl);
+            minigameWords.push(wordObj);
+        }
+        
+        function updateMinigameWords() {
+            const area = document.getElementById('minigameArea');
+            const areaHeight = area.offsetHeight;
+            const settings = MINIGAME_SETTINGS[minigameDifficulty];
+            
+            minigameWords.forEach((wordObj, index) => {
+                wordObj.y += wordObj.speed;
+                
+                const wordEl = document.getElementById('word-' + wordObj.id);
+                if (wordEl) {
+                    wordEl.style.top = wordObj.y + 'px';
+                }
+                
+                // 바닥에 도달
+                if (wordObj.y > areaHeight - 100) {
+                    removeMinigameWord(wordObj.id, false);
+                    minigameLives--;
+                    
+                    // 정령 피격 효과
+                    const spirit = document.getElementById('minigameSpirit');
+                    spirit.style.transform = 'translateX(-50%) scale(0.8)';
+                    spirit.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3)) brightness(0.5)';
+                    setTimeout(() => {
+                        spirit.style.transform = 'translateX(-50%) scale(1)';
+                        spirit.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))';
+                    }, 300);
+                    
+                    updateMinigameUI();
+                    
+                    if (minigameLives <= 0) {
+                        endMinigame();
+                    }
+                }
+            });
+        }
+        
+        function handleMinigameInput() {
+            const input = document.getElementById('minigameInput');
+            const typed = input.value.trim();
+            
+            if (!typed) return;
+            
+            // 일치하는 단어 찾기
+            const matchIndex = minigameWords.findIndex(w => w.word === typed);
+            
+            if (matchIndex !== -1) {
+                const matched = minigameWords[matchIndex];
+                
+                // 점수 계산 (단어 길이 + 빠른 처치 보너스)
+                const lengthBonus = matched.word.length * 10;
+                const speedBonus = Math.max(0, Math.floor((400 - matched.y) / 10));
+                minigameScore += lengthBonus + speedBonus;
+                minigameDefeated++;
+                
+                // 제거 효과
+                removeMinigameWord(matched.id, true);
+                
+                // 보호막 효과
+                const shield = document.getElementById('shieldEffect');
+                shield.style.opacity = '1';
+                setTimeout(() => {
+                    shield.style.opacity = '0';
+                }, 200);
+                
+                // 입력 초기화 (setTimeout으로 조합 완료 후 클리어)
+                setTimeout(() => {
+                    input.value = '';
+                }, 0);
+                
+                updateMinigameUI();
+            }
+        }
+        
+        function removeMinigameWord(id, success) {
+            const wordEl = document.getElementById('word-' + id);
+            if (wordEl) {
+                if (success) {
+                    // 성공 효과
+                    wordEl.style.transform = 'scale(1.3)';
+                    wordEl.style.opacity = '0';
+                    wordEl.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                    setTimeout(() => wordEl.remove(), 200);
+                } else {
+                    // 실패 효과 (빨간색)
+                    wordEl.style.background = 'linear-gradient(135deg, #c0392b, #e74c3c)';
+                    wordEl.style.transform = 'scale(0.5)';
+                    wordEl.style.opacity = '0';
+                    setTimeout(() => wordEl.remove(), 300);
+                }
+            }
+            minigameWords = minigameWords.filter(w => w.id !== id);
+        }
+        
+        function updateMinigameUI() {
+            document.getElementById('minigameScore').textContent = minigameScore;
+            
+            let hearts = '';
+            for (let i = 0; i < 3; i++) {
+                hearts += i < minigameLives ? '❤️' : '🖤';
+            }
+            document.getElementById('minigameLives').textContent = hearts;
+        }
+        
+        function pauseMinigame() {
+            minigamePaused = true;
+        }
+        
+        function resumeMinigame() {
+            minigamePaused = false;
+            document.getElementById('minigameInput').focus();
+        }
+        
+        function endMinigame() {
+            minigameActive = false;
+            
+            // 모바일 대응: body 클래스 제거
+            document.body.classList.remove('minigame-active');
+            
+            // 인터벌 정리
+            if (minigameInterval) {
+                clearInterval(minigameInterval);
+                minigameInterval = null;
+            }
+            if (minigameSpawnInterval) {
+                clearInterval(minigameSpawnInterval);
+                minigameSpawnInterval = null;
+            }
+            
+            // 남은 단어 제거
+            minigameWords.forEach(w => {
+                const el = document.getElementById('word-' + w.id);
+                if (el) el.remove();
+            });
+            minigameWords = [];
+            
+            // 결과 화면 표시
+            document.getElementById('minigamePlay').style.display = 'none';
+            document.getElementById('minigameResult').style.display = 'block';
+            
+            // 결과 업데이트
+            document.getElementById('finalScore').textContent = minigameScore;
+            document.getElementById('defeatedCount').textContent = minigameDefeated;
+            
+            // 결과 아이콘 & 메시지
+            let icon, title;
+            if (minigameScore >= 500) {
+                icon = '🏆';
+                title = '대단해요!';
+            } else if (minigameScore >= 200) {
+                icon = '🎉';
+                title = '잘했어요!';
+            } else if (minigameScore >= 100) {
+                icon = '👍';
+                title = '좋아요!';
+            } else {
+                icon = '💪';
+                title = '다음엔 더 잘할 수 있어요!';
+            }
+            document.getElementById('resultIcon').textContent = icon;
+            document.getElementById('resultTitle').textContent = title;
+            
+            // 보상 계산 (코인은 점수의 1/10 * 난이도 배수)
+            const settings = MINIGAME_SETTINGS[minigameDifficulty];
+            const coinReward = Math.floor(minigameScore / 10 * settings.coinMultiplier);
+            document.getElementById('coinRewardAmount').textContent = '+' + coinReward;
+        }
+        
+        function claimReward(type) {
+            const settings = MINIGAME_SETTINGS[minigameDifficulty];
+            
+            if (type === 'coin') {
+                const reward = Math.floor(minigameScore / 10 * settings.coinMultiplier);
+                coins += reward;
+                updateCoinDisplay();
+                saveGame();
+                showNotification(`💰 ${reward} 코인을 획득했습니다!`);
+            } else if (type === 'item') {
+                // 난이도와 점수에 따라 아이템 등급 결정
+                let itemPool = [];
+                
+                if (minigameDifficulty === 'hard' && minigameScore >= 400) {
+                    // 어려움 + 고득점: 전설급 아이템 (미니게임 전용)
+                    itemPool = [
+                        { type: 'decoration', item: 'fire_legendary', name: '태초의 불꽃' },
+                        { type: 'decoration', item: 'water_legendary', name: '심해의 심장' },
+                        { type: 'decoration', item: 'wind_legendary', name: '폭풍의 눈' },
+                        { type: 'decoration', item: 'earth_legendary', name: '대지의 정수' },
+                        { type: 'decoration', item: 'light_legendary', name: '천상의 광휘' },
+                        { type: 'decoration', item: 'dark_legendary', name: '영원한 어둠' }
+                    ];
+                    showNotification('🌟 전설급 아이템 획득 기회!');
+                } else if (minigameDifficulty === 'hard' && minigameScore >= 250) {
+                    // 어려움 + 중간 점수: 에픽 아이템
+                    itemPool = [
+                        { type: 'decoration', item: 'fire_epic', name: '불사조 깃털' },
+                        { type: 'decoration', item: 'water_epic', name: '인어의 눈물' },
+                        { type: 'decoration', item: 'wind_epic', name: '하늘의 깃털' },
+                        { type: 'decoration', item: 'earth_epic', name: '세계수 가지' },
+                        { type: 'decoration', item: 'light_epic', name: '별의 파편' },
+                        { type: 'decoration', item: 'dark_epic', name: '밤의 정수' },
+                        { type: 'food', item: 'light', name: '빛나는 넥타' },
+                        { type: 'food', item: 'dark', name: '검은 꽃가루' }
+                    ];
+                } else if (minigameScore >= 200) {
+                    // 쉬움 고득점 또는 어려움 저득점: 레어 아이템
+                    itemPool = [
+                        { type: 'decoration', item: 'fire_rare1', name: '불꽃 조각상' },
+                        { type: 'decoration', item: 'water_rare1', name: '산호 장식' },
+                        { type: 'decoration', item: 'wind_rare1', name: '풍경' },
+                        { type: 'decoration', item: 'earth_rare1', name: '나무 조각' },
+                        { type: 'decoration', item: 'light_rare1', name: '빛나는 보석' },
+                        { type: 'decoration', item: 'dark_rare1', name: '달빛석' },
+                        { type: 'food', item: 'light', name: '빛나는 넥타' },
+                        { type: 'food', item: 'dark', name: '검은 꽃가루' }
+                    ];
+                } else if (minigameScore >= 100) {
+                    // 중간 점수: 일반 아이템
+                    itemPool = [
+                        { type: 'food', item: 'fire', name: '불꽃열매' },
+                        { type: 'food', item: 'water', name: '맑은이슬' },
+                        { type: 'food', item: 'wind', name: '바람꿀' },
+                        { type: 'food', item: 'earth', name: '대지버섯' },
+                        { type: 'decoration', item: 'fire_common1', name: '용암석' },
+                        { type: 'decoration', item: 'water_common1', name: '분수' },
+                        { type: 'decoration', item: 'wind_common1', name: '바람개비' },
+                        { type: 'decoration', item: 'earth_common1', name: '화분' }
+                    ];
+                } else {
+                    // 낮은 점수: 기본 먹이만
+                    itemPool = [
+                        { type: 'food', item: 'fire', name: '불꽃열매' },
+                        { type: 'food', item: 'water', name: '맑은이슬' },
+                        { type: 'food', item: 'wind', name: '바람꿀' },
+                        { type: 'food', item: 'earth', name: '대지버섯' }
+                    ];
+                }
+                
+                const reward = itemPool[Math.floor(Math.random() * itemPool.length)];
+                
+                // 인벤토리에 추가
+                if (reward.type === 'food') {
+                    inventory.food.push(reward.item);
+                } else if (reward.type === 'decoration') {
+                    inventory.decorations.push(reward.item);
+                } else if (reward.type === 'music') {
+                    inventory.music.push(reward.item);
+                }
+                
+                // 전설급 아이템이면 특별 알림
+                const decoData = DECORATION_TYPES[reward.item];
+                if (decoData && decoData.quality === 'legendary') {
+                    showNotification(`🌟 전설급! ${decoData.icon} ${reward.name}을(를) 획득했습니다!`);
+                } else {
+                    showNotification(`🎁 ${reward.name}을(를) 획득했습니다!`);
+                }
+                
+                saveGame();
+                renderInventory();
+            }
+            
+            // 보상 버튼 비활성화
+            document.getElementById('rewardSection').innerHTML = `
+                <div style="color: var(--wind); font-size: 1.2rem; font-weight: 700;">✓ 보상을 받았습니다!</div>
+            `;
+        }
+        
+        function backToMinigameIntro() {
+            document.getElementById('minigameIntro').style.display = 'block';
+            document.getElementById('minigamePlay').style.display = 'none';
+            document.getElementById('minigameResult').style.display = 'none';
+            
+            // 보상 섹션 복구
+            document.getElementById('rewardSection').innerHTML = `
+                <h4 style="font-size: 1.2rem; margin-bottom: 20px; color: var(--text);">보상을 선택하세요</h4>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <button onclick="claimReward('coin')" class="reward-btn" style="padding: 20px 30px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; border: none; border-radius: 12px; cursor: pointer; min-width: 150px;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">💰</div>
+                        <div style="font-weight: 700;">코인 받기</div>
+                        <div id="coinRewardAmount" style="font-size: 0.9rem; margin-top: 4px;">+0</div>
+                    </button>
+                    <button onclick="claimReward('item')" class="reward-btn" style="padding: 20px 30px; background: linear-gradient(135deg, #9B59B6, #8E44AD); color: white; border: none; border-radius: 12px; cursor: pointer; min-width: 150px;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">🎁</div>
+                        <div style="font-weight: 700;">아이템 받기</div>
+                        <div style="font-size: 0.9rem; margin-top: 4px;">랜덤 보상</div>
+                    </button>
+                </div>
+            `;
+        }
+        // ==================== 미니게임 끝 ====================
+
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
