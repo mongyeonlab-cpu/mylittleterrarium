@@ -917,7 +917,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
-        <button class="tab" onclick="switchTab('minigame')">미니게임</button>
+        <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -4459,8 +4459,8 @@
 
             const items = [];
             
-            if (currentShopCategory === 'all' || currentShopCategory === 'food') {
-                // 약초 구매 (제일 위에 표시)
+            // 약초 구매 (필터가 all이거나 속성 필터일 때만 표시)
+            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -4474,17 +4474,13 @@
                         <button onclick="buyItem('medicine', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px;">구매</button>
                     </div>
                 `);
-                
-                // 일반 먹이 구매
+            }
+            
+            // 먹이 구매 (속성 필터만 적용)
+            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
+                // 일반 먹이
                 ['fire', 'water', 'wind', 'earth'].forEach(type => {
-                    // 속성 필터 체크
-                    if (buyFilter === 'all') {
-                        // 전체 보기
-                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
-                        return; // 스탯 필터 시 먹이 숨김
-                    } else if (type !== buyFilter) {
-                        return; // 다른 속성이면 숨김
-                    }
+                    if (buyFilter !== 'all' && type !== buyFilter) return;
                     
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -4500,16 +4496,9 @@
                     `);
                 });
 
-                // 희귀 먹이 구매
+                // 희귀 먹이
                 ['light', 'dark'].forEach(type => {
-                    // 속성 필터 체크
-                    if (buyFilter === 'all') {
-                        // 전체 보기
-                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
-                        return; // 스탯 필터 시 먹이 숨김
-                    } else if (type !== buyFilter) {
-                        return; // 다른 속성이면 숨김
-                    }
+                    if (buyFilter !== 'all' && type !== buyFilter) return;
                     
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -4526,23 +4515,13 @@
                 });
             }
 
-            
-
-            if (currentShopCategory === 'all' || currentShopCategory === 'music') {
-                // 음악 구매
+            // 음악 구매 (스탯 필터 적용)
+            if (buyFilter === 'all' || ['intelligence', 'strength', 'charm'].includes(buyFilter)) {
                 Object.keys(MUSIC_TYPES).forEach(type => {
-                    // 스탯 필터 체크 (음악 전용)
-                    if (buyFilter === 'all') {
-                        // 전체 보기일 때는 필터링 안 함
-                    } else if (buyFilter === 'intelligence') {
-                        if (type !== 'classic') return;
-                    } else if (buyFilter === 'strength') {
-                        if (type !== 'rock') return;
-                    } else if (buyFilter === 'charm') {
-                        if (!['jazz', 'pop', 'ballad'].includes(type)) return;
-                    } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
-                        return; // 속성 필터 시 음악 숨김
-                    }
+                    // 스탯별 필터링
+                    if (buyFilter === 'intelligence' && type !== 'classic') return;
+                    if (buyFilter === 'strength' && type !== 'rock') return;
+                    if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
                     
                     const musicData = MUSIC_TYPES[type];
                     items.push(`
@@ -4551,6 +4530,7 @@
                                 <span style="font-size: 1.5rem;">🎵</span>
                                 <div>
                                     <div style="font-weight: 700;">${musicData.name}</div>
+                                    <div style="font-size: 0.85rem; color: #666;">${musicData.effect}</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
                                 </div>
                             </div>
@@ -4560,8 +4540,8 @@
                 });
             }
             
-            if (currentShopCategory === 'all' || currentShopCategory === 'decoration') {
-                // 장식물 구매 (등급별 그룹화)
+            // 장식물 구매 (속성 필터 적용, legendary 제외 - 미니게임 전용)
+            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
                 const decorationsByQuality = {
                     common: [],
                     rare: [],
@@ -4571,68 +4551,71 @@
                 Object.keys(DECORATION_TYPES).forEach(key => {
                     const decoData = DECORATION_TYPES[key];
                     
-                    // 속성 필터 체크
-                    if (buyFilter === 'all') {
-                        // 전체 보기
-                    } else if (['intelligence', 'strength', 'charm'].includes(buyFilter)) {
-                        return; // 스탯 필터 시 장식물 숨김
-                    } else if (decoData.attr !== buyFilter) {
-                        return; // 다른 속성이면 숨김
-                    }
+                    // legendary는 상점에서 판매 안함 (미니게임 전용)
+                    if (decoData.quality === 'legendary') return;
+                    
+                    // 속성 필터
+                    if (buyFilter !== 'all' && decoData.attr !== buyFilter) return;
                     
                     decorationsByQuality[decoData.quality].push({ key, data: decoData });
                 });
                 
                 // 일반 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700;">🏠 일반 장식물</div>`);
-                decorationsByQuality.common.forEach(({ key, data }) => {
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">${data.icon}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${data.name}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                if (decorationsByQuality.common.length > 0) {
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700; border-radius: 6px;">🏠 일반 장식물</div>`);
+                    decorationsByQuality.common.forEach(({ key, data }) => {
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${data.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                    </div>
                                 </div>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
                             </div>
-                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
-                        </div>
-                    `);
-                });
+                        `);
+                    });
+                }
                 
                 // 희귀 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700;">💎 희귀 장식물</div>`);
-                decorationsByQuality.rare.forEach(({ key, data }) => {
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">💎${data.icon}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${data.name}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                if (decorationsByQuality.rare.length > 0) {
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700; border-radius: 6px;">💎 희귀 장식물</div>`);
+                    decorationsByQuality.rare.forEach(({ key, data }) => {
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${data.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                    </div>
                                 </div>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
                             </div>
-                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
-                        </div>
-                    `);
-                });
+                        `);
+                    });
+                }
                 
                 // 최상급 장식물
-                items.push(`<div style="margin: 20px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700;">⭐ 최상급 장식물</div>`);
-                decorationsByQuality.epic.forEach(({ key, data }) => {
-                    items.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.5rem;">⭐${data.icon}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${data.name}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${data.attr} +${data.power}</div>
+                if (decorationsByQuality.epic.length > 0) {
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700; border-radius: 6px;">⭐ 최상급 장식물</div>`);
+                    decorationsByQuality.epic.forEach(({ key, data }) => {
+                        items.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${data.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                    </div>
                                 </div>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
                             </div>
-                            <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
-                        </div>
-                    `);
-                });
+                        `);
+                    });
+                }
             }
 
             container.innerHTML = items.length > 0 ? items.join('') : '<p style="color: #888; text-align: center; padding: 20px;">구매 가능한 물품이 없습니다</p>';
@@ -5446,6 +5429,7 @@
             // UI 업데이트
             renderSpirits();
             renderInventory();
+            renderShop();
             updateCoinDisplay();
             applyLightMode();
             renderEncyclopedia();
@@ -6902,6 +6886,8 @@
             console.log('✅ renderSpirits 완료');
             renderInventory();
             console.log('✅ renderInventory 완료');
+            renderShop();
+            console.log('✅ renderShop 완료');
             updateTimeDisplay();
             console.log('✅ updateTimeDisplay 완료');
             applyLightMode();
