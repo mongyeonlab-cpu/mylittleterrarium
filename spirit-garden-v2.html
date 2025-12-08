@@ -4858,7 +4858,34 @@
         }
         
         function getCompletedSpirits() {
-            return spirits.filter(s => s.isCompleted && !s.isDead);
+            // 현재 육성 중인 완성 정령
+            const currentCompleted = spirits.filter(s => s.isCompleted && !s.isDead);
+            
+            // 앨범에 있는 완성 정령 (id가 없으면 생성)
+            const albumSpirits = (collection || []).map((s, index) => ({
+                ...s,
+                id: s.id || `album-${index}`,
+                isFromAlbum: true,
+                isCompleted: true
+            }));
+            
+            return [...currentCompleted, ...albumSpirits];
+        }
+        
+        function getCompletedSpiritsForBreeding() {
+            // 교배용: 현재 육성 중인 완성 정령 + 앨범 정령 (합성으로 떠난 정령 제외)
+            const currentCompleted = spirits.filter(s => s.isCompleted && !s.isDead);
+            
+            const albumSpirits = (collection || [])
+                .filter(s => !s.fusedAway) // 합성으로 떠난 정령 제외
+                .map((s, index) => ({
+                    ...s,
+                    id: s.id || `album-${index}`,
+                    isFromAlbum: true,
+                    isCompleted: true
+                }));
+            
+            return [...currentCompleted, ...albumSpirits];
         }
         
         function selectFusionSpirit(slot) {
@@ -5225,11 +5252,14 @@
         function updateShareSpiritList() {
             const select1 = document.getElementById('shareSpritSelect');
             const select2 = document.getElementById('myBreedSpirit');
-            const completed = getCompletedSpirits();
+            const completed = getCompletedSpiritsForBreeding();
             
             const options = completed.map(s => {
                 const attr = ATTRIBUTE_NAMES[s.attribute] || ATTRIBUTE_NAMES.normal;
-                return `<option value="${s.id}">${s.name} (${attr.icon} ${attr.name})</option>`;
+                const affection = s.parameters?.affection || 0;
+                const fromAlbum = s.isFromAlbum ? ' [앨범]' : '';
+                const affectionMark = affection >= 50 ? '💕' : '💔';
+                return `<option value="${s.id}">${s.name} (${attr.icon} ${affectionMark}${affection})${fromAlbum}</option>`;
             }).join('');
             
             if (select1) select1.innerHTML = '<option value="">완성된 정령 선택...</option>' + options;
@@ -5239,6 +5269,7 @@
         function encodeSpiritData(spirit) {
             const data = {
                 n: spirit.name,
+                o: spirit.originalName || spirit.name, // 본명 추가
                 a: spirit.attribute,
                 t: spirit.evolutionType || 'normal',
                 i: spirit.parameters?.intelligence || 0,
@@ -5275,6 +5306,7 @@
                 
                 return {
                     name: data.n,
+                    originalName: data.o || data.n, // 본명 추가
                     attribute: data.a || 'normal',
                     evolutionType: data.t || 'normal',
                     parameters: {
@@ -5300,7 +5332,9 @@
                 return;
             }
             
-            const spirit = spirits.find(s => s.id === select.value);
+            // 현재 정령 또는 앨범에서 찾기
+            const allCompleted = getCompletedSpiritsForBreeding();
+            const spirit = allCompleted.find(s => s.id === select.value);
             if (!spirit) return;
             
             const code = encodeSpiritData(spirit);
@@ -5344,10 +5378,34 @@
                         document.getElementById('breedPreview').style.display = 'none';
                     } else {
                         const attr = ATTRIBUTE_NAMES[data.attribute] || ATTRIBUTE_NAMES.normal;
+                        
+                        // 속성치 표시
+                        const friendAttrs = data.attributes || {};
+                        const attrDisplay = [];
+                        ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(a => {
+                            if (friendAttrs[a] && friendAttrs[a] > 0) {
+                                attrDisplay.push(`${ENV_ICONS[a]}${friendAttrs[a]}`);
+                            }
+                        });
+                        
+                        // 본명이 현재 이름과 다르면 표시
+                        const originalNameDisplay = (data.originalName && data.originalName !== data.name) 
+                            ? `<div style="color: #aaa; font-size: 0.8rem; font-style: italic;">본명: ${data.originalName}</div>` 
+                            : '';
+                        
                         preview.innerHTML = `
-                            ✅ <strong>${data.name}</strong> (친구 정령)<br>
-                            ${attr.icon} ${attr.name}<br>
-                            🧠 ${data.parameters.intelligence} | 💪 ${data.parameters.strength} | 💖 ${data.parameters.charm}
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="font-size: 2.5rem;">${attr.icon}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: 1.1rem;">✅ ${data.name}</div>
+                                    ${originalNameDisplay}
+                                    <div style="color: #888; font-size: 0.85rem;">${attr.name}</div>
+                                    <div style="margin-top: 6px; font-size: 0.9rem;">
+                                        🧠 ${data.parameters.intelligence} | 💪 ${data.parameters.strength} | 💖 ${data.parameters.charm}
+                                    </div>
+                                    ${attrDisplay.length > 0 ? `<div style="margin-top: 4px; font-size: 0.85rem;">${attrDisplay.join(' ')}</div>` : ''}
+                                </div>
+                            </div>
                         `;
                         preview.style.display = 'block';
                         preview.style.color = 'var(--text)';
@@ -5366,8 +5424,13 @@
                 return;
             }
             
-            const mySpirit = spirits.find(s => s.id === mySelect.value);
-            if (!mySpirit) return;
+            // 현재 정령 또는 앨범에서 찾기
+            const allCompleted = getCompletedSpiritsForBreeding();
+            const mySpirit = allCompleted.find(s => s.id === mySelect.value);
+            if (!mySpirit) {
+                showNotification('❌ 정령을 찾을 수 없습니다');
+                return;
+            }
             
             const friendData = decodeSpiritData(codeInput.value.trim());
             if (!friendData) {
@@ -5531,7 +5594,9 @@
                 return;
             }
             
-            const mySpirit = spirits.find(s => s.id === mySelect.value);
+            // 현재 정령 또는 앨범에서 찾기
+            const allCompleted = getCompletedSpiritsForBreeding();
+            const mySpirit = allCompleted.find(s => s.id === mySelect.value);
             const friendData = decodeSpiritData(codeInput.value.trim());
             
             if (!mySpirit || !friendData || friendData.expired) {
