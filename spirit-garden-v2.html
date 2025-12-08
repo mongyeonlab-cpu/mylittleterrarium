@@ -2674,6 +2674,9 @@
                 
                 titleEl.textContent = title;
                 messageEl.textContent = message;
+                
+                // 동적 z-index 적용
+                modal.style.zIndex = getNextZIndex();
                 modal.classList.add('active');
                 
                 // 이전 이벤트 리스너 제거
@@ -4172,6 +4175,10 @@
             };
             const prediction = predictBreedResult(mySpirit, friendData);
             
+            // 먼저 모든 창 닫기
+            closeBreedWithCodeModal();
+            closeAlbumDetail();
+            
             const confirmed = await showConfirm('교배 확인',
                 `${item.name}와(과) ${friendData.name}을(를) 교배하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
             
@@ -4257,9 +4264,6 @@
             saveGame();
             renderSpirits();
             updateCoinDisplay();
-            
-            closeBreedWithCodeModal();
-            closeAlbumDetail();
             
             showNotification(`🎉 교배 성공! ${newSpirit.name}이(가) 태어났습니다!`);
             switchTab('garden');
