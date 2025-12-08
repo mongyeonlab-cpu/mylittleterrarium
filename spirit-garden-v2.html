@@ -885,12 +885,16 @@
 <body>
     <!-- 오프닝 스토리 팝업 -->
     <div id="openingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; justify-content: center; align-items: center;">
-        <div style="max-width: 500px; width: 90%; padding: 40px; text-align: center;">
-            <div id="openingText" style="color: #e0e0e0; font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; line-height: 2; opacity: 0; transition: opacity 1s;">
+        <div style="max-width: 500px; width: 90%; padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <div style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                <div id="openingText" style="color: #e0e0e0; font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; line-height: 2; opacity: 0; transition: opacity 1s;">
+                </div>
             </div>
-            <button id="openingNextBtn" onclick="nextOpeningScene()" style="display: none; margin-top: 30px; padding: 12px 40px; background: transparent; border: 1px solid #888; color: #888; font-family: 'Gowun Batang', serif; font-size: 1rem; cursor: pointer; transition: all 0.3s;">
-                다음
-            </button>
+            <div style="height: 80px; display: flex; align-items: flex-start; justify-content: center; padding-top: 20px;">
+                <button id="openingNextBtn" onclick="nextOpeningScene()" style="display: none; padding: 12px 40px; background: transparent; border: 1px solid #888; color: #888; font-family: 'Gowun Batang', serif; font-size: 1rem; cursor: pointer; transition: all 0.3s;">
+                    다음
+                </button>
+            </div>
             <button id="openingSkipBtn" onclick="skipOpening()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #666; font-size: 0.9rem; cursor: pointer;">
                 건너뛰기
             </button>
@@ -913,7 +917,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
-        <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
+        <button class="tab" onclick="switchTab('minigame')">미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -5445,7 +5449,7 @@
             updateCoinDisplay();
             applyLightMode();
             renderEncyclopedia();
-            renderAlbum();
+            renderCollection();
             
             const titleSelect = document.getElementById('titleSelect');
             if (titleSelect) {
