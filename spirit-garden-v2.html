@@ -58,6 +58,13 @@
             gap: 10px;
             margin-bottom: 30px;
             border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab {
@@ -70,6 +77,8 @@
             color: #888;
             transition: all 0.3s;
             border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .tab.active {
