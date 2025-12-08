@@ -842,35 +842,42 @@
             
             body.minigame-active #minigamePlay {
                 position: fixed;
-                top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
                 z-index: 9999;
                 background: var(--bg);
-                padding: 10px;
+                padding: 0;
                 display: flex !important;
                 flex-direction: column;
-                overflow: hidden;
+            }
+            
+            body.minigame-active #minigamePlay > div:first-child {
+                /* 상태바 (하트, 점수, 포기버튼) */
+                margin: 0;
+                border-radius: 0;
+                padding: 10px 15px !important;
             }
             
             body.minigame-active #minigameArea {
-                flex: 1;
-                height: auto !important;
-                min-height: 150px;
-                max-height: 250px;
+                flex: 0 0 auto;
+                height: 220px !important;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                margin: 0;
+            }
+            
+            body.minigame-active #minigamePlay > div:last-child {
+                /* 입력창 컨테이너 */
+                margin: 0 !important;
             }
             
             body.minigame-active #minigameInput {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
                 border-radius: 0;
                 border-left: none;
                 border-right: none;
                 border-bottom: none;
-                z-index: 10000;
             }
         }
     </style>
