@@ -380,7 +380,7 @@
             align-items: flex-start;
             justify-content: center;
             padding: 20px;
-            padding-top: 100px;
+            padding-top: 180px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -1040,6 +1040,20 @@
                             <span id="darkModeSlider" style="position: absolute; content: ''; height: 24px; width: 24px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
                         </span>
                     </label>
+                </div>
+            </div>
+            
+            <!-- 이벤트 코드 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">이벤트 코드</h3>
+                
+                <p style="font-size: 0.9rem; color: #888; margin-bottom: 16px;">이벤트 코드를 입력하면 시즌 정령 알을 받을 수 있습니다!</p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="eventCodeInput" placeholder="SGEVENT-로 시작하는 코드 입력..." style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace;">
+                    <button onclick="redeemEventCode()" style="padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                        사용
+                    </button>
                 </div>
             </div>
             
@@ -2209,6 +2223,185 @@
             'fusion-siren': { name: '세이렌', icon: '💖🎵', desc: '매혹적인 정령들의 합성체.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' }
         };
         
+        // ========== 이벤트 정령 시스템 ==========
+        const EVENT_TYPES = {
+            'christmas2025': {
+                name: '크리스마스 정령',
+                icon: '🎄',
+                attribute: 'event_christmas',
+                desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
+                validUntil: '2026-01-31',
+                stages: {
+                    egg: '🎁',
+                    baby: '⭐',
+                    child: '🎄',
+                    adult: '🎅'
+                },
+                rewards: [
+                    { type: 'decoration', id: 'christmas_tree', name: '크리스마스 트리', icon: '🎄' },
+                    { type: 'food', id: 'christmas_cookie', name: '크리스마스 쿠키', icon: '🍪' },
+                    { type: 'music', id: 'christmas_carol', name: '크리스마스 캐롤', icon: '🎵' }
+                ]
+            }
+        };
+        
+        // 이벤트 전용 아이템 정의
+        const EVENT_ITEMS = {
+            // 크리스마스 장식
+            'christmas_tree': {
+                name: '크리스마스 트리',
+                icon: '🎄',
+                type: 'decoration',
+                event: 'christmas2025',
+                effects: { fire: 5, water: 5, wind: 5, earth: 5, light: 10, dark: 0 },
+                desc: '크리스마스 정령에게서 받은 특별한 트리. 모든 속성을 높여줍니다.'
+            },
+            // 크리스마스 먹이
+            'christmas_cookie': {
+                name: '크리스마스 쿠키',
+                icon: '🍪',
+                type: 'food',
+                event: 'christmas2025',
+                effects: { intelligence: 5, strength: 5, charm: 5, growth: 10 },
+                desc: '크리스마스 정령에게서 받은 특별한 쿠키. 모든 스탯을 크게 올려줍니다.'
+            },
+            // 크리스마스 음악
+            'christmas_carol': {
+                name: '크리스마스 캐롤',
+                icon: '🎵',
+                type: 'music',
+                event: 'christmas2025',
+                effects: { affection: 10, charm: 5 },
+                desc: '크리스마스 정령에게서 받은 특별한 캐롤. 애정도를 크게 올려줍니다.'
+            }
+        };
+        
+        // 이벤트 코드 생성 함수
+        function generateEventCode(eventType) {
+            const event = EVENT_TYPES[eventType];
+            if (!event) return null;
+            
+            const data = {
+                e: eventType,
+                ts: Date.now()
+            };
+            
+            try {
+                const json = JSON.stringify(data);
+                const base64 = btoa(unescape(encodeURIComponent(json)));
+                return 'SGEVENT-' + base64;
+            } catch (e) {
+                console.error('이벤트 코드 생성 오류:', e);
+                return null;
+            }
+        }
+        
+        // 이벤트 코드 해석 함수
+        function decodeEventCode(code) {
+            try {
+                if (!code.startsWith('SGEVENT-')) return null;
+                const base64 = code.substring(8);
+                const json = decodeURIComponent(escape(atob(base64)));
+                const data = JSON.parse(json);
+                
+                if (!data.e || !EVENT_TYPES[data.e]) return null;
+                
+                const event = EVENT_TYPES[data.e];
+                
+                // 유효기간 체크
+                if (event.validUntil && new Date() > new Date(event.validUntil)) {
+                    return { expired: true, eventType: data.e };
+                }
+                
+                return {
+                    eventType: data.e,
+                    event: event,
+                    timestamp: data.ts
+                };
+            } catch (e) {
+                console.error('이벤트 코드 해석 오류:', e);
+                return null;
+            }
+        }
+        
+        // 이벤트 알 생성 함수
+        function createEventSpirit(eventType) {
+            const event = EVENT_TYPES[eventType];
+            if (!event) return null;
+            
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            
+            const spirit = {
+                id: Date.now(),
+                name: event.name,
+                originalName: event.name,
+                growth: 0,
+                parameters: {
+                    intelligence: 0,
+                    strength: 0,
+                    charm: 0,
+                    affection: 0
+                },
+                hiddenAttributes: {
+                    fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                },
+                satisfaction: 'mid',
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                lastInteraction: Date.now(),
+                status: '특별한 알이 빛나고 있습니다...',
+                birthTime: Date.now(),
+                logs: [
+                    { time: timestamp, message: `🎄 이벤트 코드로 특별한 알이 태어났습니다!` }
+                ],
+                lightTime: 0,
+                darkTime: 0,
+                musicListened: 0,
+                feedCount: 0,
+                // 이벤트 전용 속성
+                isEventSpirit: true,
+                eventType: eventType
+            };
+            
+            return spirit;
+        }
+        
+        // 이벤트 정령 스테이지 아이콘 가져오기
+        function getEventStageIcon(spirit) {
+            if (!spirit.isEventSpirit || !spirit.eventType) return null;
+            const event = EVENT_TYPES[spirit.eventType];
+            if (!event) return null;
+            
+            const stage = getStage(spirit.growth);
+            return event.stages[stage] || event.icon;
+        }
+        
+        // 이벤트 정령 완성 시 보상 지급
+        function giveEventRewards(eventType) {
+            const event = EVENT_TYPES[eventType];
+            if (!event || !event.rewards) return;
+            
+            event.rewards.forEach(reward => {
+                if (reward.type === 'decoration') {
+                    if (!inventory.decorations) inventory.decorations = [];
+                    inventory.decorations.push(reward.id);
+                } else if (reward.type === 'food') {
+                    if (!inventory.food) inventory.food = [];
+                    inventory.food.push(reward.id);
+                } else if (reward.type === 'music') {
+                    if (!inventory.music) inventory.music = [];
+                    inventory.music.push(reward.id);
+                }
+            });
+            
+            const rewardNames = event.rewards.map(r => `${r.icon} ${r.name}`).join(', ');
+            showNotification(`🎁 이벤트 보상 획득! ${rewardNames}`);
+        }
+        
         // 합성 관련 변수
         let fusionSlot1Spirit = null;
         let fusionSlot2Spirit = null;
@@ -2412,6 +2605,9 @@
             saveGame();
             renderSpirits();
             showNotification(`${randomName}이(가) 태어났습니다! 🥚`);
+            
+            // 튜토리얼 체크
+            checkTutorialAction('getEgg');
         }
 
 
@@ -2749,13 +2945,41 @@
                     </div>
                 `;
             }
+            
+            // 이벤트 먹이와 일반 먹이 분리
+            const eventFoods = [];
+            const normalFoods = [];
+            Object.entries(foodCounts).forEach(([type, count]) => {
+                if (EVENT_ITEMS[type] && EVENT_ITEMS[type].type === 'food') {
+                    eventFoods.push([type, count]);
+                } else {
+                    normalFoods.push([type, count]);
+                }
+            });
 
             const content = `
                 <div class="modal-title">무엇을 먹일까요?</div>
+                ${eventFoods.length > 0 ? `
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #c41e3a;">🎄 이벤트 먹이</div>
+                    <div class="food-grid" style="margin-bottom: 15px;">
+                        ${eventFoods.map(([type, count]) => {
+                            const item = EVENT_ITEMS[type];
+                            return `
+                                <button class="option-btn" style="border: 2px solid #c41e3a;" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
+                                    <span class="option-icon">${item.icon}</span>
+                                    <div class="option-info">
+                                        <div class="option-name">${item.name} ×${count}</div>
+                                        <div class="option-effect" style="color: #c41e3a;">모든 스탯+5, 성장+10</div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : ''}
                 <div style="font-weight: 600; margin-bottom: 10px; color: var(--text);">🍎 먹이</div>
                 <div class="food-grid">
                     ${medicineSection}
-                    ${Object.entries(foodCounts).map(([type, count]) => {
+                    ${normalFoods.map(([type, count]) => {
                         const isRare = type === 'light' || type === 'dark';
                         const gain = isRare ? 2 : 1;
                         const growth = isRare ? 3 : 2;
@@ -2799,6 +3023,40 @@
             // 먹이 소모
             inventory.food.splice(foodIndex, 1);
 
+            // 이벤트 먹이 체크
+            const eventItem = EVENT_ITEMS[foodType];
+            if (eventItem && eventItem.type === 'food') {
+                // 이벤트 먹이 효과 적용
+                const effects = eventItem.effects;
+                spirit.parameters.intelligence += effects.intelligence || 0;
+                spirit.parameters.strength += effects.strength || 0;
+                spirit.parameters.charm += effects.charm || 0;
+                spirit.growth += effects.growth || 0;
+                spirit.parameters.affection += 3;
+                
+                spirit.lastFeed = Date.now();
+                spirit.lastFed = Date.now();
+                spirit.lastInteraction = Date.now();
+                spirit.status = '특별한 음식을 먹었습니다!';
+                
+                if (!spirit.feedCount) spirit.feedCount = 0;
+                spirit.feedCount += 1;
+                
+                addLog(spirit, `🎄 ${eventItem.name}을(를) 먹었습니다!`);
+                addLog(spirit, '모든 능력이 크게 올랐습니다!');
+                
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
+                    completeSpirit(spirit);
+                }
+                
+                closeModal('feedModal');
+                saveGame();
+                renderSpirits();
+                renderInventory();
+                showNotification(`${eventItem.icon} ${eventItem.name}을(를) 주었습니다! (모든 스탯 +5, 성장 +10)`);
+                return;
+            }
+
             const isRare = foodType === 'light' || foodType === 'dark';
             const attrGain = isRare ? 6 : 3;  // 희귀 +6, 일반 +3
             const growthGain = isRare ? 3 : 2;
@@ -2836,6 +3094,9 @@
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
             showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]}를 주었습니다`);
+            
+            // 튜토리얼 체크
+            checkTutorialAction('feed');
         }
 
         function openMusicModal(spiritId) {
@@ -2862,10 +3123,35 @@
                 musicCounts[m] = (musicCounts[m] || 0) + 1;
             });
             
+            // 이벤트 음악과 일반 음악 분리
+            const eventMusic = [];
+            const normalMusic = [];
+            Object.entries(musicCounts).forEach(([type, count]) => {
+                if (EVENT_ITEMS[type] && EVENT_ITEMS[type].type === 'music') {
+                    eventMusic.push([type, count]);
+                } else {
+                    normalMusic.push([type, count]);
+                }
+            });
+            
+            // 이벤트 음악 HTML
+            const eventMusicHTML = eventMusic.map(([type, count]) => {
+                const item = EVENT_ITEMS[type];
+                return `
+                    <button class="option-btn" style="border: 2px solid #c41e3a;" onclick="playMusicByType('${type}')">
+                        <span class="option-icon">${item.icon}</span>
+                        <div class="option-info">
+                            <div class="option-name">${item.name} ×${count}</div>
+                            <div class="option-effect" style="color: #c41e3a;">애정도+10, 매력+5</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+            
             // 순서대로 표시 (classic, jazz, rock, pop, ballad)
             const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
             const musicHTML = musicOrder
-                .filter(type => musicCounts[type])
+                .filter(type => musicCounts[type] && !EVENT_ITEMS[type])
                 .map(type => {
                     const musicData = MUSIC_TYPES[type];
                     const count = musicCounts[type];
@@ -2880,7 +3166,16 @@
                     `;
                 }).join('');
             
-            container.innerHTML = '<div class="music-grid">' + musicHTML + '</div>';
+            let html = '<div class="music-grid">';
+            if (eventMusicHTML) {
+                html += `<div style="width: 100%; font-weight: 600; color: #c41e3a; margin-bottom: 10px;">🎄 이벤트 음악</div>`;
+                html += eventMusicHTML;
+                if (musicHTML) {
+                    html += `<div style="width: 100%; font-weight: 600; color: var(--text); margin: 15px 0 10px;">🎵 일반 음악</div>`;
+                }
+            }
+            html += musicHTML + '</div>';
+            container.innerHTML = html;
         }
 
         function playMusicByType(musicType) {
@@ -2905,6 +3200,33 @@
             
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
+
+            // 이벤트 음악 체크
+            const eventItem = EVENT_ITEMS[musicType];
+            if (eventItem && eventItem.type === 'music') {
+                const effects = eventItem.effects;
+                spirit.parameters.affection += effects.affection || 0;
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + (effects.charm || 0));
+                
+                spirit.lastMusic = Date.now();
+                spirit.lastInteraction = Date.now();
+                spirit.lastMusicType = musicType;
+                
+                if (!spirit.musicListened) spirit.musicListened = 0;
+                spirit.musicListened += 1;
+                
+                spirit.status = `${spirit.name}이(가) 크리스마스 캐롤에 맞춰 행복해합니다!`;
+                addLog(spirit, `🎄 ${eventItem.name}을(를) 들었습니다!`);
+                
+                inventory.music.splice(inventoryIndex, 1);
+                
+                closeModal('musicModal');
+                saveGame();
+                renderSpirits();
+                renderInventory();
+                showNotification(`${eventItem.icon} ${eventItem.name}을(를) 들려주었습니다! (애정도 +10, 매력 +5)`);
+                return;
+            }
 
             const musicData = MUSIC_TYPES[musicType];
             
@@ -2962,6 +3284,9 @@
             renderInventory();
             const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
             showNotification(`${musicData.name}을(를) 들려주었습니다${bonusText}`);
+            
+            // 튜토리얼 체크
+            checkTutorialAction('music');
         }
 
         function patSpirit(spiritId) {
@@ -3040,6 +3365,9 @@
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
             showNotification(`쓰다듬었습니다 (애정 +${affectionBonus}${bonusText})`);
+            
+            // 튜토리얼 체크
+            checkTutorialAction('pat');
         }
         
         // 약 먹이기 함수
@@ -3476,6 +3804,28 @@
         }
 
         function completeSpirit(spirit) {
+            // 이벤트 정령 별도 처리
+            if (spirit.isEventSpirit && spirit.eventType) {
+                const event = EVENT_TYPES[spirit.eventType];
+                if (event) {
+                    spirit.isCompleted = true;
+                    spirit.evolutionData = {
+                        type: `event_${spirit.eventType}`,
+                        attributeType: event.attribute,
+                        name: event.name,
+                        icon: event.stages.adult,
+                        desc: event.desc,
+                        wingType: null,
+                        isEvent: true
+                    };
+                    
+                    saveGame();
+                    renderSpirits();
+                    showNotification(`🎄 ${event.name}이(가) 완성되었습니다! 육성 탭에서 확인해주세요.`);
+                    return;
+                }
+            }
+            
             // 스탯으로 진화 결정
             const params = spirit.parameters;
             const maxStat = Math.max(params.intelligence, params.strength, params.charm);
@@ -3782,8 +4132,16 @@
                     wingType: evolutionData.wingType,
                     lightTime: spirit.lightTime,
                     darkTime: spirit.darkTime,
-                    completedAt: Date.now()
+                    completedAt: Date.now(),
+                    // 이벤트 정령 정보 저장
+                    isEventSpirit: spirit.isEventSpirit || false,
+                    eventType: spirit.eventType || null
                 });
+                
+                // 이벤트 정령 보상 지급
+                if (spirit.isEventSpirit && spirit.eventType) {
+                    giveEventRewards(spirit.eventType);
+                }
                 
                 // 도감에 등록 (진화 타입별 카운트)
                 let encyclopediaKey;
@@ -4201,6 +4559,7 @@
             });
             
             const isFusionType = prediction.key && FUSION_TYPES[prediction.key];
+            const isEventResult = prediction.isEventResult && prediction.eventType;
             
             const timestamp = new Date().toLocaleString('ko-KR', {
                 month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
@@ -4212,42 +4571,81 @@
             if (newParams.charm > 0) inheritInfo.push(`💖${newParams.charm}`);
             const attrInfo = Object.entries(newAttrs).map(([k, v]) => `${ENV_ICONS[k]}${v}`).join(' ');
             
-            const newSpirit = {
-                id: Date.now(),
-                name: isFusionType ? prediction.name : generateSpiritName(),
-                originalName: null,
-                growth: 0,
-                parameters: newParams,
-                hiddenAttributes: {
-                    fire: newAttrs.fire || 0,
-                    water: newAttrs.water || 0,
-                    wind: newAttrs.wind || 0,
-                    earth: newAttrs.earth || 0,
-                    light: newAttrs.light || 0,
-                    dark: newAttrs.dark || 0
-                },
-                satisfaction: 'mid',
-                lastFed: null,
-                lastMusic: null,
-                lastPat: null,
-                lastDecorate: null,
-                lastInteraction: Date.now(),
-                status: '알이 따뜻합니다...',
-                birthTime: Date.now(),
-                logs: [
-                    { time: timestamp, message: `🔗 ${item.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
-                    { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
-                ],
-                lightTime: 0,
-                darkTime: 0,
-                musicListened: 0,
-                feedCount: 0,
-                bredWith: friendData.name,
-                breedCode: breedCode,
-                fusionType: prediction.key || null,
-                fusionRarity: prediction.rarity || 'common',
-                isBred: true
-            };
+            let newSpirit;
+            
+            if (isEventResult) {
+                // 이벤트 정령 교배 결과
+                const event = EVENT_TYPES[prediction.eventType];
+                newSpirit = {
+                    id: Date.now(),
+                    name: event.name,
+                    originalName: event.name,
+                    growth: 0,
+                    parameters: newParams,
+                    hiddenAttributes: {
+                        fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
+                    },
+                    satisfaction: 'mid',
+                    lastFed: null,
+                    lastMusic: null,
+                    lastPat: null,
+                    lastDecorate: null,
+                    lastInteraction: Date.now(),
+                    status: '특별한 알이 빛나고 있습니다...',
+                    birthTime: Date.now(),
+                    logs: [
+                        { time: timestamp, message: `🎄 ${item.name}와(과) ${friendData.name}의 교배로 특별한 알이 태어났습니다!` },
+                        { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')}` }
+                    ],
+                    lightTime: 0,
+                    darkTime: 0,
+                    musicListened: 0,
+                    feedCount: 0,
+                    bredWith: friendData.name,
+                    breedCode: breedCode,
+                    isBred: true,
+                    isEventSpirit: true,
+                    eventType: prediction.eventType
+                };
+            } else {
+                // 일반 교배 결과
+                newSpirit = {
+                    id: Date.now(),
+                    name: isFusionType ? prediction.name : generateSpiritName(),
+                    originalName: null,
+                    growth: 0,
+                    parameters: newParams,
+                    hiddenAttributes: {
+                        fire: newAttrs.fire || 0,
+                        water: newAttrs.water || 0,
+                        wind: newAttrs.wind || 0,
+                        earth: newAttrs.earth || 0,
+                        light: newAttrs.light || 0,
+                        dark: newAttrs.dark || 0
+                    },
+                    satisfaction: 'mid',
+                    lastFed: null,
+                    lastMusic: null,
+                    lastPat: null,
+                    lastDecorate: null,
+                    lastInteraction: Date.now(),
+                    status: '알이 따뜻합니다...',
+                    birthTime: Date.now(),
+                    logs: [
+                        { time: timestamp, message: `🔗 ${item.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
+                        { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
+                    ],
+                    lightTime: 0,
+                    darkTime: 0,
+                    musicListened: 0,
+                    feedCount: 0,
+                    bredWith: friendData.name,
+                    breedCode: breedCode,
+                    fusionType: prediction.key || null,
+                    fusionRarity: prediction.rarity || 'common',
+                    isBred: true
+                };
+            }
             
             spirits.push(newSpirit);
             coins -= BREED_COST;
@@ -4479,7 +4877,14 @@
             const canPat = canDoAction(spirit, 'pat') && !spirit.isDead;
 
             let icon = STAGE_ICONS[stage];
-            if (stage === 'adult' && spirit.evolutionType) {
+            
+            // 이벤트 정령 아이콘
+            if (spirit.isEventSpirit && spirit.eventType) {
+                const eventIcon = getEventStageIcon(spirit);
+                if (eventIcon) icon = eventIcon;
+            }
+            // 일반 진화 아이콘
+            else if (stage === 'adult' && spirit.evolutionType) {
                 const evolutionData = EVOLUTION_TYPES[spirit.evolutionType];
                 if (evolutionData) {
                     icon = evolutionData.icon;
@@ -4577,7 +4982,14 @@
                 const canPat = !isPaused && canDoAction(spirit, 'pat') && !spirit.isDead;
 
                 let icon = STAGE_ICONS[stage];
-                if (stage === 'adult' && spirit.evolutionType) {
+                
+                // 이벤트 정령 아이콘
+                if (spirit.isEventSpirit && spirit.eventType) {
+                    const eventIcon = getEventStageIcon(spirit);
+                    if (eventIcon) icon = eventIcon;
+                }
+                // 일반 진화 아이콘
+                else if (stage === 'adult' && spirit.evolutionType) {
                     const evolutionData = EVOLUTION_TYPES[spirit.evolutionType];
                     if (evolutionData) {
                         icon = evolutionData.icon;
@@ -4724,7 +5136,7 @@
                                 </button>
                             ` : ''}
                             <button onclick="openFeedModal(${spirit.id})" ${!canFeed ? 'disabled' : ''}>
-                                ${spirit.isSick ? '🤒 ' : ''}먹이주기${!canFeed && spirit.lastFeed ? ` (${Math.ceil((10000 - (now - spirit.lastFeed)) / 1000)}초)` : ''}
+                                ${spirit.isSick ? '🤒 ' : ''}먹이주기${!canFeed && spirit.lastFed ? ` (${Math.max(0, Math.ceil((10000 - (now - spirit.lastFed)) / 1000))}초)` : ''}
                             </button>
                             <button onclick="openMusicModal(${spirit.id})" ${!canMusic ? 'disabled' : ''}>
                                 음악 듣기${!canMusic && spirit.lastMusic ? ` (${Math.max(0, Math.ceil((10000 - (now - spirit.lastMusic)) / 1000))}초)` : ''}
@@ -5683,6 +6095,7 @@
                 case 'legendary': return '#ff6b35';
                 case 'epic': return '#9b59b6';
                 case 'rare': return '#3498db';
+                case 'event': return '#c41e3a';
                 default: return '#888';
             }
         }
@@ -5692,6 +6105,7 @@
                 case 'legendary': return '⭐ 전설';
                 case 'epic': return '💜 에픽';
                 case 'rare': return '💙 레어';
+                case 'event': return '🎄 이벤트';
                 default: return '일반';
             }
         }
@@ -5848,7 +6262,9 @@
                 s: spirit.parameters?.strength || 0,
                 c: spirit.parameters?.charm || 0,
                 at: spirit.attributes || {},
-                ts: Date.now()
+                ts: Date.now(),
+                // 이벤트 정령 정보
+                ev: spirit.isEventSpirit ? spirit.eventType : null
             };
             
             try {
@@ -5881,7 +6297,10 @@
                         strength: data.s || 0,
                         charm: data.c || 0
                     },
-                    attributes: data.at || {}
+                    attributes: data.at || {},
+                    // 이벤트 정령 정보
+                    isEventSpirit: !!data.ev,
+                    eventType: data.ev || null
                 };
             } catch (e) {
                 console.error('디코딩 오류:', e);
@@ -6145,6 +6564,26 @@
         }
         
         function predictBreedResult(mySpirit, friendData) {
+            // 이벤트 정령 교배 - 둘 중 하나라도 이벤트 정령이면 이벤트 정령으로
+            const myEventType = mySpirit.isEventSpirit ? mySpirit.eventType : null;
+            const friendEventType = friendData.isEventSpirit ? friendData.eventType : null;
+            
+            if (myEventType || friendEventType) {
+                // 이벤트 정령 우선 (둘 다 이벤트면 내 정령 우선)
+                const eventType = myEventType || friendEventType;
+                const event = EVENT_TYPES[eventType];
+                if (event) {
+                    return {
+                        name: event.name,
+                        icon: event.stages.egg,
+                        desc: event.desc,
+                        rarity: 'event',
+                        isEventResult: true,
+                        eventType: eventType
+                    };
+                }
+            }
+            
             const myAttr = getMainAttribute(mySpirit);
             const friendAttr = friendData.attribute || 'normal';
             
@@ -6448,6 +6887,28 @@
                 });
             });
             
+            // 이벤트 정령 섹션
+            html += `<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">
+                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: #c41e3a; border-bottom: 3px solid #c41e3a; padding-bottom: 10px;">
+                    🎄 이벤트 정령
+                </h2>
+            </div>`;
+            
+            Object.entries(EVENT_TYPES).forEach(([eventKey, event]) => {
+                const eventEncKey = `event_${eventKey}`;
+                const eventCount = encyclopedia[eventEncKey] || 0;
+                const isUnlocked = eventCount > 0;
+                
+                html += `
+                    <div class="${isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #c41e3a;">
+                        <div class="encyclopedia-icon" style="font-size: 3rem;">${isUnlocked ? event.stages.adult : event.stages.egg}</div>
+                        <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #c41e3a;">${isUnlocked ? event.name : '???'}</div>
+                        <div class="encyclopedia-count" style="font-size: 0.8rem;">${isUnlocked ? `${eventCount}회` : '미달성'}</div>
+                        <div style="font-size: 0.7rem; color: ${isUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
+                    </div>
+                `;
+            });
+            
             grid.innerHTML = html;
             } catch (error) {
                 console.error('도감 렌더링 오류:', error);
@@ -6609,6 +7070,57 @@
                     slider.parentElement.style.backgroundColor = '#ccc';
                 }
             }
+        }
+        
+        // 이벤트 코드 사용
+        async function redeemEventCode() {
+            const input = document.getElementById('eventCodeInput');
+            const code = input.value.trim();
+            
+            if (!code) {
+                showNotification('❌ 이벤트 코드를 입력해주세요');
+                return;
+            }
+            
+            // 정령 슬롯 체크
+            if (spirits.length >= 6) {
+                showNotification('❌ 정원이 가득 찼습니다! (최대 6마리)');
+                return;
+            }
+            
+            const decoded = decodeEventCode(code);
+            
+            if (!decoded) {
+                showNotification('❌ 유효하지 않은 이벤트 코드입니다');
+                return;
+            }
+            
+            if (decoded.expired) {
+                showNotification('❌ 이벤트 기간이 종료되었습니다');
+                return;
+            }
+            
+            const event = decoded.event;
+            
+            const confirmed = await showConfirm('이벤트 코드 사용',
+                `${event.icon} ${event.name} 알을 받으시겠습니까?\n\n${event.desc}\n\n🎁 완성 시 특별 보상:\n${event.rewards.map(r => `${r.icon} ${r.name}`).join('\n')}`);
+            
+            if (!confirmed) return;
+            
+            // 이벤트 정령 생성
+            const newSpirit = createEventSpirit(decoded.eventType);
+            if (!newSpirit) {
+                showNotification('❌ 이벤트 정령 생성 실패');
+                return;
+            }
+            
+            spirits.push(newSpirit);
+            saveGame();
+            renderSpirits();
+            
+            input.value = '';
+            showNotification(`🎄 ${event.name} 알이 태어났습니다!`);
+            switchTab('garden');
         }
         
         // 다크 모드 고정 토글
@@ -7051,6 +7563,7 @@
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
             localStorage.removeItem('spiritGarden_openingSeen'); // 오프닝도 다시 보이게
+            localStorage.removeItem('spiritGarden_tutorialSeen'); // 튜토리얼도 다시 보이게
             
             // UI 업데이트
             renderSpirits();
@@ -8486,13 +8999,280 @@
                 modal.style.opacity = '1';
                 // 오프닝 본 것으로 저장
                 localStorage.setItem('spiritGarden_openingSeen', 'true');
+                // 튜토리얼 시작
+                startTutorial();
             }, 500);
+        }
+        
+        // ========== 튜토리얼 시스템 ==========
+        let tutorialStep = 0;
+        let tutorialActive = false;
+        
+        const TUTORIAL_STEPS = [
+            {
+                type: 'dialog',
+                text: '어, 새로 온 수습 테라리스트구나? 환영해! 나는 이 테라리움을 관리하는 선배 테라리스트야.'
+            },
+            {
+                type: 'dialog',
+                text: '여기가 처음이라면 기본적인 것들을 알려줄게. 잘 들어둬.'
+            },
+            {
+                type: 'action',
+                action: 'getEgg',
+                text: '자, 먼저 정령 알을 받아봐. 저기 위에 있는 "새로운 알 받기" 버튼을 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '잘했어! 정령들의 알은 정령나무의 열매야. 이 알들은 기본적으로 무속성이지.'
+            },
+            {
+                type: 'dialog',
+                text: '먹이와 테라리움 관리로 속성이 있는 정령으로 자랄 수 있게 관리하는 게 우리 테라리스트들의 임무야.'
+            },
+            {
+                type: 'action',
+                action: 'feed',
+                text: '알이 배고파하는 것 같은데? "먹이주기" 버튼을 눌러서 먹이를 줘봐.'
+            },
+            {
+                type: 'dialog',
+                text: '좋아! 먹이마다 다른 속성이 있어서, 어떤 먹이를 주느냐에 따라 정령의 속성이 달라져.'
+            },
+            {
+                type: 'action',
+                action: 'music',
+                text: '그리고 정령들의 언어가 노래라는 건 알고 있지? 정령들은 노래를 들으며 세상의 지식을 흡수해. "음악 듣기"를 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '음악도 종류마다 다른 능력치를 올려줘. 클래식은 지력, 팝은 매력 같은 식이지.'
+            },
+            {
+                type: 'action',
+                action: 'pat',
+                text: '어차피 떠나보내야 한다고 먹이만 주는 녀석들도 있지만... 정령과 교감하는 것도 중요해. "쓰다듬기"를 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '이게 기본적인 정령 육성 방법이야. 테라리움 관리까지 생각하면 더 복잡하지만, 그건 천천히 익혀도 돼.'
+            },
+            {
+                type: 'dialog',
+                text: '일단 이 세 가지가 제일 중요하다는 걸 기억해. 먹이주기, 음악 듣기, 쓰다듬기!'
+            },
+            {
+                type: 'dialog',
+                text: '그리고 먹이나 레코드, 테라리움을 장식할 장식품들은 채집으로 얻을 수 있어.'
+            },
+            {
+                type: 'dialog',
+                text: '도저히 찾을 수 없는 게 있다면 상점에 가면 되고.'
+            },
+            {
+                type: 'dialog',
+                text: '너무 쪼들린다면 아르바이트도 해야 하니까 각오해. 유아기 정령들은 쉼없이 먹어대고 까다롭다고.'
+            },
+            {
+                type: 'dialog',
+                text: '자, 그럼 내가 선배로서 설명해줄 건 여기까지야. 나머지는 직접 부딪혀 가면서 배우도록 해. 그럼 이만!'
+            }
+        ];
+        
+        function startTutorial() {
+            console.log('startTutorial 호출됨');
+            const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
+            console.log('tutorialSeen:', tutorialSeen);
+            if (tutorialSeen) return;
+            
+            // 튜토리얼용 기본 아이템 지급
+            if (!inventory.food) inventory.food = [];
+            if (!inventory.music) inventory.music = [];
+            
+            // 기본 먹이 3개 지급
+            if (inventory.food.length === 0) {
+                inventory.food.push('fire', 'water', 'earth');
+            }
+            // 클래식 레코드 1개 지급
+            if (inventory.music.length === 0) {
+                inventory.music.push('classic');
+            }
+            saveGame();
+            renderInventory();
+            
+            tutorialStep = 0;
+            tutorialActive = true;
+            console.log('showTutorialStep 호출 예정');
+            showTutorialStep();
+        }
+        
+        function showTutorialStep() {
+            console.log('showTutorialStep 호출됨, step:', tutorialStep);
+            if (tutorialStep >= TUTORIAL_STEPS.length) {
+                endTutorial();
+                return;
+            }
+            
+            const step = TUTORIAL_STEPS[tutorialStep];
+            
+            if (step.type === 'dialog') {
+                showTutorialDialog(step.text);
+            } else if (step.type === 'action') {
+                showTutorialAction(step.text, step.action);
+            }
+        }
+        
+        let tutorialCollapsed = false;
+        
+        function toggleTutorialCollapse() {
+            tutorialCollapsed = !tutorialCollapsed;
+            const content = document.getElementById('tutorialContent');
+            const toggleBtn = document.getElementById('tutorialToggleBtn');
+            
+            if (tutorialCollapsed) {
+                content.style.display = 'none';
+                toggleBtn.textContent = '▼ 펼치기';
+            } else {
+                content.style.display = 'block';
+                toggleBtn.textContent = '▲ 접기';
+            }
+        }
+        
+        function showTutorialDialog(text) {
+            console.log('showTutorialDialog 호출됨:', text);
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid var(--primary);
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: var(--primary); font-weight: 600;">선배 테라리스트</span>
+                    </div>
+                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                    </button>
+                </div>
+                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px;">${text}</div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted);">건너뛰기</button>
+                        <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                    </div>
+                </div>
+            `;
+            
+            // 기존 튜토리얼 모달 제거
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showTutorialAction(text, action) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #f39c12;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 테라리스트</span>
+                    </div>
+                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                    </button>
+                </div>
+                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px;">${text}</div>
+                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12; margin-bottom: 15px;">
+                        👇 아래 버튼을 눌러보세요!
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted);">건너뛰기</button>
+                    </div>
+                </div>
+            `;
+            
+            // 기존 튜토리얼 모달 제거
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+            
+            // 해당 액션을 기다림
+            window.tutorialWaitingFor = action;
+        }
+        
+        function checkTutorialAction(action) {
+            if (!tutorialActive) return;
+            if (window.tutorialWaitingFor === action) {
+                window.tutorialWaitingFor = null;
+                nextTutorialStep();
+            }
+        }
+        
+        function nextTutorialStep() {
+            tutorialStep++;
+            showTutorialStep();
+        }
+        
+        function skipTutorial() {
+            endTutorial();
+        }
+        
+        function endTutorial() {
+            tutorialActive = false;
+            window.tutorialWaitingFor = null;
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_tutorialSeen', 'true');
         }
         
         function checkAndShowOpening() {
             const seen = localStorage.getItem('spiritGarden_openingSeen');
             if (!seen) {
                 showOpening();
+            } else {
+                // 오프닝은 봤지만 튜토리얼은 안 본 경우
+                const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
+                if (!tutorialSeen) {
+                    startTutorial();
+                }
             }
         }
 
