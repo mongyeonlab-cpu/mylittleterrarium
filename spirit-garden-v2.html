@@ -9311,12 +9311,15 @@
             
             input.addEventListener('compositionend', (e) => {
                 isComposing = false;
-                handleMinigameInput();
             });
             
-            input.addEventListener('input', () => {
-                if (!isComposing) {
-                    handleMinigameInput();
+            // 스페이스바나 엔터로 단어 확정
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!isComposing) {
+                        confirmMinigameInput();
+                    }
                 }
             });
             
@@ -9434,41 +9437,47 @@
             });
         }
         
-        function handleMinigameInput() {
+        function confirmMinigameInput() {
             const input = document.getElementById('minigameInput');
             const typed = input.value.trim();
             
             if (!typed) return;
             
-            // 일치하는 단어 찾기
-            const matchIndex = minigameWords.findIndex(w => w.word === typed);
+            // 정확히 일치하는 단어 찾기 (여러 개면 아래에 있는 것 우선)
+            const exactMatches = minigameWords
+                .filter(w => w.word === typed)
+                .sort((a, b) => b.y - a.y);
             
-            if (matchIndex !== -1) {
-                const matched = minigameWords[matchIndex];
-                
-                // 점수 계산 (단어 길이 + 빠른 처치 보너스)
-                const lengthBonus = matched.word.length * 10;
-                const speedBonus = Math.max(0, Math.floor((400 - matched.y) / 10));
-                minigameScore += lengthBonus + speedBonus;
-                minigameDefeated++;
-                
-                // 제거 효과
-                removeMinigameWord(matched.id, true);
-                
-                // 보호막 효과
-                const shield = document.getElementById('shieldEffect');
-                shield.style.opacity = '1';
-                setTimeout(() => {
-                    shield.style.opacity = '0';
-                }, 200);
-                
-                // 입력 초기화 (setTimeout으로 조합 완료 후 클리어)
-                setTimeout(() => {
-                    input.value = '';
-                }, 0);
-                
-                updateMinigameUI();
+            if (exactMatches.length > 0) {
+                processMatchedWord(exactMatches[0], input);
+            } else {
+                // 일치하는 단어 없음 - 입력 유지 (틀린 것)
             }
+        }
+        
+        function processMatchedWord(matched, input) {
+            // 점수 계산 (단어 길이 + 빠른 처치 보너스)
+            const lengthBonus = matched.word.length * 10;
+            const speedBonus = Math.max(0, Math.floor((400 - matched.y) / 10));
+            minigameScore += lengthBonus + speedBonus;
+            minigameDefeated++;
+            
+            // 제거 효과
+            removeMinigameWord(matched.id, true);
+            
+            // 보호막 효과
+            const shield = document.getElementById('shieldEffect');
+            shield.style.opacity = '1';
+            setTimeout(() => {
+                shield.style.opacity = '0';
+            }, 200);
+            
+            // 입력 초기화 (setTimeout으로 조합 완료 후 클리어)
+            setTimeout(() => {
+                input.value = '';
+            }, 0);
+            
+            updateMinigameUI();
         }
         
         function removeMinigameWord(id, success) {
