@@ -1389,6 +1389,7 @@
         let pausedAt = null; // 일시정지 시작 시간
         let totalPausedTime = 0; // 총 일시정지 시간
         let activatedEvents = []; // 활성화된 이벤트 목록
+        let lowSatisfactionStartTime = {}; // 정령별 불만 상태 시작 시간
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -2498,6 +2499,7 @@
                 isPaused = data.isPaused || false;
                 darkModeLocked = data.darkModeLocked || false;
                 activatedEvents = data.activatedEvents || [];
+                lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -2545,7 +2547,8 @@
                 currentGatherLocation,
                 isPaused,
                 darkModeLocked,
-                activatedEvents
+                activatedEvents,
+                lowSatisfactionStartTime
             }));
         }
 
@@ -2816,6 +2819,55 @@
             
             // 평균 품질 반환 (소수점 1자리)
             return Math.round((totalQuality / installedDecorations.length) * 10) / 10;
+        }
+        
+        // 정령별 불만 상태 지속 시간 체크 및 업데이트
+        function updateLowSatisfactionTimer() {
+            spirits.forEach(spirit => {
+                if (spirit.isDead || spirit.isCompleted) return;
+                
+                const satisfaction = calculateSatisfaction(spirit);
+                
+                if (satisfaction === 'low') {
+                    // 불만 상태인데 타이머가 없으면 시작
+                    if (!lowSatisfactionStartTime[spirit.id]) {
+                        lowSatisfactionStartTime[spirit.id] = Date.now();
+                    }
+                } else {
+                    // 불만 상태가 아니면 타이머 리셋
+                    delete lowSatisfactionStartTime[spirit.id];
+                }
+            });
+        }
+        
+        // 정령이 상호작용을 거부하는 상태인지 확인 (불만 상태가 10분 이상 지속)
+        function isSpiritRefusing(spiritId) {
+            const startTime = lowSatisfactionStartTime[spiritId];
+            if (!startTime) return false;
+            const elapsed = Date.now() - startTime;
+            return elapsed >= 10 * 60 * 1000; // 10분
+        }
+        
+        // 거부 대사 반환
+        function getRefusalMessage(spiritName, action) {
+            const messages = {
+                feed: [
+                    `${spiritName}이(가) 고개를 돌립니다. "지금은 먹고 싶지 않아..."`,
+                    `${spiritName}이(가) 먹이를 거부합니다. "기분이 별로야..."`,
+                    `${spiritName}이(가) 슬픈 눈으로 쳐다봅니다. "환경을 개선해줘..."`,
+                    `${spiritName}이(가) 입을 꾹 다뭅니다. "불만이 너무 쌓였어..."`,
+                    `${spiritName}이(가) 무기력하게 있습니다. "힘이 안 나..."`
+                ],
+                pet: [
+                    `${spiritName}이(가) 손길을 피합니다. "지금은 싫어..."`,
+                    `${spiritName}이(가) 쓰다듬기를 거부합니다. "기분이 안 좋아..."`,
+                    `${spiritName}이(가) 몸을 웅크립니다. "나 좀 내버려둬..."`,
+                    `${spiritName}이(가) 고개를 저습니다. "환경이 마음에 안 들어..."`,
+                    `${spiritName}이(가) 삐진 듯 등을 돌립니다. "삐졌어..."`
+                ]
+            };
+            const list = messages[action] || messages.feed;
+            return list[Math.floor(Math.random() * list.length)];
         }
         
         // 만족도 계산 함수
@@ -3089,6 +3141,16 @@
             
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
+            
+            // 불만 상태가 10분 이상 지속되면 거부
+            if (isSpiritRefusing(spiritId)) {
+                spirit.status = getRefusalMessage(spirit.name, 'feed');
+                addLog(spirit, spirit.status);
+                closeModal('feedModal');
+                renderSpirits();
+                showNotification('😢 정령이 먹이를 거부합니다...');
+                return;
+            }
 
             if (!inventory.food) inventory.food = [];
             const foodIndex = inventory.food.indexOf(foodType);
@@ -3380,6 +3442,15 @@
             
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
+            
+            // 불만 상태가 10분 이상 지속되면 거부
+            if (isSpiritRefusing(spiritId)) {
+                spirit.status = getRefusalMessage(spirit.name, 'pet');
+                addLog(spirit, spirit.status);
+                renderSpirits();
+                showNotification('😢 정령이 쓰다듬기를 거부합니다...');
+                return;
+            }
 
             if (!canDoAction(spirit, 'pat')) {
                 showNotification('아직 쓰다듬을 수 없습니다');
@@ -5036,6 +5107,9 @@
         }
 
         function updateAllSpiritCards() {
+            // 정령별 불만 상태 지속 시간 체크
+            updateLowSatisfactionTimer();
+            
             spirits.forEach(spirit => {
                 updateSpiritCard(spirit);
             });
@@ -7764,7 +7838,8 @@
                 installedDecorations: installedDecorations,
                 lightMode: lightMode,
                 isPaused: isPaused,
-                darkModeLocked: darkModeLocked
+                darkModeLocked: darkModeLocked,
+                lowSatisfactionStartTime: lowSatisfactionStartTime
             };
             
             try {
@@ -7950,6 +8025,7 @@
             lightMode = gameData.lightMode !== undefined ? gameData.lightMode : true;
             isPaused = gameData.isPaused || false;
             darkModeLocked = gameData.darkModeLocked || false;
+            lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
             
             saveGame();
             
