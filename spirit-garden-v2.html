@@ -2788,9 +2788,10 @@
         // 품질 등급을 점수로 변환
         function getQualityScore(quality) {
             const qualityScores = {
-                'common': 1,   // 낮음
-                'rare': 3,     // 보통
-                'epic': 5      // 높음
+                'common': 1,     // 낮음
+                'rare': 3,       // 보통
+                'epic': 5,       // 높음
+                'legendary': 7   // 전설
             };
             return qualityScores[quality] || 1;
         }
@@ -2804,8 +2805,12 @@
                 // 문자열 또는 객체 모두 지원
                 const key = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[key];
+                const eventItem = EVENT_ITEMS[key];
+                
                 if (decoData) {
                     totalQuality += getQualityScore(decoData.quality);
+                } else if (eventItem && eventItem.quality) {
+                    totalQuality += getQualityScore(eventItem.quality);
                 }
             });
             
