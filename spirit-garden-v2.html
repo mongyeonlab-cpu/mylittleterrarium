@@ -947,26 +947,31 @@
 
                 <button class="walk-btn" onclick="goGather()" style="margin-bottom: 20px;">채집하기</button>
 
-                <div class="inventory-title">내 소지품</div>
+                <div class="inventory-title" onclick="toggleInventoryCollapse()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <span>내 소지품</span>
+                    <span id="inventoryToggleIcon" style="font-size: 0.8rem; color: #888;">▼</span>
+                </div>
                 
-                <div class="inventory-section">
-                    <div class="inventory-label">🍎 먹이</div>
-                    <div class="inventory-items" id="foodInventory">
-                        <div class="inventory-item">없음</div>
+                <div id="inventoryContent">
+                    <div class="inventory-section">
+                        <div class="inventory-label">🍎 먹이</div>
+                        <div class="inventory-items" id="foodInventory">
+                            <div class="inventory-item">없음</div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="inventory-section">
-                    <div class="inventory-label">음악</div>
-                    <div class="inventory-items" id="musicInventory">
-                        <div class="inventory-item">없음</div>
+                    <div class="inventory-section">
+                        <div class="inventory-label">음악</div>
+                        <div class="inventory-items" id="musicInventory">
+                            <div class="inventory-item">없음</div>
+                        </div>
                     </div>
-                </div>
 
-                <div class="inventory-section">
-                    <div class="inventory-label">🌳 나무 & 장식물</div>
-                    <div class="inventory-items" id="decorInventory">
-                        <div class="inventory-item">없음</div>
+                    <div class="inventory-section">
+                        <div class="inventory-label">🌳 나무 & 장식물</div>
+                        <div class="inventory-items" id="decorInventory">
+                            <div class="inventory-item">없음</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3520,6 +3525,21 @@
             showNotification(`${spirit.name}의 병이 나았습니다!`);
         }
 
+        let inventoryCollapsed = false;
+        
+        function toggleInventoryCollapse() {
+            inventoryCollapsed = !inventoryCollapsed;
+            const content = document.getElementById('inventoryContent');
+            const icon = document.getElementById('inventoryToggleIcon');
+            
+            if (content) {
+                content.style.display = inventoryCollapsed ? 'none' : 'block';
+            }
+            if (icon) {
+                icon.textContent = inventoryCollapsed ? '▶' : '▼';
+            }
+        }
+
         function changeTitle() {
             const select = document.getElementById('titleSelect');
             currentTitle = select.value;
@@ -4954,7 +4974,7 @@
                 }
             }
             
-            // 조건 2: 5분 이상 상호작용 없음
+            // 조건 2: 30분 이상 상호작용 없음
             if (!shouldCheck) {
                 const now = Date.now();
                 const lastFeed = spirit.lastFed || spirit.birthTime;
@@ -4964,7 +4984,7 @@
                 const lastInteraction = Math.max(lastFeed, lastMusic, lastPat);
                 const minutesSinceInteraction = (now - lastInteraction) / 1000 / 60;
                 
-                if (minutesSinceInteraction >= 5) {
+                if (minutesSinceInteraction >= 30) {
                     shouldCheck = true;
                     reason = '오랫동안 돌봄을 받지 못해 병에 걸렸습니다';
                 }
