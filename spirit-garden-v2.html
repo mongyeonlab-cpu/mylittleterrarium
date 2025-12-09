@@ -917,7 +917,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
-        <button class="tab" onclick="switchTab('minigame')">미니게임</button>
+        <button class="tab" onclick="switchTab('minigame')">🎮 미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
@@ -929,7 +929,7 @@
                 <div style="margin-bottom: 16px;">
                     <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">칭호 선택</label>
                     <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
-                        <option value="none">없음 (기본)</option>
+                        <option value="none">자동채집 (확률 절반)</option>
                         <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
                         <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
                         <option value="musician">음악가 (레코드 확률 2배)</option>
@@ -1415,6 +1415,7 @@
         let isPaused = false; // 게임 일시정지 상태
         let pausedAt = null; // 일시정지 시작 시간
         let totalPausedTime = 0; // 총 일시정지 시간
+        let activatedEvents = []; // 활성화된 이벤트 목록
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -2239,6 +2240,7 @@
                 },
                 rewards: [
                     { type: 'decoration', id: 'christmas_tree', name: '크리스마스 트리', icon: '🎄' },
+                    { type: 'decoration', id: 'christmas_gift', name: '선물 상자', icon: '🎁' },
                     { type: 'food', id: 'christmas_cookie', name: '크리스마스 쿠키', icon: '🍪' },
                     { type: 'music', id: 'christmas_carol', name: '크리스마스 캐롤', icon: '🎵' }
                 ]
@@ -2255,6 +2257,15 @@
                 event: 'christmas2025',
                 effects: { fire: 5, water: 5, wind: 5, earth: 5, light: 10, dark: 0 },
                 desc: '크리스마스 정령에게서 받은 특별한 트리. 모든 속성을 높여줍니다.'
+            },
+            // 크리스마스 선물상자
+            'christmas_gift': {
+                name: '선물 상자',
+                icon: '🎁',
+                type: 'decoration',
+                event: 'christmas2025',
+                effects: { fire: 3, water: 3, wind: 3, earth: 3, light: 5, dark: 5 },
+                desc: '크리스마스 정령에게서 받은 선물 상자. 무엇이 들어있을까요?'
             },
             // 크리스마스 먹이
             'christmas_cookie': {
@@ -2482,6 +2493,7 @@
                 currentTitle = data.currentTitle || 'none';
                 isPaused = data.isPaused || false;
                 darkModeLocked = data.darkModeLocked || false;
+                activatedEvents = data.activatedEvents || [];
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -2528,7 +2540,8 @@
                 currentTitle,
                 currentGatherLocation,
                 isPaused,
-                darkModeLocked
+                darkModeLocked,
+                activatedEvents
             }));
         }
 
@@ -3425,14 +3438,21 @@
             currentTitle = select.value;
             
             const titleNames = {
-                'none': '없음',
+                'none': '자동채집',
                 'hawk_eye': '🦅 매의 눈',
                 'gatherer': '🍎 채집꾼',
                 'musician': '음악가',
                 'collector': '💎 수집가'
             };
             
-            showNotification(`칭호를 ${titleNames[currentTitle]}(으)로 변경했습니다`);
+            // 자동 채집 상태 업데이트
+            if (currentTitle === 'none') {
+                showNotification(`칭호를 ${titleNames[currentTitle]}(으)로 변경했습니다`);
+            } else {
+                showNotification(`칭호를 ${titleNames[currentTitle]}(으)로 변경했습니다`);
+            }
+            
+            updateGatherButton();
             saveGame();
         }
         
@@ -3476,7 +3496,7 @@
             gatherAtLocation(currentGatherLocation);
         }
         
-        function gatherAtLocation(location) {
+        function gatherAtLocation(location, isAuto = false) {
             const now = Date.now();
 
             if (!inventory.food) inventory.food = [];
@@ -3484,6 +3504,9 @@
             if (!inventory.decorations) inventory.decorations = [];
 
             const discoveries = [];
+            
+            // 자동 채집일 경우 확률 0.5배, 아닐 경우 1.0배
+            const autoGatherMultiplier = isAuto ? 0.5 : 1.0;
             
             // 칭호별 확률 보너스
             const titleBonus = {
@@ -3512,14 +3535,14 @@
             }
             
             // 80% 확률로 일반 먹이 발견 (장소 고정)
-            if (Math.random() < (0.8 * foodBonus)) {
+            if (Math.random() < (0.8 * foodBonus * autoGatherMultiplier)) {
                 const randomFood = locationFoodTypes[Math.floor(Math.random() * locationFoodTypes.length)];
                 inventory.food.push(randomFood);
                 discoveries.push(`🍎 ${FOOD_NAMES[randomFood]}`);
             }
 
             // 40% 확률로 희귀 먹이 발견 (빛암)
-            if (Math.random() < (0.4 * foodBonus)) {
+            if (Math.random() < (0.4 * foodBonus * autoGatherMultiplier)) {
                 const rareFoodTypes = ['light', 'dark'];
                 const randomRareFood = rareFoodTypes[Math.floor(Math.random() * rareFoodTypes.length)];
                 inventory.food.push(randomRareFood);
@@ -3530,7 +3553,7 @@
             const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
             
             // 50% 확률로 일반(common) 장식물 (장소 고정)
-            if (Math.random() < (0.5 * decoBonus)) {
+            if (Math.random() < (0.5 * decoBonus * autoGatherMultiplier)) {
                 const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
                     return deco.quality === 'common' && locationDecoTypes.includes(deco.attr);
@@ -3543,7 +3566,7 @@
             }
             
             // 20% 확률로 희귀(rare) 장식물 (장소 고정)
-            if (Math.random() < (0.2 * decoBonus)) {
+            if (Math.random() < (0.2 * decoBonus * autoGatherMultiplier)) {
                 const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
                     return deco.quality === 'rare' && locationDecoTypes.includes(deco.attr);
@@ -3555,8 +3578,8 @@
                 }
             }
             
-            // 8% 확률로 최상급(epic) 장식물 (장소 고정)
-            if (Math.random() < (0.08 * decoBonus)) {
+            // 8% 확률로 최상급(epic) 장식물 (장소 고정) - 자동 채집에서는 제외
+            if (!isAuto && Math.random() < (0.08 * decoBonus)) {
                 const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
                     return deco.quality === 'epic' && locationDecoTypes.includes(deco.attr);
@@ -3570,7 +3593,7 @@
 
             // 15% 확률로 음악 레코드 발견
             const musicBonus = currentTitle === 'musician' ? 2.0 : baseBonus;
-            if (Math.random() < (0.15 * musicBonus)) {
+            if (Math.random() < (0.15 * musicBonus * autoGatherMultiplier)) {
                 const musicKeys = Object.keys(MUSIC_TYPES);
                 const randomMusic = musicKeys[Math.floor(Math.random() * musicKeys.length)];
                 inventory.music.push(randomMusic);
@@ -3578,16 +3601,49 @@
             }
 
             if (discoveries.length === 0) {
-                showNotification('아무것도 발견하지 못했습니다...');
+                if (!isAuto) {
+                    showNotification('아무것도 발견하지 못했습니다...');
+                }
             } else {
                 const locationNames = { garden: '🌸 정원', lake: '🌊 호수', forest: '🌲 숲' };
-                showNotification(`${locationNames[location]} 채집: ${discoveries.join(', ')}`);
+                if (isAuto) {
+                    showNotification(`자동 채집: ${discoveries.join(', ')}`);
+                } else {
+                    showNotification(`${locationNames[location]} 채집: ${discoveries.join(', ')}`);
+                }
             }
 
             lastGatherTime = now;
             saveGame();
             renderInventory();
             updateGatherButton();
+        }
+        
+        // 자동 채집 (칭호 없음일 때만 작동)
+        let autoGatherInterval = null;
+        
+        function startAutoGather() {
+            if (autoGatherInterval) {
+                clearInterval(autoGatherInterval);
+            }
+            
+            autoGatherInterval = setInterval(() => {
+                // 칭호가 없음(none)일 때만 자동 채집
+                if (currentTitle !== 'none') return;
+                
+                // 일시정지 상태면 스킵
+                if (isPaused) return;
+                
+                // 자동 채집 실행
+                gatherAtLocation(currentGatherLocation, true);
+            }, 15000); // 15초마다
+        }
+        
+        function stopAutoGather() {
+            if (autoGatherInterval) {
+                clearInterval(autoGatherInterval);
+                autoGatherInterval = null;
+            }
         }
 
         function updateGatherButton() {
@@ -3596,6 +3652,9 @@
 
             const now = Date.now();
             const gatherCooldown = 15000; // 15초
+            
+            // 자동 채집 활성화 여부
+            const isAutoGatherActive = currentTitle === 'none';
             
             // 일시정지 중이면 버튼 비활성화
             if (isPaused) {
@@ -3607,10 +3666,18 @@
             if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
                 gatherBtn.disabled = true;
                 const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
-                gatherBtn.textContent = `채집하기 (${remainingTime}초)`;
+                if (isAutoGatherActive) {
+                    gatherBtn.textContent = `자동 채집 (${remainingTime}초)`;
+                } else {
+                    gatherBtn.textContent = `채집하기 (${remainingTime}초)`;
+                }
             } else {
                 gatherBtn.disabled = false;
-                gatherBtn.textContent = '채집하기';
+                if (isAutoGatherActive) {
+                    gatherBtn.textContent = '자동 채집 중';
+                } else {
+                    gatherBtn.textContent = '채집하기';
+                }
             }
         }
 
@@ -3693,7 +3760,7 @@
                 inventory.food = [];
             }
 
-            // 먹이 인벤토리 (순서 고정: fire, water, wind, earth, light, dark)
+            // 먹이 인벤토리 (순서 고정: fire, water, wind, earth, light, dark + 이벤트 아이템)
             const foodContainer = document.getElementById('foodInventory');
             if (inventory.food.length === 0) {
                 foodContainer.innerHTML = '<div class="inventory-item">없음</div>';
@@ -3702,55 +3769,70 @@
                 inventory.food.forEach(f => {
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
-                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
-                foodContainer.innerHTML = foodOrder
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark', 'medicine'];
+                let foodHTML = foodOrder
                     .filter(type => foodCounts[type])
-                    .map(type => `
-                        <div class="inventory-item">
-                            ${ENV_ICONS[type]} ×${foodCounts[type]}
-                        </div>
-                    `).join('');
+                    .map(type => {
+                        const icon = type === 'medicine' ? MEDICINE.icon : ENV_ICONS[type];
+                        return `
+                            <div class="inventory-item">
+                                ${icon} ×${foodCounts[type]}
+                            </div>
+                        `;
+                    }).join('');
+                
+                // 이벤트 먹이 아이템 추가
+                Object.keys(foodCounts).forEach(key => {
+                    if (EVENT_ITEMS[key] && EVENT_ITEMS[key].type === 'food') {
+                        foodHTML += `
+                            <div class="inventory-item" title="${EVENT_ITEMS[key].name}">
+                                ${EVENT_ITEMS[key].icon} ×${foodCounts[key]}
+                            </div>
+                        `;
+                    }
+                });
+                
+                foodContainer.innerHTML = foodHTML || '<div class="inventory-item">없음</div>';
             }
 
-            // 음악 인벤토리 (순서 고정: classic, jazz, rock, pop, ballad)
+            // 음악 인벤토리 (순서 고정: classic, jazz, rock, pop, ballad + 이벤트 아이템)
             const musicContainer = document.getElementById('musicInventory');
             if (!inventory.music) inventory.music = [];
-            console.log('=== Music Inventory Debug ===');
-            console.log('Music array:', inventory.music);
-            console.log('Music array length:', inventory.music.length);
             
             if (inventory.music.length === 0) {
-                console.log('No music, showing empty state');
                 musicContainer.innerHTML = '<div class="inventory-item">없음</div>';
             } else {
                 const musicCounts = {};
                 inventory.music.forEach(m => {
-                    console.log('Processing music:', m);
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                console.log('Music counts:', musicCounts);
                 const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-                const filteredMusic = musicOrder.filter(type => musicCounts[type]);
-                console.log('Filtered music types:', filteredMusic);
-                
-                const musicHTML = filteredMusic.map(type => {
-                    const html = `
+                let musicHTML = musicOrder
+                    .filter(type => musicCounts[type])
+                    .map(type => `
                         <div class="inventory-item">
                             ${MUSIC_TYPES[type].icon} ×${musicCounts[type]}
                         </div>
-                    `;
-                    console.log('Generated HTML for', type, ':', html);
-                    return html;
-                }).join('');
+                    `).join('');
                 
-                console.log('Final music HTML length:', musicHTML.length);
-                console.log('Final music HTML:', musicHTML);
+                // 이벤트 음악 아이템 추가
+                Object.keys(musicCounts).forEach(key => {
+                    if (EVENT_ITEMS[key] && EVENT_ITEMS[key].type === 'music') {
+                        musicHTML += `
+                            <div class="inventory-item" title="${EVENT_ITEMS[key].name}">
+                                ${EVENT_ITEMS[key].icon} ×${musicCounts[key]}
+                            </div>
+                        `;
+                    }
+                });
+                
                 musicContainer.innerHTML = musicHTML || '<div class="inventory-item">없음</div>';
             }
 
-            // 장식물 인벤토리 (등급별 표시)
+            // 장식물 인벤토리 (등급별 표시 + 이벤트 아이템)
             const decorContainer = document.getElementById('decorInventory');
             if (!inventory.decorations) inventory.decorations = [];
+            
             if (inventory.decorations.length === 0) {
                 decorContainer.innerHTML = '<div class="inventory-item">없음</div>';
             } else {
@@ -3760,15 +3842,28 @@
                 });
                 
                 const decorHTML = Object.keys(decorCounts).map(key => {
+                    // 일반 장식물 체크
                     const decoData = DECORATION_TYPES[key];
-                    if (!decoData) return '';
+                    if (decoData) {
+                        const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        return `
+                            <div class="inventory-item" title="${decoData.name} (${decoData.attr} +${decoData.power})">
+                                ${qualityLabel}${decoData.icon} ×${decorCounts[key]}
+                            </div>
+                        `;
+                    }
                     
-                    const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                    return `
-                        <div class="inventory-item" title="${decoData.name} (${decoData.attr} +${decoData.power})">
-                            ${qualityLabel}${decoData.icon} ×${decorCounts[key]}
-                        </div>
-                    `;
+                    // 이벤트 장식물 체크
+                    const eventItem = EVENT_ITEMS[key];
+                    if (eventItem && eventItem.type === 'decoration') {
+                        return `
+                            <div class="inventory-item" title="${eventItem.name}">
+                                ${eventItem.icon} ×${decorCounts[key]}
+                            </div>
+                        `;
+                    }
+                    
+                    return '';
                 }).join('');
                 
                 decorContainer.innerHTML = decorHTML || '<div class="inventory-item">없음</div>';
@@ -4138,11 +4233,6 @@
                     eventType: spirit.eventType || null
                 });
                 
-                // 이벤트 정령 보상 지급
-                if (spirit.isEventSpirit && spirit.eventType) {
-                    giveEventRewards(spirit.eventType);
-                }
-                
                 // 도감에 등록 (진화 타입별 카운트)
                 let encyclopediaKey;
                 if (evolutionData.type === 'titania' || evolutionData.type === 'oberon') {
@@ -4151,6 +4241,9 @@
                 } else if (evolutionData.type === 'nostat') {
                     // 수식어 없는 정령
                     encyclopediaKey = `nostat-${evolutionData.attributeType}`;
+                } else if (evolutionData.type && evolutionData.type.startsWith('event_')) {
+                    // 이벤트 정령은 타입 그대로 사용
+                    encyclopediaKey = evolutionData.type;
                 } else {
                     // 일반 정령 (스탯-레벨-속성)
                     encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType}`;
@@ -5308,13 +5401,13 @@
                     musicOrder.filter(type => musicCounts[type]).forEach(type => {
                         const musicData = MUSIC_TYPES[type];
                         
-                        // 스탯 필터 체크 (음악 전용)
+                        // 스탯 필터 체크 (음악 전용, 복합 스탯 음악도 해당 필터에 표시)
                         if (sellFilter === 'all') {
                             // 전체 보기일 때는 필터링 안 함
                         } else if (sellFilter === 'intelligence') {
-                            if (type !== 'classic') return;
+                            if (!['classic', 'pop'].includes(type)) return;
                         } else if (sellFilter === 'strength') {
-                            if (type !== 'rock') return;
+                            if (!['rock', 'ballad'].includes(type)) return;
                         } else if (sellFilter === 'charm') {
                             if (!['jazz', 'pop', 'ballad'].includes(type)) return;
                         } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) {
@@ -5351,8 +5444,65 @@
 
             const items = [];
             
-            // 약초 구매 (필터가 all이거나 속성 필터일 때만 표시)
-            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
+            // 이벤트 아이템 섹션 (활성화된 이벤트가 있고, 기간 내일 때만)
+            // 카테고리 필터에 맞는 이벤트 아이템만 표시
+            if (activatedEvents && activatedEvents.length > 0) {
+                let eventItems = [];
+                
+                activatedEvents.forEach(eventType => {
+                    const event = EVENT_TYPES[eventType];
+                    if (!event) return;
+                    
+                    // 이벤트 기간 체크
+                    if (event.validUntil && new Date() > new Date(event.validUntil)) return;
+                    
+                    // 해당 이벤트의 아이템들
+                    Object.keys(EVENT_ITEMS).forEach(itemKey => {
+                        const item = EVENT_ITEMS[itemKey];
+                        if (item.event !== eventType) return;
+                        
+                        // 카테고리 필터 적용
+                        if (currentShopCategory !== 'all') {
+                            if (currentShopCategory === 'food' && item.type !== 'food') return;
+                            if (currentShopCategory === 'music' && item.type !== 'music') return;
+                            if (currentShopCategory === 'decoration' && item.type !== 'decoration') return;
+                        }
+                        
+                        // 세부 필터 적용
+                        if (buyFilter !== 'all') {
+                            // 속성 필터일 때 음악은 숨김
+                            if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter) && item.type === 'music') return;
+                            // 스탯 필터일 때 먹이/장식물은 숨김
+                            if (['intelligence', 'strength', 'charm'].includes(buyFilter) && item.type !== 'music') return;
+                        }
+                        
+                        const price = item.type === 'food' ? 30 : item.type === 'music' ? 25 : 50;
+                        
+                        eventItems.push(`
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.5rem;">${item.icon}</span>
+                                    <div>
+                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #c41e3a;">🎄한정</span></div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${price}💰</div>
+                                    </div>
+                                </div>
+                                <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px;">구매</button>
+                            </div>
+                        `);
+                    });
+                });
+                
+                if (eventItems.length > 0) {
+                    items.push(`<div style="margin-bottom: 10px;">
+                        ${eventItems.join('')}
+                    </div>`);
+                }
+            }
+            
+            // 약초 구매 (카테고리가 all 또는 food이고, 필터가 all이거나 속성 필터일 때만 표시)
+            if ((currentShopCategory === 'all' || currentShopCategory === 'food') &&
+                (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter))) {
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -5368,8 +5518,9 @@
                 `);
             }
             
-            // 먹이 구매 (속성 필터만 적용)
-            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
+            // 먹이 구매 (카테고리가 all 또는 food, 속성 필터만 적용)
+            if ((currentShopCategory === 'all' || currentShopCategory === 'food') &&
+                (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter))) {
                 // 일반 먹이
                 ['fire', 'water', 'wind', 'earth'].forEach(type => {
                     if (buyFilter !== 'all' && type !== buyFilter) return;
@@ -5407,12 +5558,13 @@
                 });
             }
 
-            // 음악 구매 (스탯 필터 적용)
-            if (buyFilter === 'all' || ['intelligence', 'strength', 'charm'].includes(buyFilter)) {
+            // 음악 구매 (카테고리가 all 또는 music, 스탯 필터 적용)
+            if ((currentShopCategory === 'all' || currentShopCategory === 'music') &&
+                (buyFilter === 'all' || ['intelligence', 'strength', 'charm'].includes(buyFilter))) {
                 Object.keys(MUSIC_TYPES).forEach(type => {
-                    // 스탯별 필터링
-                    if (buyFilter === 'intelligence' && type !== 'classic') return;
-                    if (buyFilter === 'strength' && type !== 'rock') return;
+                    // 스탯별 필터링 (복합 스탯 음악도 해당 필터에 표시)
+                    if (buyFilter === 'intelligence' && !['classic', 'pop'].includes(type)) return;
+                    if (buyFilter === 'strength' && !['rock', 'ballad'].includes(type)) return;
                     if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
                     
                     const musicData = MUSIC_TYPES[type];
@@ -5432,8 +5584,9 @@
                 });
             }
             
-            // 장식물 구매 (속성 필터 적용, legendary 제외 - 미니게임 전용)
-            if (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter)) {
+            // 장식물 구매 (카테고리가 all 또는 decoration, 속성 필터 적용, legendary 제외 - 미니게임 전용)
+            if ((currentShopCategory === 'all' || currentShopCategory === 'decoration') &&
+                (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter))) {
                 const decorationsByQuality = {
                     common: [],
                     rare: [],
@@ -5514,6 +5667,28 @@
         }
 
         function sellItem(category, type) {
+            // 이벤트 아이템 체크
+            const eventItem = EVENT_ITEMS[type];
+            if (eventItem) {
+                let inventoryArray;
+                if (eventItem.type === 'food') inventoryArray = inventory.food;
+                else if (eventItem.type === 'music') inventoryArray = inventory.music;
+                else if (eventItem.type === 'decoration') inventoryArray = inventory.decorations;
+                
+                const index = inventoryArray ? inventoryArray.indexOf(type) : -1;
+                if (index === -1) return;
+                
+                inventoryArray.splice(index, 1);
+                const sellPrice = eventItem.type === 'food' ? 15 : eventItem.type === 'music' ? 12 : 25;
+                coins += sellPrice;
+                showNotification(`🎄 ${eventItem.name}을(를) ${sellPrice}💰에 판매했습니다`);
+                
+                saveGame();
+                renderShop();
+                renderInventory();
+                return;
+            }
+            
             if (category === 'food') {
                 const index = inventory.food.indexOf(type);
                 if (index === -1) return;
@@ -5570,6 +5745,46 @@
                 showNotification(`${DECORATION_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
             }
 
+            saveGame();
+            renderShop();
+            renderInventory();
+        }
+        
+        // 이벤트 아이템 구매
+        function buyEventItem(itemKey, price) {
+            if (coins < price) {
+                showNotification('코인이 부족합니다!');
+                return;
+            }
+            
+            const item = EVENT_ITEMS[itemKey];
+            if (!item) {
+                showNotification('아이템을 찾을 수 없습니다');
+                return;
+            }
+            
+            // 이벤트 기간 체크
+            const event = EVENT_TYPES[item.event];
+            if (event && event.validUntil && new Date() > new Date(event.validUntil)) {
+                showNotification('이벤트 기간이 종료되었습니다');
+                return;
+            }
+            
+            coins -= price;
+            
+            if (item.type === 'food') {
+                if (!inventory.food) inventory.food = [];
+                inventory.food.push(itemKey);
+            } else if (item.type === 'music') {
+                if (!inventory.music) inventory.music = [];
+                inventory.music.push(itemKey);
+            } else if (item.type === 'decoration') {
+                if (!inventory.decorations) inventory.decorations = [];
+                inventory.decorations.push(itemKey);
+            }
+            
+            showNotification(`🎄 ${item.icon} ${item.name}을(를) ${price}💰에 구매했습니다`);
+            
             saveGame();
             renderShop();
             renderInventory();
@@ -7107,7 +7322,7 @@
             const event = decoded.event;
             
             const confirmed = await showConfirm('이벤트 코드 사용',
-                `${event.icon} ${event.name} 알을 받으시겠습니까?\n\n${event.desc}\n\n🎁 완성 시 특별 보상:\n${event.rewards.map(r => `${r.icon} ${r.name}`).join('\n')}`);
+                `${event.icon} ${event.name} 알을 받으시겠습니까?\n\n${event.desc}\n\n🎁 이벤트 기간 동안 상점에서 특별 아이템을 구매할 수 있습니다!`);
             
             if (!confirmed) return;
             
@@ -7119,11 +7334,19 @@
             }
             
             spirits.push(newSpirit);
+            
+            // 이벤트 활성화 (상점에 아이템 추가)
+            if (!activatedEvents) activatedEvents = [];
+            if (!activatedEvents.includes(decoded.eventType)) {
+                activatedEvents.push(decoded.eventType);
+            }
+            
             saveGame();
             renderSpirits();
+            renderShop();
             
             input.value = '';
-            showNotification(`🎄 ${event.name} 알이 태어났습니다!`);
+            showNotification(`🎄 ${event.name} 알이 태어났습니다! 상점에서 이벤트 아이템을 확인하세요!`);
             switchTab('garden');
         }
         
@@ -7373,26 +7596,38 @@
                 // 문자열 또는 객체 모두 지원
                 const decoKey = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[decoKey];
-                if (!decoData) return;
+                const eventItem = EVENT_ITEMS[decoKey];
                 
-                const attr = decoData.attr;
-                const power = decoData.power;
-                
-                // 해당 속성 증가 (최대 50까지)
-                terrarium[attr] = Math.min(50, terrarium[attr] + power);
+                // 일반 장식물 처리
+                if (decoData) {
+                    const attr = decoData.attr;
+                    const power = decoData.power;
+                    
+                    // 해당 속성 증가 (최대 50까지)
+                    terrarium[attr] = Math.min(50, terrarium[attr] + power);
 
-                // 대립 속성 감소 (power만큼)
-                const opposites = {
-                    fire: 'water',
-                    water: 'fire',
-                    wind: 'earth',
-                    earth: 'wind',
-                    light: 'dark',
-                    dark: 'light'
-                };
-                const opposite = opposites[attr];
-                if (opposite) {
-                    terrarium[opposite] = Math.max(0, terrarium[opposite] - power);
+                    // 대립 속성 감소 (power만큼)
+                    const opposites = {
+                        fire: 'water',
+                        water: 'fire',
+                        wind: 'earth',
+                        earth: 'wind',
+                        light: 'dark',
+                        dark: 'light'
+                    };
+                    const opposite = opposites[attr];
+                    if (opposite) {
+                        terrarium[opposite] = Math.max(0, terrarium[opposite] - power);
+                    }
+                }
+                
+                // 이벤트 장식물 처리 (effects 객체 사용, 대립 속성 감소 없음)
+                if (eventItem && eventItem.type === 'decoration' && eventItem.effects) {
+                    Object.entries(eventItem.effects).forEach(([attr, power]) => {
+                        if (terrarium.hasOwnProperty(attr) && power > 0) {
+                            terrarium[attr] = Math.min(50, terrarium[attr] + power);
+                        }
+                    });
                 }
             });
 
@@ -7644,45 +7879,81 @@
 
                 // 속성별, 이름별로 정렬 (순서 고정)
                 const sortedEntries = Object.entries(installedCounts).sort((a, b) => {
-                    const dataA = DECORATION_TYPES[a[0]];
-                    const dataB = DECORATION_TYPES[b[0]];
+                    const dataA = DECORATION_TYPES[a[0]] || EVENT_ITEMS[a[0]];
+                    const dataB = DECORATION_TYPES[b[0]] || EVENT_ITEMS[b[0]];
                     if (!dataA || !dataB) return 0;
                     
-                    // 1. 속성별 정렬
-                    const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
-                    const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
-                    if (attrDiff !== 0) return attrDiff;
+                    // 이벤트 아이템은 맨 위로
+                    const isEventA = !!EVENT_ITEMS[a[0]];
+                    const isEventB = !!EVENT_ITEMS[b[0]];
+                    if (isEventA && !isEventB) return -1;
+                    if (!isEventA && isEventB) return 1;
                     
-                    // 2. 품질별 정렬 (높은 순)
-                    const qualityOrder = { epic: 0, rare: 1, common: 2 };
-                    const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
-                    if (qualityDiff !== 0) return qualityDiff;
+                    if (!isEventA && !isEventB) {
+                        // 1. 속성별 정렬
+                        const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
+                        const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
+                        if (attrDiff !== 0) return attrDiff;
+                        
+                        // 2. 품질별 정렬 (높은 순)
+                        const qualityOrder = { epic: 0, rare: 1, common: 2 };
+                        const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                        if (qualityDiff !== 0) return qualityDiff;
+                        
+                        // 3. 이름별 정렬
+                        return dataA.name.localeCompare(dataB.name);
+                    }
                     
-                    // 3. 이름별 정렬
-                    return dataA.name.localeCompare(dataB.name);
+                    return 0;
                 });
                 
                 installedContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         ${sortedEntries.map(([key, count]) => {
+                            // 일반 장식물 체크
                             const decoData = DECORATION_TYPES[key];
-                            if (!decoData) return '';
-                            
-                            const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                            return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
-                                            <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                            if (decoData) {
+                                const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                                return `
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
+                                            <div>
+                                                <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                                <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                                            </div>
                                         </div>
+                                        <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                            회수
+                                        </button>
                                     </div>
-                                    <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
-                                        회수
-                                    </button>
-                                </div>
-                            `;
+                                `;
+                            }
+                            
+                            // 이벤트 장식물 체크
+                            const eventItem = EVENT_ITEMS[key];
+                            if (eventItem && eventItem.type === 'decoration') {
+                                const effectsText = Object.entries(eventItem.effects)
+                                    .filter(([k, v]) => v > 0)
+                                    .map(([k, v]) => `${k}+${v}`)
+                                    .join(' ');
+                                return `
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                            <div>
+                                                <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
+                                                <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
+                                            </div>
+                                        </div>
+                                        <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                            회수
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                            
+                            return '';
                         }).join('')}
                     </div>
                 `;
@@ -7706,45 +7977,82 @@
 
             // 속성별, 품질별, 이름별로 정렬 (순서 고정)
             const sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
-                const dataA = DECORATION_TYPES[a[0]];
-                const dataB = DECORATION_TYPES[b[0]];
+                const dataA = DECORATION_TYPES[a[0]] || EVENT_ITEMS[a[0]];
+                const dataB = DECORATION_TYPES[b[0]] || EVENT_ITEMS[b[0]];
                 if (!dataA || !dataB) return 0;
                 
-                // 1. 속성별 정렬
-                const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
-                const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
-                if (attrDiff !== 0) return attrDiff;
+                // 이벤트 아이템은 맨 위로
+                const isEventA = !!EVENT_ITEMS[a[0]];
+                const isEventB = !!EVENT_ITEMS[b[0]];
+                if (isEventA && !isEventB) return -1;
+                if (!isEventA && isEventB) return 1;
                 
-                // 2. 품질별 정렬 (높은 순)
-                const qualityOrder = { epic: 0, rare: 1, common: 2 };
-                const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
-                if (qualityDiff !== 0) return qualityDiff;
+                // 일반 장식물 정렬
+                if (!isEventA && !isEventB) {
+                    // 1. 속성별 정렬
+                    const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
+                    const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
+                    if (attrDiff !== 0) return attrDiff;
+                    
+                    // 2. 품질별 정렬 (높은 순)
+                    const qualityOrder = { epic: 0, rare: 1, common: 2 };
+                    const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                    if (qualityDiff !== 0) return qualityDiff;
+                    
+                    // 3. 이름별 정렬
+                    return dataA.name.localeCompare(dataB.name);
+                }
                 
-                // 3. 이름별 정렬
-                return dataA.name.localeCompare(dataB.name);
+                return 0;
             });
 
             listContainer.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${sortedDecorEntries.map(([key, count]) => {
+                        // 일반 장식물 체크
                         const decoData = DECORATION_TYPES[key];
-                        if (!decoData) return '';
-                        
-                        const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                        return `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
-                                        <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                        if (decoData) {
+                            const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                            return `
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                            <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
+                                        </div>
                                     </div>
+                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
+                                        ${canInstall ? '설치' : '가득'}
+                                    </button>
                                 </div>
-                                <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
-                                    ${canInstall ? '설치' : '가득'}
-                                </button>
-                            </div>
-                        `;
+                            `;
+                        }
+                        
+                        // 이벤트 장식물 체크
+                        const eventItem = EVENT_ITEMS[key];
+                        if (eventItem && eventItem.type === 'decoration') {
+                            const effectsText = Object.entries(eventItem.effects)
+                                .filter(([k, v]) => v > 0)
+                                .map(([k, v]) => `${k}+${v}`)
+                                .join(' ');
+                            return `
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
+                                            <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
+                                        ${canInstall ? '설치' : '가득'}
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        
+                        return '';
                     }).join('')}
                 </div>
             `;
@@ -7763,6 +8071,9 @@
             if (invIndex === -1) return;
 
             const decoData = DECORATION_TYPES[decorationType];
+            const eventItem = EVENT_ITEMS[decorationType];
+            
+            if (!decoData && !eventItem) return;
 
             // 같은 타입의 장식물이 있는지 확인 (위치 고정을 위해)
             const existingIndices = installedDecorations
@@ -7800,11 +8111,12 @@
                 }
             });
             
+            const itemData = decoData || eventItem;
             saveGame();
             renderTerrariumManagement();
             renderInventory();
             renderSpirits();  // 만족도 변경 반영
-            showNotification(`${decoData.icon} ${decoData.name} 설치 완료`);
+            showNotification(`${itemData.icon} ${itemData.name} 설치 완료`);
         }
 
         function removeDecorationFromTerrarium(decorationType) {
@@ -7815,6 +8127,10 @@
             if (index === -1) return;
 
             const decoData = DECORATION_TYPES[decorationType];
+            const eventItem = EVENT_ITEMS[decorationType];
+            const itemData = decoData || eventItem;
+            
+            if (!itemData) return;
 
             // 설치 목록에서 제거하고 인벤토리에 추가
             installedDecorations.splice(index, 1);
@@ -7836,11 +8152,11 @@
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
                     const searchMessages = [
-                        `${spirit.name}이(가) ${decoData.name}이(가) 어디갔는지 찾습니다.`,
-                        `${spirit.name}이(가) ${decoData.name}을(를) 두리번거리며 찾습니다.`,
-                        `${spirit.name}이(가) 사라진 ${decoData.name}을(를) 찾아 헤맵니다.`,
-                        `${spirit.name}이(가) ${decoData.name}이(가) 없어져서 슬퍼합니다.`,
-                        `${spirit.name}이(가) ${decoData.name}이(가) 그리워 보입니다.`
+                        `${spirit.name}이(가) ${itemData.name}이(가) 어디갔는지 찾습니다.`,
+                        `${spirit.name}이(가) ${itemData.name}을(를) 두리번거리며 찾습니다.`,
+                        `${spirit.name}이(가) 사라진 ${itemData.name}을(를) 찾아 헤맵니다.`,
+                        `${spirit.name}이(가) ${itemData.name}이(가) 없어져서 슬퍼합니다.`,
+                        `${spirit.name}이(가) ${itemData.name}이(가) 그리워 보입니다.`
                     ];
                     const randomMessage = searchMessages[Math.floor(Math.random() * searchMessages.length)];
                     
@@ -7876,7 +8192,7 @@
             renderTerrariumManagement();
             renderInventory();
             renderSpirits();  // 만족도 변경 반영
-            showNotification(`${decoData.icon} ${decoData.name} 회수 완료`);
+            showNotification(`${itemData.icon} ${itemData.name} 회수 완료`);
         }
 
         // 랜덤 메시지 생성
@@ -7889,6 +8205,57 @@
             const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
             
             let availableMessages = [];
+            
+            // 크리스마스 이벤트 정령 체크
+            const hasChristmasSpirit = spirits.some(s => s.isEventSpirit && s.eventType === 'christmas2025' && !s.isDead && !s.isCompleted);
+            const isChristmasSpirit = spirit.isEventSpirit && spirit.eventType === 'christmas2025';
+            
+            // 크리스마스 장식 체크
+            const hasChristmasTree = installedDecorations.some(d => {
+                const decoType = typeof d === 'string' ? d : d.type;
+                return decoType === 'christmas_tree';
+            });
+            const hasChristmasGift = installedDecorations.some(d => {
+                const decoType = typeof d === 'string' ? d : d.type;
+                return decoType === 'christmas_gift';
+            });
+            
+            // 크리스마스 이벤트 대사 (25% 확률로 우선 출력)
+            if ((hasChristmasSpirit || isChristmasSpirit) && Math.random() < 0.25) {
+                let christmasMessages = [];
+                
+                // 이벤트 정령 개인 대사
+                if (isChristmasSpirit) {
+                    christmasMessages.push(
+                        `${spirit.name}이(가) 캐롤을 흥얼거립니다 🎵`,
+                        `${spirit.name} 주변으로 눈송이가 내립니다 ❄️`,
+                        `${spirit.name}이(가) 빨간 모자를 고쳐 씁니다 🎅`
+                    );
+                    if (hasChristmasGift) {
+                        christmasMessages.push(`${spirit.name}이(가) 선물 상자를 궁금해합니다 🎁`);
+                    }
+                    if (hasChristmasTree) {
+                        christmasMessages.push(`${spirit.name}이(가) 트리 위 반짝이는 별을 바라봅니다 ⭐`);
+                    }
+                }
+                
+                // 전체 정령 상호작용 대사 (크리스마스 정령이 있을 때)
+                if (hasChristmasSpirit && spirits.filter(s => !s.isDead && !s.isCompleted).length >= 2) {
+                    christmasMessages.push(
+                        `정령들이 다 같이 캐롤을 부릅니다 🎶`,
+                        `정령들이 서로 선물을 교환하는 것 같습니다 🎁`,
+                        `정령들이 함께 눈싸움을 합니다 ⛄`,
+                        `정령들이 모두 모여 따뜻한 시간을 보냅니다 ☕`
+                    );
+                    if (hasChristmasTree) {
+                        christmasMessages.push(`정령들이 다 같이 모여 크리스마스 트리를 구경합니다 🎄`);
+                    }
+                }
+                
+                if (christmasMessages.length > 0) {
+                    return christmasMessages[Math.floor(Math.random() * christmasMessages.length)];
+                }
+            }
             
             // 배고픔 (5분=300초 이상 안 먹임) - 70% 확률로 배고픔 메시지
             if (timeSinceLastFed > 300 && Math.random() < 0.7) {
@@ -9304,6 +9671,8 @@
             console.log('✅ applyLightMode 완료');
             updateCoinDisplay();
             console.log('✅ updateCoinDisplay 완료');
+            startAutoGather(); // 자동 채집 시작
+            console.log('✅ startAutoGather 완료');
             checkAndShowOpening(); // 오프닝 체크
             console.log('🎉 게임 초기화 완료!');
         } catch (error) {
