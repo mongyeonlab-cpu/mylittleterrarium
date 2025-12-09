@@ -623,85 +623,54 @@
             padding: 0;
         }
         
-        /* 하단 버튼 컨테이너 */
-        .bottom-buttons {
+        /* 플로팅 스크롤 버튼 */
+        .scroll-buttons {
             position: fixed;
-            bottom: 20px;
             right: 20px;
+            bottom: 20px;
             display: flex;
-            gap: 10px;
-            z-index: 1000;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10000;
         }
         
-        .bottom-btn {
-            width: 50px;
-            height: 50px;
+        .scroll-btn {
+            width: 45px;
+            height: 45px;
             border: none;
             border-radius: 50%;
+            background: var(--card);
+            color: var(--text);
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
         }
         
-        .bottom-btn:hover {
-            transform: translateY(-2px);
+        .scroll-btn:hover {
+            transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         
-        .bottom-btn:active {
-            transform: translateY(0);
+        .scroll-btn:active {
+            transform: scale(0.95);
         }
         
-        .pause-btn {
-            background: #ff9800;
-            color: white;
-        }
-        
-        .pause-btn.paused {
-            background: #4CAF50;
-        }
-        
-        .reset-btn {
-            background: #f44336;
-            color: white;
-        }
-        
-        .light-btn {
-            background: #2196F3;
-            color: white;
-        }
-        
-        /* 모바일에서 조명 버튼 크기 조정 */
+        /* 모바일 반응형 */
         @media (max-width: 768px) {
-            .bottom-buttons {
-                bottom: 15px;
+            .scroll-buttons {
                 right: 15px;
-                gap: 8px;
-            }
-            
-            .bottom-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 1.3rem;
-            }
-            .light-toggle {
                 bottom: 15px;
-                right: 15px;
-                width: 50px;
-                height: 28px;
             }
             
-            .light-toggle::before {
-                width: 22px !important;
-                height: 22px !important;
-            }
-            
-            body.dark-mode .light-toggle::before {
-                transform: translateX(22px) !important;
+            .scroll-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
             }
             
             /* 상점 레이아웃 1열로 변경 */
@@ -900,13 +869,6 @@
         </div>
     </div>
 
-    <div class="bottom-buttons">
-        <button class="bottom-btn pause-btn" id="pauseBtn" onclick="togglePause()" title="일시정지">⏸️</button>
-        <button class="bottom-btn light-btn" onclick="toggleLight()" title="조명 켜기/끄기">
-            <span id="lightIcon">☀️</span>
-        </button>
-    </div>
-
     <h1>나의 작은 테라리움</h1>
     <div class="subtitle">Spirit Garden</div>
 
@@ -920,6 +882,9 @@
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
         <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('settings')">⚙️</button>
+        <!-- 일시정지 / 조명 버튼 -->
+        <button id="pauseBtn" onclick="togglePause()" style="padding: 8px 12px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem; margin-left: auto;">⏸️</button>
+        <button id="lightBtn" onclick="toggleLight()" style="padding: 8px 12px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem;"><span id="lightIcon">☀️</span></button>
     </div>
 
     <div id="gardenSection" class="section active">
@@ -8117,21 +8082,21 @@
         }
 
         function applyLightMode() {
-            const icon = document.getElementById('lightIcon');
+            const lightIcon = document.getElementById('lightIcon');
             
             // 다크 모드 고정이 활성화되어 있으면 조명 상태 무시
             if (darkModeLocked) {
                 document.body.classList.add('dark-mode');
-                if (icon) icon.textContent = '🌙';
+                if (lightIcon) lightIcon.textContent = '🌙';
                 return;
             }
             
             if (lightMode) {
                 document.body.classList.remove('dark-mode');
-                if (icon) icon.textContent = '☀️';
+                if (lightIcon) lightIcon.textContent = '☀️';
             } else {
                 document.body.classList.add('dark-mode');
-                if (icon) icon.textContent = '🌙';
+                if (lightIcon) lightIcon.textContent = '🌙';
             }
         }
         
@@ -8142,9 +8107,10 @@
             
             if (isPaused) {
                 pausedAt = Date.now(); // 일시정지 시작 시간 기록
-                pauseBtn.textContent = '▶️';
-                pauseBtn.classList.add('paused');
-                pauseBtn.title = '재개';
+                if (pauseBtn) {
+                    pauseBtn.textContent = '▶️';
+                    pauseBtn.style.background = '#4CAF50';
+                }
                 showNotification('⏸️ 게임이 일시정지되었습니다');
             } else {
                 if (pausedAt) {
@@ -8152,9 +8118,10 @@
                     totalPausedTime += (Date.now() - pausedAt);
                     pausedAt = null;
                 }
-                pauseBtn.textContent = '⏸️';
-                pauseBtn.classList.remove('paused');
-                pauseBtn.title = '일시정지';
+                if (pauseBtn) {
+                    pauseBtn.textContent = '⏸️';
+                    pauseBtn.style.background = '#ff9800';
+                }
                 showNotification('▶️ 게임이 재개되었습니다');
             }
             
@@ -9972,7 +9939,7 @@
             {
                 type: 'action',
                 action: 'toggleLight',
-                text: '아래에 태양 버튼을 눌러볼래?'
+                text: '탭 맨 오른쪽에 있는 태양 버튼을 눌러볼래?'
             },
             {
                 type: 'dialog',
@@ -10388,6 +10355,7 @@
             updateInventoryCollapseUI(); // 소지품 접힘 상태 적용
             startAutoGather(); // 자동 채집 시작
             checkAndShowOpening(); // 오프닝 체크
+            
             console.log('🎉 게임 초기화 완료!');
         } catch (error) {
             console.error('❌ 초기화 오류:', error);
@@ -10404,5 +10372,11 @@
             });
         });
     </script>
+    
+    <!-- 플로팅 스크롤 버튼 -->
+    <div class="scroll-buttons">
+        <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">⬆️</button>
+        <button class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">⬇️</button>
+    </div>
 </body>
 </html>
