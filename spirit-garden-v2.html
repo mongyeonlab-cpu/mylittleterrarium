@@ -1051,7 +1051,7 @@
                 
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                     <input type="text" id="eventCodeInput" placeholder="SGEVENT-로 시작하는 코드 입력..." style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace;">
-                    <button onclick="redeemEventCode()" style="padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                    <button onclick="redeemEventCode()" style="padding: 12px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
                         사용
                     </button>
                 </div>
@@ -4459,7 +4459,7 @@
                 <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
                     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🧬 교배</h3>
                     ${canBreed ? `
-                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유하거나, 친구 코드로 교배할 수 있어요.</p>
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유해 다른 정령과 교배할 수 있어요.</p>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="openBreedCodeModal(${index})" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
                                 📤 코드 생성
@@ -4541,7 +4541,7 @@
             modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
             modal.innerHTML = `
                 <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 450px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 16px;">📥 친구 코드로 교배</h3>
+                    <h3 style="margin-bottom: 16px;">정령 코드로 교배</h3>
                     <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
                         <div style="font-size: 2rem;">${item.icon}</div>
                         <div>
@@ -4550,7 +4550,7 @@
                         </div>
                     </div>
                     <div style="margin-bottom: 12px;">
-                        <input type="text" id="friendBreedCodeInput" placeholder="친구의 교배 코드 입력..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; box-sizing: border-box;">
+                        <input type="text" id="friendBreedCodeInput" placeholder="정령 코드 입력..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; box-sizing: border-box;">
                     </div>
                     <div id="friendBreedPreview" style="display: none; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;"></div>
                     <div id="breedResultPreview" style="display: none; padding: 12px; background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0.05)); border-radius: 8px; margin-bottom: 12px; text-align: center;"></div>
@@ -4679,7 +4679,7 @@
             const breedCode = codeInput.value.trim();
             
             if (!breedCode) {
-                showNotification('❌ 친구 코드를 입력해주세요');
+                showNotification('❌ 정령 코드를 입력해주세요');
                 return;
             }
             
@@ -4693,7 +4693,7 @@
             const allSpiritsAndAlbum = [...spirits, ...(collection || [])];
             const usedCode = allSpiritsAndAlbum.find(s => s.breedCode === breedCode);
             if (usedCode) {
-                showNotification('❌ 이미 사용된 교배 코드입니다!');
+                showNotification('❌ 이미 사용된 정령 코드입니다!');
                 return;
             }
             
@@ -5984,7 +5984,7 @@
                                 '앨범: ' + albumCount + '마리 · 도감: ' + encyclopediaCount + '종' + eventText +
                             '</div>' +
                         '</div>' +
-                        '<button onclick="restoreAlbumBackup(' + index + ')" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">' +
+                        '<button onclick="restoreAlbumBackup(' + index + ')" style="padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">' +
                             '복구' +
                         '</button>' +
                     '</div>' +
@@ -9943,7 +9943,7 @@
                 width: 90%;
                 max-width: 500px;
                 background: var(--card);
-                border: 2px solid var(--primary);
+                border: 2px solid #555;
                 border-radius: 16px;
                 padding: 15px;
                 z-index: 100000;
@@ -9954,7 +9954,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 1.5rem;">🧙</span>
-                        <span style="font-size: 0.9rem; color: var(--primary); font-weight: 600;">선배 테라리스트</span>
+                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 테라리스트</span>
                     </div>
                     <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
                         ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
@@ -9964,7 +9964,7 @@
                     <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px;">${text}</div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
                         <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted);">건너뛰기</button>
-                        <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                        <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
                     </div>
                 </div>
             `;
