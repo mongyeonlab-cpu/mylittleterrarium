@@ -1009,6 +1009,10 @@
                         앨범에서 도감 복구
                     </button>
                     
+                    <button onclick="showAlbumBackupRestore()" style="padding: 14px; background: #e67e22; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        📚 앨범 백업 복구
+                    </button>
+                    
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
                         🔧 교배 정령 관리
                     </button>
@@ -1016,7 +1020,8 @@
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
                     💡 데이터 내보내기를 통해 게임 진행상황을 백업할 수 있습니다.<br>
-                    다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.
+                    다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.<br>
+                    📚 앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.
                 </div>
             </div>
             
@@ -1253,14 +1258,9 @@
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">테라리움 환경</h2>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
-                            <span style="font-weight: 600; color: #666;">전체 품질:</span>
-                            <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
-                        </div>
-                        <button onclick="removeAllDecorations()" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                            전체 해제
-                        </button>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
+                        <span style="font-weight: 600; color: #666;">전체 품질:</span>
+                        <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
                     </div>
                 </div>
                 <div class="env-bars" style="display: grid; gap: 12px;">
@@ -1311,14 +1311,22 @@
 
             <!-- 설치된 장식물 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 10px;">설치된 장식물</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">설치된 장식물</h2>
+                    <button onclick="removeAllDecorations()" style="padding: 6px 12px; background: var(--fire); color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
+                        전체 해제
+                    </button>
+                </div>
                 <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;" id="installedCount">0 / 20</div>
                 <div id="installedDecorList"></div>
             </div>
 
             <!-- 인벤토리 장식물 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin-bottom: 20px;">인벤토리 장식물</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">인벤토리 장식물</h2>
+                    <div id="terrariumFilterArea" style="display: flex; gap: 8px;"></div>
+                </div>
                 <div id="terrariumDecorList"></div>
             </div>
         </div>
@@ -1403,6 +1411,8 @@
         let currentShopCategory = 'all'; // 현재 상점 카테고리 (all, food, decoration, music)
         let sellFilter = 'all'; // 판매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let buyFilter = 'all'; // 구매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
+        let terrariumInvFilter = 'all'; // 테라리움 인벤토리 필터 (all, fire, water, wind, earth, light, dark, event)
+        let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic)
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
@@ -2234,7 +2244,20 @@
                     { type: 'decoration', id: 'christmas_gift', name: '선물 상자', icon: '🎁' },
                     { type: 'food', id: 'christmas_cookie', name: '크리스마스 쿠키', icon: '🍪' },
                     { type: 'music', id: 'christmas_carol', name: '크리스마스 캐롤', icon: '🎵' }
-                ]
+                ],
+                // 이로치 버전 (10% 확률)
+                shiny: {
+                    name: '눈꽃 정령',
+                    icon: '❄️',
+                    desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
+                    stages: {
+                        egg: '🤍',
+                        baby: '❄️',
+                        child: '🌨️',
+                        adult: '⛄'
+                    },
+                    chance: 0.1 // 10% 확률
+                }
             }
         };
         
@@ -2331,14 +2354,22 @@
             const event = EVENT_TYPES[eventType];
             if (!event) return null;
             
+            // 이로치 확률 체크
+            const isShiny = event.shiny && Math.random() < event.shiny.chance;
+            
             const timestamp = new Date().toLocaleString('ko-KR', {
                 month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
             });
             
+            const spiritName = isShiny ? event.shiny.name : event.name;
+            const birthMessage = isShiny 
+                ? `✨ 이벤트 코드로 희귀한 ${spiritName}의 알이 태어났습니다!`
+                : `🎄 이벤트 코드로 특별한 알이 태어났습니다!`;
+            
             const spirit = {
                 id: Date.now(),
-                name: event.name,
-                originalName: event.name,
+                name: spiritName,
+                originalName: spiritName,
                 growth: 0,
                 parameters: {
                     intelligence: 0,
@@ -2355,10 +2386,10 @@
                 lastPat: null,
                 lastDecorate: null,
                 lastInteraction: Date.now(),
-                status: '특별한 알이 빛나고 있습니다...',
+                status: isShiny ? '희귀한 알이 은은하게 빛나고 있습니다...' : '특별한 알이 빛나고 있습니다...',
                 birthTime: Date.now(),
                 logs: [
-                    { time: timestamp, message: `🎄 이벤트 코드로 특별한 알이 태어났습니다!` }
+                    { time: timestamp, message: birthMessage }
                 ],
                 lightTime: 0,
                 darkTime: 0,
@@ -2366,7 +2397,8 @@
                 feedCount: 0,
                 // 이벤트 전용 속성
                 isEventSpirit: true,
-                eventType: eventType
+                eventType: eventType,
+                isShiny: isShiny // 이로치 여부
             };
             
             return spirit;
@@ -2379,6 +2411,12 @@
             if (!event) return null;
             
             const stage = getStage(spirit.growth);
+            
+            // 이로치면 이로치 스테이지 아이콘 사용
+            if (spirit.isShiny && event.shiny && event.shiny.stages) {
+                return event.shiny.stages[stage] || event.shiny.icon;
+            }
+            
             return event.stages[stage] || event.icon;
         }
         
@@ -2425,8 +2463,11 @@
                 collection = data.collection || [];
                 encyclopedia = data.encyclopedia || {};
                 
-                // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거
+                // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거 (이벤트 정령은 유지)
                 collection = collection.filter(item => {
+                    // 이벤트 정령은 항상 유지
+                    if (item.type && item.type.startsWith('event_')) return true;
+                    // 일반 정령은 EVOLUTION_TYPES에 있는지 확인
                     return EVOLUTION_TYPES[item.type] !== undefined;
                 });
                 
@@ -2696,17 +2737,29 @@
             if (spirit.isEventSpirit && spirit.eventType) {
                 const eventAppearances = {
                     christmas2025: {
-                        egg: '빨간색과 초록색 줄무늬의 알록달록한 알입니다.',
-                        larva1: '초록색 몸에 빨간색 점 무늬가 있습니다.',
-                        larva2: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위에 별모양 더듬이가 있습니다.',
-                        larva3: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위의 별모양 더듬이가 반짝이고 있습니다.',
-                        pupa: '반짝이는 금색 실로 감싸진 번데기입니다. 안에서 은은한 빛이 새어나옵니다.'
+                        normal: {
+                            egg: '빨간색과 초록색 줄무늬의 알록달록한 알입니다.',
+                            larva1: '초록색 몸에 빨간색 점 무늬가 있습니다.',
+                            larva2: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위에 별모양 더듬이가 있습니다.',
+                            larva3: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위의 별모양 더듬이가 반짝이고 있습니다.',
+                            pupa: '반짝이는 금색 실로 감싸진 번데기입니다. 안에서 은은한 빛이 새어나옵니다.'
+                        },
+                        shiny: {
+                            egg: '은은한 파란빛이 감도는 하얀 알입니다. 차가운 기운이 느껴집니다.',
+                            larva1: '연한 파란색 몸에 은색 점 무늬가 있습니다.',
+                            larva2: '연한 파란색 몸에 은색 점 무늬가 있으며 머리 위에 눈꽃 모양 더듬이가 있습니다.',
+                            larva3: '연한 파란색 몸에 은색 점 무늬가 있으며 머리 위의 눈꽃 더듬이에서 눈이 흩날립니다.',
+                            pupa: '반짝이는 은색 얼음으로 감싸진 번데기입니다. 안에서 푸른 빛이 새어나옵니다.'
+                        }
                     }
                 };
                 
                 const eventDesc = eventAppearances[spirit.eventType];
-                if (eventDesc && eventDesc[stage]) {
-                    return eventDesc[stage];
+                if (eventDesc) {
+                    const variant = spirit.isShiny ? 'shiny' : 'normal';
+                    if (eventDesc[variant] && eventDesc[variant][stage]) {
+                        return eventDesc[variant][stage];
+                    }
                 }
             }
             
@@ -3936,19 +3989,33 @@
                 const event = EVENT_TYPES[spirit.eventType];
                 if (event) {
                     spirit.isCompleted = true;
+                    
+                    // 이로치 여부에 따라 다른 데이터 설정
+                    const isShiny = spirit.isShiny && event.shiny;
+                    const spiritName = isShiny ? event.shiny.name : event.name;
+                    const spiritIcon = isShiny ? event.shiny.stages.adult : event.stages.adult;
+                    const spiritDesc = isShiny ? event.shiny.desc : event.desc;
+                    const eventTypeKey = isShiny ? `event_${spirit.eventType}_shiny` : `event_${spirit.eventType}`;
+                    
                     spirit.evolutionData = {
-                        type: `event_${spirit.eventType}`,
+                        type: eventTypeKey,
                         attributeType: event.attribute,
-                        name: event.name,
-                        icon: event.stages.adult,
-                        desc: event.desc,
+                        name: spiritName,
+                        icon: spiritIcon,
+                        desc: spiritDesc,
                         wingType: null,
-                        isEvent: true
+                        isEvent: true,
+                        isShiny: isShiny
                     };
                     
                     saveGame();
                     renderSpirits();
-                    showNotification(`🎄 ${event.name}이(가) 완성되었습니다! 육성 탭에서 확인해주세요.`);
+                    
+                    if (isShiny) {
+                        showNotification(`✨ ${spiritName}이(가) 완성되었습니다! 희귀한 정령이에요!`);
+                    } else {
+                        showNotification(`🎄 ${spiritName}이(가) 완성되었습니다! 육성 탭에서 확인해주세요.`);
+                    }
                     return;
                 }
             }
@@ -5877,6 +5944,171 @@
             showNotification(`✅ 도감을 복구했습니다! (${recoveredCount}종)`);
         }
         
+        // 앨범 백업 복구 기능
+        async function showAlbumBackupRestore() {
+            const backups = JSON.parse(localStorage.getItem('spiritGarden_autoBackups') || '[]');
+            
+            if (backups.length === 0) {
+                showNotification('저장된 백업이 없습니다. 정령을 완성하면 자동으로 백업됩니다.');
+                return;
+            }
+            
+            // 백업 목록 HTML 생성
+            let backupListHtml = '';
+            backups.forEach((backup, index) => {
+                const date = new Date(backup.timestamp);
+                const dateStr = date.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const albumCount = backup.collection ? backup.collection.length : 0;
+                const encyclopediaCount = backup.encyclopedia ? Object.keys(backup.encyclopedia).length : 0;
+                const eventCount = backup.collection ? backup.collection.filter(item => item.type && item.type.startsWith('event_')).length : 0;
+                
+                const eventText = eventCount > 0 ? ' · <span style="color: #c41e3a;">🎄 이벤트 ' + eventCount + '마리</span>' : '';
+                
+                backupListHtml += '<div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">' +
+                    '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                        '<div>' +
+                            '<div style="font-weight: 700; margin-bottom: 4px;">' + dateStr + '</div>' +
+                            '<div style="font-size: 0.85rem; color: #888;">' +
+                                '앨범: ' + albumCount + '마리 · 도감: ' + encyclopediaCount + '종' + eventText +
+                            '</div>' +
+                        '</div>' +
+                        '<button onclick="restoreAlbumBackup(' + index + ')" style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">' +
+                            '복구' +
+                        '</button>' +
+                    '</div>' +
+                '</div>';
+            });
+            
+            // 백업 목록 모달 표시
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'backupRestoreModal';
+            modal.innerHTML = 
+                '<div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">' +
+                    '<h3 style="margin-bottom: 16px;">📚 앨범 백업 복구</h3>' +
+                    '<p style="margin-bottom: 8px; color: #888;">정령 완성 시 자동 저장된 백업 목록입니다 (최근 10개)</p>' +
+                    '<p style="margin-bottom: 16px; color: #e67e22; font-size: 0.85rem;">⚠️ 복구 시 현재 앨범과 도감이 백업 시점으로 덮어씌워집니다.</p>' +
+                    '<div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">' +
+                        backupListHtml +
+                    '</div>' +
+                    '<div style="display: flex; gap: 12px;">' +
+                        '<button onclick="exportAlbumBackup()" style="flex: 1; padding: 12px; background: var(--water); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">' +
+                            '💾 앨범 백업 다운로드' +
+                        '</button>' +
+                        '<button onclick="importAlbumBackup()" style="flex: 1; padding: 12px; background: var(--wind); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">' +
+                            '📂 앨범 백업 불러오기' +
+                        '</button>' +
+                    '</div>' +
+                    '<button onclick="closeBackupModal()" style="width: 100%; margin-top: 16px; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">' +
+                        '닫기' +
+                    '</button>' +
+                '</div>';
+            document.body.appendChild(modal);
+        }
+        
+        function closeBackupModal() {
+            const modal = document.getElementById('backupRestoreModal');
+            if (modal) modal.remove();
+        }
+        
+        async function restoreAlbumBackup(index) {
+            const backups = JSON.parse(localStorage.getItem('spiritGarden_autoBackups') || '[]');
+            const backup = backups[index];
+            
+            if (!backup) {
+                showNotification('백업을 찾을 수 없습니다.');
+                return;
+            }
+            
+            const date = new Date(backup.timestamp).toLocaleString('ko-KR');
+            const confirmed = await showConfirm(
+                '앨범 복구',
+                `${date} 시점의 백업으로 복구하시겠습니까?\n\n앨범: ${backup.collection.length}마리\n도감: ${Object.keys(backup.encyclopedia).length}종\n\n⚠️ 현재 앨범과 도감이 덮어씌워집니다.`
+            );
+            
+            if (!confirmed) return;
+            
+            collection = backup.collection || [];
+            encyclopedia = backup.encyclopedia || {};
+            saveGame();
+            
+            closeBackupModal();
+            renderCollection();
+            renderEncyclopedia();
+            showNotification(`✅ ${date} 시점으로 앨범을 복구했습니다!`);
+        }
+        
+        function exportAlbumBackup() {
+            const backupData = {
+                exportDate: new Date().toISOString(),
+                collection: collection,
+                encyclopedia: encyclopedia
+            };
+            
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `spirit-garden-album-backup-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('💾 앨범 백업 파일을 다운로드했습니다.');
+        }
+        
+        function importAlbumBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const text = await file.text();
+                    const data = JSON.parse(text);
+                    
+                    if (!data.collection || !Array.isArray(data.collection)) {
+                        showNotification('❌ 유효하지 않은 백업 파일입니다.');
+                        return;
+                    }
+                    
+                    const confirmed = await showConfirm(
+                        '앨범 복구',
+                        `백업 파일에서 복구하시겠습니까?\n\n앨범: ${data.collection.length}마리\n도감: ${data.encyclopedia ? Object.keys(data.encyclopedia).length : 0}종\n\n⚠️ 현재 앨범과 도감이 덮어씌워집니다.`
+                    );
+                    
+                    if (!confirmed) return;
+                    
+                    collection = data.collection;
+                    encyclopedia = data.encyclopedia || {};
+                    
+                    // 도감이 비어있으면 앨범에서 재구성
+                    if (Object.keys(encyclopedia).length === 0 && collection.length > 0) {
+                        rebuildEncyclopediaFromAlbum();
+                    }
+                    
+                    saveGame();
+                    closeBackupModal();
+                    renderCollection();
+                    renderEncyclopedia();
+                    showNotification(`✅ 백업 파일에서 앨범을 복구했습니다!`);
+                } catch (err) {
+                    console.error('백업 복구 오류:', err);
+                    showNotification('❌ 백업 파일을 읽는 중 오류가 발생했습니다.');
+                }
+            };
+            input.click();
+        }
+        
         // 교배 정령 관리 기능
         async function repairBrokenSpirits() {
             // 교배로 태어난 정령 찾기
@@ -7145,6 +7377,7 @@
             </div>`;
             
             Object.entries(EVENT_TYPES).forEach(([eventKey, event]) => {
+                // 일반 이벤트 정령
                 const eventEncKey = `event_${eventKey}`;
                 const eventCount = encyclopedia[eventEncKey] || 0;
                 const isUnlocked = eventCount > 0;
@@ -7157,6 +7390,22 @@
                         <div style="font-size: 0.7rem; color: ${isUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
                     </div>
                 `;
+                
+                // 이로치 버전이 있으면 별도 표시
+                if (event.shiny) {
+                    const shinyEncKey = `event_${eventKey}_shiny`;
+                    const shinyCount = encyclopedia[shinyEncKey] || 0;
+                    const isShinyUnlocked = shinyCount > 0;
+                    
+                    html += `
+                        <div class="${isShinyUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #87CEEB; background: ${isShinyUnlocked ? 'linear-gradient(135deg, rgba(135,206,235,0.1), rgba(255,255,255,0.1))' : 'var(--card)'};">
+                            <div class="encyclopedia-icon" style="font-size: 3rem;">${isShinyUnlocked ? event.shiny.stages.adult : event.shiny.stages.egg}</div>
+                            <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #87CEEB;">${isShinyUnlocked ? event.shiny.name : '???'} ${isShinyUnlocked ? '✨' : ''}</div>
+                            <div class="encyclopedia-count" style="font-size: 0.8rem;">${isShinyUnlocked ? `${shinyCount}회` : '미달성'}</div>
+                            <div style="font-size: 0.7rem; color: ${isShinyUnlocked ? '#87CEEB' : '#888'}; margin-top: 5px;">${isShinyUnlocked ? event.shiny.desc : '크리스마스에 드물게 나타나는 차가운 눈꽃.'}</div>
+                        </div>
+                    `;
+                }
             });
             
             grid.innerHTML = html;
@@ -7994,7 +8243,30 @@
 
             // 인벤토리 장식물 목록
             const listContainer = document.getElementById('terrariumDecorList');
+            const filterArea = document.getElementById('terrariumFilterArea');
             if (!inventory.decorations) inventory.decorations = [];
+            
+            // 필터 UI를 오른쪽 상단에 렌더링
+            if (filterArea) {
+                filterArea.innerHTML = `
+                    <select id="terrariumAttrFilter" onchange="setTerrariumFilter(this.value, 'attr')" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
+                        <option value="all" ${terrariumInvFilter === 'all' ? 'selected' : ''}>속성</option>
+                        <option value="event" ${terrariumInvFilter === 'event' ? 'selected' : ''}>🎄 이벤트</option>
+                        <option value="fire" ${terrariumInvFilter === 'fire' ? 'selected' : ''}>🔥 불</option>
+                        <option value="water" ${terrariumInvFilter === 'water' ? 'selected' : ''}>💧 물</option>
+                        <option value="wind" ${terrariumInvFilter === 'wind' ? 'selected' : ''}>🌪️ 바람</option>
+                        <option value="earth" ${terrariumInvFilter === 'earth' ? 'selected' : ''}>🌿 땅</option>
+                        <option value="light" ${terrariumInvFilter === 'light' ? 'selected' : ''}>✨ 빛</option>
+                        <option value="dark" ${terrariumInvFilter === 'dark' ? 'selected' : ''}>🌙 어둠</option>
+                    </select>
+                    <select id="terrariumQualityFilterSelect" onchange="setTerrariumFilter(this.value, 'quality')" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
+                        <option value="all" ${terrariumQualityFilter === 'all' ? 'selected' : ''}>품질</option>
+                        <option value="common" ${terrariumQualityFilter === 'common' ? 'selected' : ''}>일반</option>
+                        <option value="rare" ${terrariumQualityFilter === 'rare' ? 'selected' : ''}>💎 희귀</option>
+                        <option value="epic" ${terrariumQualityFilter === 'epic' ? 'selected' : ''}>⭐ 에픽</option>
+                    </select>
+                `;
+            }
             
             if (inventory.decorations.length === 0) {
                 listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">보유한 장식물이 없습니다</p>';
@@ -8009,7 +8281,7 @@
             const canInstall = installedDecorations.length < 20;
 
             // 속성별, 품질별, 이름별로 정렬 (순서 고정)
-            const sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
+            let sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
                 const dataA = DECORATION_TYPES[a[0]] || EVENT_ITEMS[a[0]];
                 const dataB = DECORATION_TYPES[b[0]] || EVENT_ITEMS[b[0]];
                 if (!dataA || !dataB) return 0;
@@ -8038,6 +8310,36 @@
                 
                 return 0;
             });
+            
+            // 필터 적용
+            sortedDecorEntries = sortedDecorEntries.filter(([key, count]) => {
+                const decoData = DECORATION_TYPES[key];
+                const eventItem = EVENT_ITEMS[key];
+                const isEvent = !!eventItem;
+                
+                // 속성 필터
+                if (terrariumInvFilter !== 'all') {
+                    if (terrariumInvFilter === 'event') {
+                        if (!isEvent) return false;
+                    } else {
+                        if (isEvent) return false; // 이벤트 아이템은 속성 필터에서 제외
+                        if (decoData && decoData.attr !== terrariumInvFilter) return false;
+                    }
+                }
+                
+                // 품질 필터
+                if (terrariumQualityFilter !== 'all') {
+                    if (isEvent) return false; // 이벤트 아이템은 품질 필터에서 제외
+                    if (decoData && decoData.quality !== terrariumQualityFilter) return false;
+                }
+                
+                return true;
+            });
+            
+            if (sortedDecorEntries.length === 0) {
+                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">조건에 맞는 장식물이 없습니다</p>';
+                return;
+            }
 
             listContainer.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -8092,6 +8394,15 @@
                     }).join('')}
                 </div>
             `;
+        }
+        
+        function setTerrariumFilter(value, type) {
+            if (type === 'attr') {
+                terrariumInvFilter = value;
+            } else if (type === 'quality') {
+                terrariumQualityFilter = value;
+            }
+            renderTerrariumManagement();
         }
 
         function placeDecorationInTerrarium(decorationType) {
@@ -8275,16 +8586,13 @@
                     }
                 }
                 
-                // 전체 정령 상호작용 대사 (크리스마스 정령이 있을 때)
-                if (hasChristmasSpirit && spirits.filter(s => !s.isDead && !s.isCompleted).length >= 2) {
-                    christmasMessages.push(
-                        `정령들이 다 같이 캐롤을 부릅니다 🎶`,
-                        `정령들이 서로 선물을 교환하는 것 같습니다 🎁`,
-                        `정령들이 함께 눈싸움을 합니다 ⛄`,
-                        `정령들이 모두 모여 따뜻한 시간을 보냅니다 ☕`
-                    );
+                // 크리스마스 정령 없어도 장식이 있으면 개인 반응
+                if (!isChristmasSpirit && hasChristmasSpirit) {
                     if (hasChristmasTree) {
-                        christmasMessages.push(`정령들이 다 같이 모여 크리스마스 트리를 구경합니다 🎄`);
+                        christmasMessages.push(`${spirit.name}이(가) 크리스마스 트리를 신기하게 바라봅니다 🎄`);
+                    }
+                    if (hasChristmasGift) {
+                        christmasMessages.push(`${spirit.name}이(가) 선물 상자 주변을 맴돕니다 🎁`);
                     }
                 }
                 
@@ -8484,6 +8792,45 @@
             const interactionOccurred = triggerSpiritInteraction();
             
             const now = Date.now();
+            const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            
+            // 전체 정령 메시지 먼저 결정 (크리스마스 정령이 있고 2마리 이상일 때)
+            let globalMessage = null;
+            const hasChristmasSpirit = spirits.some(s => s.isEventSpirit && s.eventType === 'christmas2025' && !s.isDead && !s.isCompleted);
+            const hasChristmasTree = installedDecorations.some(d => {
+                const decoType = typeof d === 'string' ? d : d.type;
+                return decoType === 'christmas_tree';
+            });
+            
+            if (hasChristmasSpirit && activeSpirits.length >= 2 && Math.random() < 0.15) {
+                const globalMessages = [
+                    `정령들이 다 같이 캐롤을 부릅니다 🎶`,
+                    `정령들이 서로 선물을 교환하는 것 같습니다 🎁`,
+                    `정령들이 함께 눈싸움을 합니다 ⛄`,
+                    `정령들이 모두 모여 따뜻한 시간을 보냅니다 ☕`
+                ];
+                if (hasChristmasTree) {
+                    globalMessages.push(`정령들이 다 같이 모여 크리스마스 트리를 구경합니다 🎄`);
+                }
+                globalMessage = globalMessages[Math.floor(Math.random() * globalMessages.length)];
+            }
+            
+            // 전체 메시지가 선택되면 모든 정령에게 강제 적용
+            if (globalMessage) {
+                spirits.forEach(spirit => {
+                    if (!spirit.isDead && !spirit.isCompleted) {
+                        const oldStatus = spirit.status;
+                        if (globalMessage !== oldStatus) {
+                            addLog(spirit, globalMessage);
+                        }
+                        spirit.status = globalMessage;
+                    }
+                });
+                updateAllSpiritCards();
+                return;
+            }
+            
+            // 전체 메시지가 없으면 개별 메시지 처리
             spirits.forEach(spirit => {
                 if (!spirit.isDead && !spirit.isCompleted) {
                     // 정령 간 상호작용이 발생했으면 해당 정령 메시지 유지
@@ -8502,7 +8849,6 @@
                         return; // 메시지 유지
                     }
                     
-                    // 모든 정령의 메시지를 15초마다 랜덤 업데이트
                     const oldStatus = spirit.status;
                     const newStatus = getRandomMessage(spirit);
                     
