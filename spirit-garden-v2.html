@@ -4335,6 +4335,7 @@
                 () => {
                     // 앨범에 추가
                 collection.push({
+                    id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 ID
                     type: evolutionData.type,
                     attributeType: evolutionData.attributeType,
                     name: evolutionData.name,
@@ -4621,13 +4622,22 @@
                 return;
             }
             
-            // 자기 자신 체크 - 내 정령의 코드와 비교
-            const myCode = encodeSpiritData({
-                ...item,
-                id: item.id || `album-${albumIndex}`,
-                attributes: item.hiddenAttributes || {}
-            });
-            if (code === myCode) {
+            // 자기 자신 체크 - 고유 ID 비교 (ID가 있으면 ID로, 없으면 스탯 비교)
+            const isSameSpirit = (myItem, friend) => {
+                // 둘 다 ID가 있으면 ID로 비교
+                if (myItem.id && friend.id) {
+                    return myItem.id === friend.id;
+                }
+                // ID가 없으면 핵심 데이터로 비교 (하위 호환성)
+                return myItem.name === friend.name &&
+                       (myItem.originalName || myItem.name) === (friend.originalName || friend.name) &&
+                       (myItem.attributeType || myItem.attribute) === friend.attribute &&
+                       (myItem.parameters?.intelligence || 0) === (friend.parameters?.intelligence || 0) &&
+                       (myItem.parameters?.strength || 0) === (friend.parameters?.strength || 0) &&
+                       (myItem.parameters?.charm || 0) === (friend.parameters?.charm || 0);
+            };
+            
+            if (isSameSpirit(item, friendData)) {
                 friendPreview.innerHTML = '❌ 자기 자신과는 교배할 수 없습니다.';
                 friendPreview.style.display = 'block';
                 friendPreview.style.color = '#e74c3c';
@@ -4723,13 +4733,22 @@
                 return;
             }
             
-            // 자기 자신과 교배 방지 - 코드 비교
-            const myCode = encodeSpiritData({
-                ...item,
-                id: item.id || `album-${albumIndex}`,
-                attributes: item.hiddenAttributes || {}
-            });
-            if (breedCode === myCode) {
+            // 자기 자신과 교배 방지 - 고유 ID 비교
+            const isSameSpirit = (myItem, friend) => {
+                // 둘 다 ID가 있으면 ID로 비교
+                if (myItem.id && friend.id) {
+                    return myItem.id === friend.id;
+                }
+                // ID가 없으면 핵심 데이터로 비교 (하위 호환성)
+                return myItem.name === friend.name &&
+                       (myItem.originalName || myItem.name) === (friend.originalName || friend.name) &&
+                       (myItem.attributeType || myItem.attribute) === friend.attribute &&
+                       (myItem.parameters?.intelligence || 0) === (friend.parameters?.intelligence || 0) &&
+                       (myItem.parameters?.strength || 0) === (friend.parameters?.strength || 0) &&
+                       (myItem.parameters?.charm || 0) === (friend.parameters?.charm || 0);
+            };
+            
+            if (isSameSpirit(item, friendData)) {
                 showNotification('❌ 자기 자신과는 교배할 수 없습니다!');
                 return;
             }
@@ -6655,6 +6674,7 @@
             [fusionSlot1Spirit, fusionSlot2Spirit].forEach(parent => {
                 // 앨범에 추가
                 collection.push({
+                    id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 ID
                     name: parent.name,
                     type: parent.evolutionType || 'normal',
                     attribute: parent.attribute,
@@ -6762,6 +6782,7 @@
         
         function encodeSpiritData(spirit) {
             const data = {
+                id: spirit.id || null, // 고유 ID 추가
                 n: spirit.name,
                 o: spirit.originalName || spirit.name, // 본명 추가
                 a: spirit.attribute,
@@ -6796,6 +6817,7 @@
                 if (!data.n || !data.ts) return null;
                 
                 return {
+                    id: data.id || null, // 고유 ID 추가
                     name: data.n,
                     originalName: data.o || data.n, // 본명 추가
                     attribute: data.a || 'normal',
