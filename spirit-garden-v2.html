@@ -886,7 +886,7 @@
     <div id="openingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; justify-content: center; align-items: center;">
         <div style="max-width: 500px; width: 90%; padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center;">
             <div style="min-height: 120px; display: flex; align-items: center; justify-content: center;">
-                <div id="openingText" style="color: #e0e0e0; font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; line-height: 2; opacity: 0; transition: opacity 1s;">
+                <div id="openingText" style="color: #e0e0e0; font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; line-height: 2; opacity: 0; transition: opacity 1s; word-break: keep-all;">
                 </div>
             </div>
             <div style="height: 80px; display: flex; align-items: flex-start; justify-content: center; padding-top: 20px;">
@@ -1742,7 +1742,7 @@
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
-            pupa: '🦋',
+            pupa: '🫛',
             adult: '🦋'
         };
 
@@ -2678,6 +2678,9 @@
             document.getElementById('nameInput').value = spirit.name;
             document.getElementById('nameModal').classList.add('active');
             
+            // 튜토리얼: 이름 클릭 액션 체크
+            checkTutorialAction('clickName');
+            
             // 이름 변경 모드로 전환
             const confirmBtn = document.querySelector('#nameModal button');
             const originalHandler = confirmBtn.onclick;
@@ -2692,6 +2695,9 @@
                 saveGame();
                 updateSpiritCard(spirit);
                 showNotification('이름을 변경했습니다');
+                
+                // 튜토리얼: 이름 변경 완료 액션 체크
+                checkTutorialAction('rename');
                 
                 // 원래 함수로 복구
                 confirmBtn.onclick = originalHandler;
@@ -3525,10 +3531,15 @@
             showNotification(`${spirit.name}의 병이 나았습니다!`);
         }
 
-        let inventoryCollapsed = false;
+        let inventoryCollapsed = localStorage.getItem('inventoryCollapsed') === 'true';
         
         function toggleInventoryCollapse() {
             inventoryCollapsed = !inventoryCollapsed;
+            localStorage.setItem('inventoryCollapsed', inventoryCollapsed);
+            updateInventoryCollapseUI();
+        }
+        
+        function updateInventoryCollapseUI() {
             const content = document.getElementById('inventoryContent');
             const icon = document.getElementById('inventoryToggleIcon');
             
@@ -4401,6 +4412,13 @@
                 
                     renderSpirits();
                     showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
+                    
+                    // 첫 번째 정령 완성 시 두 번째 튜토리얼 시작
+                    if (collection.length === 1 && !localStorage.getItem('spiritGarden_tutorial2Seen')) {
+                        setTimeout(() => {
+                            startTutorial2();
+                        }, 1500);
+                    }
                 }
             );
         }
@@ -4408,6 +4426,9 @@
         function showAlbumDetail(index) {
             const item = collection[index];
             if (!item) return;
+            
+            // 튜토리얼2: 앨범 상세 열기 액션 체크
+            checkTutorialAction('openAlbumDetail');
             
             const modal = document.getElementById('albumDetailModal');
             const modalTitle = document.getElementById('modalTitle');
@@ -7648,6 +7669,8 @@
                     document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('albumSection').classList.add('active');
                     renderCollection();
+                    // 튜토리얼2: 앨범 탭 열기 액션 체크
+                    checkTutorialAction('openAlbum');
                 } else if (tab === 'settings') {
                     document.querySelector('.tab:nth-child(7)').classList.add('active');
                     document.getElementById('settingsSection').classList.add('active');
@@ -8088,6 +8111,9 @@
             } else {
                 showNotification(lightMode ? '☀️ 조명을 켰습니다' : '🌙 조명을 껐습니다');
             }
+            
+            // 튜토리얼 액션 체크
+            checkTutorialAction('toggleLight');
         }
 
         function applyLightMode() {
@@ -9894,12 +9920,51 @@
                 text: '어차피 떠나보내야 한다고 먹이만 주는 녀석들도 있지만... 정령과 교감하는 것도 중요해. "쓰다듬기"를 눌러봐.'
             },
             {
-                type: 'dialog',
-                text: '이게 기본적인 정령 육성 방법이야. 테라리움 관리까지 생각하면 더 복잡하지만, 그건 천천히 익혀도 돼.'
+                type: 'action',
+                action: 'clickName',
+                text: '그리고 정령에게 이름을 지어줄 수도 있어. 알 이름을 눌러봐.'
+            },
+            {
+                type: 'action',
+                action: 'rename',
+                text: '자, 네가 새 이름을 지어줘.'
             },
             {
                 type: 'dialog',
-                text: '일단 이 세 가지가 제일 중요하다는 걸 기억해. 먹이주기, 음악 듣기, 쓰다듬기!'
+                text: '잘했어. 꼭 이름을 지어줘야 하는 건 아니지만, 그래도 불러줄 이름이 있는 편이 훨씬 좋다고 생각하거든.'
+            },
+            {
+                type: 'dialog',
+                text: '이게 기본적인 정령 육성 방법이야. 테라리움 관리까지 생각하면 더 복잡하지만 그건 천천히 익히도록 해.'
+            },
+            {
+                type: 'dialog',
+                text: '아까 속성 이야기를 했지? 이미 알고 있겠지만 복습해보자.'
+            },
+            {
+                type: 'dialog',
+                text: '속성에는 불, 물, 땅, 바람 기본 4대원소와 희귀원소인 빛, 어둠이 있어.'
+            },
+            {
+                type: 'dialog',
+                text: '유충 상태의 정령은 이 여섯 가지 속성의 영향을 받아 자라게 돼. 불속성을 많이 접하면 불의 정령이 되고, 물속성을 많이 접하면 물의 정령이 되지.'
+            },
+            {
+                type: 'dialog',
+                text: '가끔 두 가지 속성이 섞여 다른 속성의 정령으로 진화하기도 하지만, 처음엔 한 가지 속성에 집중하는 게 좋아.'
+            },
+            {
+                type: 'dialog',
+                text: '그리고 다른 속성이 두 개 더 있는데... 그건 바로 태양과 달이야.'
+            },
+            {
+                type: 'action',
+                action: 'toggleLight',
+                text: '아래에 태양 버튼을 눌러볼래?'
+            },
+            {
+                type: 'dialog',
+                text: '그 버튼으로 테라리움의 조도를 설정할 수 있어. 조도의 양에 따라 달의 정령이 되는지 태양의 정령이 되는지 달라지니까 이것도 신경쓰는 게 좋아.'
             },
             {
                 type: 'dialog',
@@ -10003,9 +10068,9 @@
                     </button>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px;">${text}</div>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted);">건너뛰기</button>
+                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
                         <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
                     </div>
                 </div>
@@ -10047,12 +10112,12 @@
                     </button>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px;">${text}</div>
+                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
                     <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12; margin-bottom: 15px;">
                         👇 아래 버튼을 눌러보세요!
                     </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted);">건너뛰기</button>
+                    <div style="display: flex; justify-content: flex-start;">
+                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
                     </div>
                 </div>
             `;
@@ -10068,10 +10133,14 @@
         }
         
         function checkTutorialAction(action) {
-            if (!tutorialActive) return;
+            if (!tutorialActive && !tutorial2Active) return;
             if (window.tutorialWaitingFor === action) {
                 window.tutorialWaitingFor = null;
-                nextTutorialStep();
+                if (tutorial2Active) {
+                    nextTutorial2Step();
+                } else {
+                    nextTutorialStep();
+                }
             }
         }
         
@@ -10096,6 +10165,171 @@
             }
             
             localStorage.setItem('spiritGarden_tutorialSeen', 'true');
+        }
+        
+        // ===== 두 번째 튜토리얼 (첫 정령 완성 후) =====
+        let tutorial2Step = 0;
+        let tutorial2Active = false;
+        
+        const TUTORIAL2_STEPS = [
+            {
+                type: 'dialog',
+                text: '축하해! 네가 키워낸 첫 번째 정령이네.'
+            },
+            {
+                type: 'dialog',
+                text: '성장한 정령은 자연으로 돌아가지만, 아예 다시 볼 수 없는 건 아니야.'
+            },
+            {
+                type: 'action',
+                action: 'openAlbum',
+                text: '앨범 탭을 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '여기에서 네가 키운 정령들을 다시 볼 수 있어. 네가 얼마나 잘 키워냈는지도 확인할 수 있고.'
+            },
+            {
+                type: 'dialog',
+                text: '그리고 정령 간의 교배도 가능하지.'
+            },
+            {
+                type: 'action',
+                action: 'openAlbumDetail',
+                text: '성장한 정령의 앨범을 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '아래에 보면 코드 생성과 교배하기가 있지? 정령의 코드를 복사해 다른 정령과 교배가 가능해.'
+            },
+            {
+                type: 'dialog',
+                text: '무속성 알로는 보지 못하는 정령들도 있으니까 나중에 시도해보도록 해.'
+            },
+            {
+                type: 'dialog',
+                text: '자, 이제 정말 혼자서도 잘 할 수 있을 거야. 앞으로도 화이팅!'
+            }
+        ];
+        
+        function startTutorial2() {
+            tutorial2Step = 0;
+            tutorial2Active = true;
+            showTutorial2Step();
+        }
+        
+        function showTutorial2Step() {
+            if (tutorial2Step >= TUTORIAL2_STEPS.length) {
+                endTutorial2();
+                return;
+            }
+            
+            const step = TUTORIAL2_STEPS[tutorial2Step];
+            
+            if (step.type === 'dialog') {
+                showTutorial2Dialog(step.text);
+            } else if (step.type === 'action') {
+                showTutorial2Action(step.text, step.action);
+            }
+        }
+        
+        function showTutorial2Dialog(text) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #555;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span style="font-size: 1.5rem;">🧙</span>
+                    <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 테라리스트</span>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <button onclick="skipTutorial2()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
+                    <button onclick="nextTutorial2Step()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                </div>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showTutorial2Action(text, action) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #f39c12;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <span style="font-size: 1.5rem;">🧙</span>
+                    <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 테라리스트</span>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12; margin-bottom: 15px;">
+                    👇 해당 버튼을 눌러보세요!
+                </div>
+                <div style="display: flex; justify-content: flex-start;">
+                    <button onclick="skipTutorial2()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
+                </div>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+            
+            window.tutorialWaitingFor = action;
+        }
+        
+        function nextTutorial2Step() {
+            tutorial2Step++;
+            showTutorial2Step();
+        }
+        
+        function skipTutorial2() {
+            endTutorial2();
+        }
+        
+        function endTutorial2() {
+            tutorial2Active = false;
+            window.tutorialWaitingFor = null;
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
         }
         
         function checkAndShowOpening() {
@@ -10125,6 +10359,7 @@
             updateTimeDisplay();
             applyLightMode();
             updateCoinDisplay();
+            updateInventoryCollapseUI(); // 소지품 접힘 상태 적용
             startAutoGather(); // 자동 채집 시작
             checkAndShowOpening(); // 오프닝 체크
             console.log('🎉 게임 초기화 완료!');
