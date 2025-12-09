@@ -2239,6 +2239,7 @@
                 icon: '🎄',
                 type: 'decoration',
                 event: 'christmas2025',
+                quality: 'legendary',
                 effects: { fire: 5, water: 5, wind: 5, earth: 5, light: 10, dark: 0 },
                 desc: '크리스마스 정령에게서 받은 특별한 트리. 모든 속성을 높여줍니다.'
             },
@@ -2248,6 +2249,7 @@
                 icon: '🎁',
                 type: 'decoration',
                 event: 'christmas2025',
+                quality: 'legendary',
                 effects: { fire: 3, water: 3, wind: 3, earth: 3, light: 5, dark: 5 },
                 desc: '크리스마스 정령에게서 받은 선물 상자. 무엇이 들어있을까요?'
             },
@@ -8004,15 +8006,6 @@
                     });
                 }
             });
-
-            // 조명 효과 적용
-            if (lightMode) {
-                terrarium.light = Math.min(50, terrarium.light + 3);
-                terrarium.dark = Math.max(0, terrarium.dark - 2);
-            } else {
-                terrarium.dark = Math.min(50, terrarium.dark + 3);
-                terrarium.light = Math.max(0, terrarium.light - 2);
-            }
         }
 
         function toggleLight() {
