@@ -9166,6 +9166,9 @@
                 
                 installedDecorations = [];
                 
+                // 테라리움 환경 재계산
+                recalculateTerrariumEnvironment();
+                
                 // 만족도 즉시 업데이트
                 spirits.forEach(spirit => {
                     if (!spirit.isDead && !spirit.isCompleted) {
