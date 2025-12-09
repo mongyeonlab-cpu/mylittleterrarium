@@ -338,7 +338,6 @@
             outline-offset: 2px;
         }
 
-
         .new-spirit-btn {
             width: 100%;
             padding: 16px;
@@ -988,10 +987,6 @@
         <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
         <div class="collection-grid" id="collectionGrid"></div>
     </div>
-
-
-
-
     <!-- 설정 섹션 -->
     <div id="settingsSection" class="section">
         <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">설정</h2>
@@ -1367,8 +1362,6 @@
         </div>
     </div>
 
-
-
     <!-- 커스텀 확인 모달 -->
     <div id="confirmModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
@@ -1580,9 +1573,9 @@
                     '{name}이(가) 풍경과 함께 리듬을 타고 있습니다.'
                 ],
                 wind_rare2: [
-                    '{name}이(가) 나비 표본을 부러운 듯 바라봅니다.',
-                    '{name}이(가) 나비 표본의 아름다운 날개를 감상합니다.',
-                    '{name}이(가) 나비 표본 앞에서 날개를 펄럭입니다.'
+                    '{name}이(가) 민들레 솜털의 씨앗이 날아가는 것을 바라봅니다.',
+                    '{name}이(가) 민들레 솜털에 살짝 입김을 불어봅니다.',
+                    '{name}이(가) 민들레 솜털 사이에서 숨바꼭질을 합니다.'
                 ],
                 wind_epic: [
                     '{name}이(가) 하늘의 깃털에서 나오는 바람을 느낍니다.',
@@ -1889,7 +1882,7 @@
             wind_common1: { name: '바람개비', icon: '🌬️', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_common2: { name: '부드러운 깃털', icon: '🪶', attr: 'wind', power: 1, quality: 'common', price: 30 },
             wind_rare1: { name: '풍경', icon: '🎐', attr: 'wind', power: 2, quality: 'rare', price: 60 },
-            wind_rare2: { name: '나비 표본', icon: '🦋', attr: 'wind', power: 2, quality: 'rare', price: 60 },
+            wind_rare2: { name: '민들레 솜털', icon: '🌾', attr: 'wind', power: 2, quality: 'rare', price: 60 },
             wind_epic: { name: '하늘의 깃털', icon: '☁️', attr: 'wind', power: 3, quality: 'epic', price: 100 },
             wind_legendary: { name: '폭풍의 눈', icon: '🌀', attr: 'wind', power: 5, quality: 'legendary', price: 999 },
             
@@ -1934,8 +1927,6 @@
             price: 50,
             description: '정령의 질병을 치료합니다'
         };
-
-
 
         // 도감 힌트 데이터
         const ENCYCLOPEDIA_HINTS = {
@@ -2623,7 +2614,6 @@
             checkTutorialAction('getEgg');
         }
 
-
         function showAppearance(spiritId) {
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
@@ -2701,6 +2691,24 @@
             
             // 성충이면 외형 묘사 없음
             if (stage === 'adult') return null;
+            
+            // 이벤트 정령 외형 묘사
+            if (spirit.isEventSpirit && spirit.eventType) {
+                const eventAppearances = {
+                    christmas2025: {
+                        egg: '빨간색과 초록색 줄무늬의 알록달록한 알입니다.',
+                        larva1: '초록색 몸에 빨간색 점 무늬가 있습니다.',
+                        larva2: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위에 별모양 더듬이가 있습니다.',
+                        larva3: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위의 별모양 더듬이가 반짝이고 있습니다.',
+                        pupa: '반짝이는 금색 실로 감싸진 번데기입니다. 안에서 은은한 빛이 새어나옵니다.'
+                    }
+                };
+                
+                const eventDesc = eventAppearances[spirit.eventType];
+                if (eventDesc && eventDesc[stage]) {
+                    return eventDesc[stage];
+                }
+            }
             
             // 알 ~ 번데기만 외형 묘사 있음
             if (!APPEARANCE_DESCRIPTIONS[stage]) return null;
@@ -2787,11 +2795,32 @@
             // 테라리움 전체 품질
             const avgQuality = calculateTerrariumQuality();
             
+            // 성장 단계별 품질 요구치
+            // 알/애벌레1: 기본 (2.0 / 3.0)
+            // 애벌레2: 중간 (2.5 / 3.5)
+            // 애벌레3: 높음 (3.0 / 4.0)
+            // 번데기: 최고 (3.5 / 4.5)
+            let qualityThresholdMid, qualityThresholdHigh;
+            
+            if (stage === 'egg' || stage === 'larva1') {
+                qualityThresholdMid = 2.0;
+                qualityThresholdHigh = 3.0;
+            } else if (stage === 'larva2') {
+                qualityThresholdMid = 2.5;
+                qualityThresholdHigh = 3.5;
+            } else if (stage === 'larva3') {
+                qualityThresholdMid = 3.0;
+                qualityThresholdHigh = 4.0;
+            } else { // pupa
+                qualityThresholdMid = 3.5;
+                qualityThresholdHigh = 4.5;
+            }
+            
             // 알 ~ 애벌레1: 품질만 확인
             if (stage === 'egg' || stage === 'larva1') {
-                // 품질 평균이 3(보통)을 초과하면 만족
-                if (avgQuality > 3) return 'high';
-                else if (avgQuality >= 2) return 'mid';
+                // 품질 평균이 요구치를 초과하면 만족
+                if (avgQuality >= qualityThresholdHigh) return 'high';
+                else if (avgQuality >= qualityThresholdMid) return 'mid';
                 else return 'low';
             }
             // 애벌레2, 애벌레3, 번데기: 품질 + 속성 유사도 (난이도 완화)
@@ -2815,9 +2844,9 @@
                 
                 // 속성이 10 미만이면 속성이 명확하지 않음
                 if (maxValue < 10) {
-                    // 품질만으로 판단 (완화)
-                    if (avgQuality > 3.5) return 'high';
-                    else if (avgQuality >= 2) return 'mid';
+                    // 품질만으로 판단
+                    if (avgQuality >= qualityThresholdHigh + 0.5) return 'high';
+                    else if (avgQuality >= qualityThresholdMid) return 'mid';
                     else return 'low';
                 }
                 
@@ -2833,10 +2862,10 @@
                 
                 if (topTerrariumAttrs.includes(maxAttr)) {
                     // 속성 일치 + 품질 적정 = 만족
-                    return avgQuality >= 2.5 ? 'high' : 'mid';
+                    return avgQuality >= qualityThresholdMid + 0.5 ? 'high' : 'mid';
                 } else {
                     // 속성 불일치
-                    if (avgQuality > 4) return 'mid';
+                    if (avgQuality >= qualityThresholdHigh + 0.5) return 'mid';
                     else return 'low';
                 }
             }
@@ -2870,7 +2899,6 @@
             }
             return false;
         }
-
 
         // 커스텀 확인 창 표시
         function showConfirm(title, message, onConfirm) {
@@ -3044,7 +3072,10 @@
                 spirit.parameters.intelligence += effects.intelligence || 0;
                 spirit.parameters.strength += effects.strength || 0;
                 spirit.parameters.charm += effects.charm || 0;
-                spirit.growth += effects.growth || 0;
+                // 질병 상태가 아닐 때만 성장
+                if (!spirit.isSick) {
+                    spirit.growth += effects.growth || 0;
+                }
                 spirit.parameters.affection += 3;
                 
                 spirit.lastFeed = Date.now();
@@ -3082,7 +3113,10 @@
             }
             spirit.hiddenAttributes[foodType] += attrGain;
 
-            spirit.growth += growthGain;
+            // 질병 상태가 아닐 때만 성장
+            if (!spirit.isSick) {
+                spirit.growth += growthGain;
+            }
             spirit.lastFeed = Date.now();
             spirit.lastFed = Date.now();  // 배고픔 체크용
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
@@ -3461,7 +3495,6 @@
             currentShopCategory = select.value;
             renderShop();
         }
-
 
         function changeGatherLocation() {
             const select = document.getElementById('gatherLocationSelect');
@@ -3869,7 +3902,6 @@
                 decorContainer.innerHTML = decorHTML || '<div class="inventory-item">없음</div>';
             }
         }
-
 
         function manualCompleteSpirit(spiritId) {
             if (isPaused) {
@@ -4770,6 +4802,9 @@
             
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
+                
+                // 질병 상태면 성장 멈춤
+                if (spirit.isSick) return;
 
                 // 성장도 +1
                 const previousGrowth = spirit.growth;
@@ -4906,7 +4941,6 @@
                 updateSpiritCard(spirit);
             });
         }
-
 
         // 쿨타임 텍스트만 업데이트 (성능 최적화)
         function updateCooldownDisplay() {
@@ -5262,7 +5296,6 @@
             });
         }
 
-
         function changeSellFilter() {
             const select = document.getElementById('sellFilterSelect');
             sellFilter = select.value;
@@ -5476,7 +5509,7 @@
                             if (['intelligence', 'strength', 'charm'].includes(buyFilter) && item.type !== 'music') return;
                         }
                         
-                        const price = item.type === 'food' ? 30 : item.type === 'music' ? 25 : 50;
+                        const price = item.type === 'food' ? 30 : item.type === 'music' ? 100 : 50;
                         
                         eventItems.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -5790,7 +5823,6 @@
             renderInventory();
         }
 
-
         // 앨범 데이터로부터 도감 재구성
         function rebuildEncyclopediaFromAlbum() {
             console.log('앨범에서 도감 재구성 시작...');
@@ -5824,7 +5856,6 @@
             
             return Object.keys(newEncyclopedia).length;
         }
-
 
         async function manualRebuildEncyclopedia() {
             if (collection.length === 0) {
@@ -7273,7 +7304,6 @@
             }
         }
 
-
         // 설정 정보 업데이트
         function updateSettingsInfo() {
             // 다크모드 토글 상태 업데이트
@@ -7933,10 +7963,13 @@
                             // 이벤트 장식물 체크
                             const eventItem = EVENT_ITEMS[key];
                             if (eventItem && eventItem.type === 'decoration') {
-                                const effectsText = Object.entries(eventItem.effects)
-                                    .filter(([k, v]) => v > 0)
-                                    .map(([k, v]) => `${k}+${v}`)
-                                    .join(' ');
+                                // 간소화된 효과 텍스트
+                                let effectsText = '모든 속성 +5';
+                                if (key === 'christmas_tree') {
+                                    effectsText = '모든 속성 +5, 빛 +10';
+                                } else if (key === 'christmas_gift') {
+                                    effectsText = '모든 속성 +3, 빛/암 +5';
+                                }
                                 return `
                                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -8032,10 +8065,13 @@
                         // 이벤트 장식물 체크
                         const eventItem = EVENT_ITEMS[key];
                         if (eventItem && eventItem.type === 'decoration') {
-                            const effectsText = Object.entries(eventItem.effects)
-                                .filter(([k, v]) => v > 0)
-                                .map(([k, v]) => `${k}+${v}`)
-                                .join(' ');
+                            // 간소화된 효과 텍스트
+                            let effectsText = '모든 속성 +5';
+                            if (key === 'christmas_tree') {
+                                effectsText = '모든 속성 +5, 빛 +10';
+                            } else if (key === 'christmas_gift') {
+                                effectsText = '모든 속성 +3, 빛/암 +5';
+                            }
                             return `
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -8321,32 +8357,25 @@
         // 30초마다 랜덤 메시지 업데이트
         // 정령 간 상호작용
         function triggerSpiritInteraction() {
-            console.log('[상호작용] 체크 시작');
             
             if (isPaused) {
-                console.log('[상호작용] 일시정지 중');
                 return false;
             }
             
             // 살아있고 완성되지 않은 정령만
             const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
-            console.log('[상호작용] 활성 정령 수:', activeSpirits.length, activeSpirits.map(s => s.name));
             
             // 2마리 이상일 때만 상호작용
             if (activeSpirits.length < 2) {
-                console.log('[상호작용] 정령 부족 (2마리 이상 필요)');
                 return false;
             }
             
             // 50% 확률로 상호작용 발생 (테스트용 높은 확률!)
             const randomValue = Math.random();
-            console.log('[상호작용] 확률 체크:', randomValue, '/ 0.5');
             if (randomValue > 0.5) {
-                console.log('[상호작용] 확률 실패');
                 return false;
             }
             
-            console.log('[상호작용] 확률 성공! 상호작용 진행');
             
             // 랜덤하게 2마리 선택
             const spirit1 = activeSpirits[Math.floor(Math.random() * activeSpirits.length)];
@@ -8371,38 +8400,30 @@
                 }
             }
             
-            console.log('[상호작용] 선택된 타입:', selectedType, '(랜덤 값:', random, ')');
             
             // 메시지 선택 및 적용
             const messages = RANDOM_MESSAGES.interaction[selectedType];
-            console.log('[상호작용] 메시지 후보 수:', messages.length);
             
             let message = messages[Math.floor(Math.random() * messages.length)];
-            console.log('[상호작용] 선택된 메시지 템플릿:', message);
             
             message = message
                 .replace('{name1}', spirit1.name)
                 .replace('{name2}', spirit2.name);
             
-            console.log('[상호작용] 최종 메시지:', message);
             
             // 장식물 상호작용일 경우 장식물 이름 추가
             if (selectedType === 'decoration') {
-                console.log('[상호작용] 장식물 개수:', installedDecorations.length);
                 if (installedDecorations.length > 0) {
                     const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
                     const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
-                    console.log('[상호작용] 선택된 장식물:', decoType);
                     const decoData = DECORATION_TYPES[decoType];
                     if (decoData) {
                         message = message.replace('{deco}', decoData.name);
                         console.log('[상호작用] 장식물 이름 적용:', decoData.name);
                     } else {
-                        console.log('[상호작용] 장식물 데이터 없음, 취소');
                         return false; // 장식물 데이터 없으면 취소
                     }
                 } else {
-                    console.log('[상호작용] 장식물 없음, 취소');
                     return false; // 장식물 없으면 취소
                 }
             }
@@ -8433,7 +8454,6 @@
             // 두 정령 모두 같은 메시지 표시
             spirit1.status = message;
             spirit2.status = message;
-            console.log('[상호작용] 메시지 적용 완료:', spirit1.name, '/', spirit2.name);
             
             // 상호작용 시간 기록 (메시지 유지용)
             const now = Date.now();
@@ -8442,7 +8462,6 @@
             
             // 일지에 기록
             addLog(spirit1, message);
-            console.log('[상호작용] 일지 기록 완료');
             
             // 성장도 체크 (100 이상이면 진화)
             if (spirit1.growth >= 100 && !spirit1.isCompleted) {
@@ -8455,7 +8474,6 @@
             saveGame();
             updateAllSpiritCards();
             
-            console.log('[상호작용] ✅ 상호작용 성공!');
             return true; // 상호작용 발생!
         }
 
@@ -8572,7 +8590,6 @@
             updateAllSpiritCards();
         }
 
-
         // 데이터 백업 시스템
         function createBackup() {
             const backupData = {
@@ -8644,7 +8661,6 @@
             };
             input.click();
         }
-
 
         function removeAllDecorations() {
             if (installedDecorations.length === 0) {
@@ -9451,9 +9467,7 @@
         ];
         
         function startTutorial() {
-            console.log('startTutorial 호출됨');
             const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
-            console.log('tutorialSeen:', tutorialSeen);
             if (tutorialSeen) return;
             
             // 튜토리얼용 기본 아이템 지급
@@ -9473,12 +9487,10 @@
             
             tutorialStep = 0;
             tutorialActive = true;
-            console.log('showTutorialStep 호출 예정');
             showTutorialStep();
         }
         
         function showTutorialStep() {
-            console.log('showTutorialStep 호출됨, step:', tutorialStep);
             if (tutorialStep >= TUTORIAL_STEPS.length) {
                 endTutorial();
                 return;
@@ -9510,7 +9522,6 @@
         }
         
         function showTutorialDialog(text) {
-            console.log('showTutorialDialog 호출됨:', text);
             const modal = document.createElement('div');
             modal.id = 'tutorialModal';
             modal.style.cssText = `
@@ -9649,30 +9660,19 @@
 
         // 모바일 디버깅 정보
         console.log('=== 모바일 디버깅 정보 ===');
-        console.log('User Agent:', navigator.userAgent);
-        console.log('화면 크기:', window.innerWidth, 'x', window.innerHeight);
-        console.log('터치 지원:', 'ontouchstart' in window);
         console.log('현재 시간:', new Date().toISOString());
         
         // 초기화
         try {
             console.log('게임 초기화 시작...');
             loadGame();
-            console.log('✅ loadGame 완료');
             renderSpirits();
-            console.log('✅ renderSpirits 완료');
             renderInventory();
-            console.log('✅ renderInventory 완료');
             renderShop();
-            console.log('✅ renderShop 완료');
             updateTimeDisplay();
-            console.log('✅ updateTimeDisplay 완료');
             applyLightMode();
-            console.log('✅ applyLightMode 완료');
             updateCoinDisplay();
-            console.log('✅ updateCoinDisplay 완료');
             startAutoGather(); // 자동 채집 시작
-            console.log('✅ startAutoGather 완료');
             checkAndShowOpening(); // 오프닝 체크
             console.log('🎉 게임 초기화 완료!');
         } catch (error) {
