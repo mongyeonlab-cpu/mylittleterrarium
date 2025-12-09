@@ -5906,6 +5906,12 @@
                 } else if (spirit.type === 'nostat') {
                     // 수식어 없는 정령
                     encyclopediaKey = `nostat-${spirit.attributeType}`;
+                } else if (spirit.type && spirit.type.startsWith('fusion-')) {
+                    // 교배 정령은 타입 그대로 사용
+                    encyclopediaKey = spirit.type;
+                } else if (spirit.type && spirit.type.startsWith('event_')) {
+                    // 이벤트 정령은 타입 그대로 사용
+                    encyclopediaKey = spirit.type;
                 } else {
                     // 일반 정령 (스탯-속성)
                     encyclopediaKey = `${spirit.type}-${spirit.attributeType}`;
@@ -7406,6 +7412,65 @@
                         </div>
                     `;
                 }
+            });
+            
+            // 교배 정령 섹션
+            html += '<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">' +
+                '<h2 style="font-family: \'Nanum Myeongjo\', serif; font-size: 1.5rem; color: #9b59b6; border-bottom: 3px solid #9b59b6; padding-bottom: 10px;">' +
+                    '💜 교배 정령' +
+                '</h2>' +
+            '</div>';
+            
+            // 레어리티별 그룹화
+            const fusionGroups = {
+                'rare': { title: '💎 희귀', entries: [] },
+                'epic': { title: '⭐ 에픽', entries: [] },
+                'legendary': { title: '👑 전설', entries: [] }
+            };
+            
+            Object.entries(FUSION_TYPES).forEach(([key, data]) => {
+                if (fusionGroups[data.rarity]) {
+                    fusionGroups[data.rarity].entries.push({ key, ...data });
+                }
+            });
+            
+            // 레어리티 순서대로 표시
+            ['rare', 'epic', 'legendary'].forEach(rarity => {
+                const group = fusionGroups[rarity];
+                if (group.entries.length === 0) return;
+                
+                // 레어리티 소제목
+                const rarityColors = { rare: '#3498db', epic: '#9b59b6', legendary: '#f1c40f' };
+                html += '<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">' +
+                    '<h3 style="font-family: \'Nanum Myeongjo\', serif; font-size: 1.1rem; color: ' + rarityColors[rarity] + ';">' + group.title + '</h3>' +
+                '</div>';
+                
+                group.entries.forEach(fusion => {
+                    const fusionCount = encyclopedia[fusion.key] || 0;
+                    const isUnlocked = fusionCount > 0;
+                    const borderColor = rarityColors[rarity];
+                    
+                    // 레시피 힌트 생성
+                    let recipeHint = '';
+                    if (fusion.recipe) {
+                        const recipeNames = fusion.recipe.map(r => {
+                            if (ATTRIBUTE_NAMES[r]) return ATTRIBUTE_NAMES[r].icon;
+                            if (r === 'intelligent') return '🧠';
+                            if (r === 'strong') return '💪';
+                            if (r === 'beautiful') return '💖';
+                            if (r === 'balanced') return '⚖️';
+                            return r;
+                        });
+                        recipeHint = recipeNames.join(' + ');
+                    }
+                    
+                    html += '<div class="' + (isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked') + '" style="min-height: 120px; border: 2px solid ' + borderColor + ';">' +
+                        '<div class="encyclopedia-icon" style="font-size: 2.5rem;">' + (isUnlocked ? fusion.icon : '?') + '</div>' +
+                        '<div class="encyclopedia-name" style="font-size: 0.9rem; font-weight: 700; color: ' + borderColor + ';">' + (isUnlocked ? fusion.name : '???') + '</div>' +
+                        '<div class="encyclopedia-count" style="font-size: 0.75rem;">' + (isUnlocked ? fusionCount + '회' : '미달성') + '</div>' +
+                        '<div style="font-size: 0.7rem; color: #888; margin-top: 5px;">' + (isUnlocked ? fusion.desc : '교배: ' + recipeHint) + '</div>' +
+                    '</div>';
+                });
             });
             
             grid.innerHTML = html;
