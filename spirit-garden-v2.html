@@ -5703,7 +5703,7 @@
                             for (let attr in foodAttrs) {
                                 attrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
                             }
-                            const attrIcons = { fire: '🔥', water: '💧', wind: '🌿', earth: '🪨', light: '✨', dark: '🌙' };
+                            const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
                             const attrNames = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' };
                             const attrValues = Object.values(attrs);
                             const maxAttr = Math.max(...attrValues);
@@ -5873,6 +5873,14 @@
                 setTimeout(() => {
                     showNotification('💰 상점 주인에게 10코인을 받았습니다!');
                 }, 500);
+            }
+        }
+        
+        // 상점 주인 대사 직접 설정
+        function setShopkeeperDialogue(text) {
+            const dialogueEl = document.getElementById('shopkeeperDialogue');
+            if (dialogueEl) {
+                dialogueEl.textContent = text;
             }
         }
         
@@ -6293,46 +6301,55 @@
                 const sellPrice = eventItem.type === 'food' ? 15 : eventItem.type === 'music' ? 12 : 25;
                 coins += sellPrice;
                 showNotification(`🎄 ${eventItem.name}을(를) ${sellPrice}💰에 판매했습니다`);
+                setShopkeeperDialogue(`${sellPrice}코인입니다.`);
                 
                 saveGame();
-                renderShop();
+                renderSellList();
+                renderBuyList();
+                updateCoinDisplay();
                 renderInventory();
                 return;
             }
             
+            let sellPrice = 0;
             if (category === 'food') {
                 const index = inventory.food.indexOf(type);
                 if (index === -1) return;
                 inventory.food.splice(index, 1);
                 const isRare = type === 'light' || type === 'dark';
-                const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
-                coins += price;
-                showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 판매했습니다`);
+                sellPrice = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                coins += sellPrice;
+                showNotification(`${FOOD_NAMES[type]}을(를) ${sellPrice}💰에 판매했습니다`);
             } else if (category === 'decoration') {
                 const index = inventory.decorations.indexOf(type);
                 if (index === -1) return;
                 inventory.decorations.splice(index, 1);
                 
                 const decoData = DECORATION_TYPES[type];
-                const sellPrice = Math.floor(decoData.price * 0.5);
+                sellPrice = Math.floor(decoData.price * 0.5);
                 coins += sellPrice;
                 showNotification(`${decoData.name}을(를) ${sellPrice}💰에 판매했습니다`);
             } else if (category === 'music') {
                 const index = inventory.music.indexOf(type);
                 if (index === -1) return;
                 inventory.music.splice(index, 1);
-                coins += SHOP_PRICES.sell.music;
+                sellPrice = SHOP_PRICES.sell.music;
+                coins += sellPrice;
                 showNotification(`${MUSIC_TYPES[type].name}을(를) ${SHOP_PRICES.sell.music}💰에 판매했습니다`);
             }
 
+            setShopkeeperDialogue(`${sellPrice}코인입니다.`);
             saveGame();
-            renderShop();
+            renderSellList();
+            renderBuyList();
+            updateCoinDisplay();
             renderInventory();
         }
 
         function buyItem(category, type, price) {
             if (coins < price) {
                 showNotification('코인이 부족합니다!');
+                setShopkeeperDialogue('...돈이 부족해 보이네요.');
                 return;
             }
 
@@ -6356,8 +6373,11 @@
                 showNotification(`${DECORATION_TYPES[type].name}을(를) ${price}💰에 구매했습니다`);
             }
 
+            setShopkeeperDialogue('...감사합니다. 또 오세요.(오지마)');
             saveGame();
-            renderShop();
+            renderSellList();
+            renderBuyList();
+            updateCoinDisplay();
             renderInventory();
         }
         
@@ -6365,6 +6385,7 @@
         function buyEventItem(itemKey, price) {
             if (coins < price) {
                 showNotification('코인이 부족합니다!');
+                setShopkeeperDialogue('...돈이 부족해 보이네요.');
                 return;
             }
             
@@ -6395,9 +6416,12 @@
             }
             
             showNotification(`🎄 ${item.icon} ${item.name}을(를) ${price}💰에 구매했습니다`);
+            setShopkeeperDialogue('...감사합니다. 또 오세요.(오지마)');
             
             saveGame();
-            renderShop();
+            renderSellList();
+            renderBuyList();
+            updateCoinDisplay();
             renderInventory();
         }
 
@@ -8902,7 +8926,7 @@
                         <option value="fire" ${terrariumInvFilter === 'fire' ? 'selected' : ''}>🔥 불</option>
                         <option value="water" ${terrariumInvFilter === 'water' ? 'selected' : ''}>💧 물</option>
                         <option value="wind" ${terrariumInvFilter === 'wind' ? 'selected' : ''}>🌪️ 바람</option>
-                        <option value="earth" ${terrariumInvFilter === 'earth' ? 'selected' : ''}>🌿 땅</option>
+                        <option value="earth" ${terrariumInvFilter === 'earth' ? 'selected' : ''}>🌱 땅</option>
                         <option value="light" ${terrariumInvFilter === 'light' ? 'selected' : ''}>✨ 빛</option>
                         <option value="dark" ${terrariumInvFilter === 'dark' ? 'selected' : ''}>🌙 어둠</option>
                     </select>
