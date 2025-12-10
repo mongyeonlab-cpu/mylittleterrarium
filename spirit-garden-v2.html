@@ -911,7 +911,7 @@
     <div class="tabs">
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
-        <button class="tab" onclick="switchTab('lab')">실험실</button>
+        <button class="tab" onclick="switchTab('lab')">연구실</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('minigame')">미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
@@ -995,10 +995,59 @@
     
     <!-- 일지 섹션 -->
     <div id="labSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">🧪 실험실</h2>
-        <div style="max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-            <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
-            <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">🔬 연구실</h2>
+        
+        <div style="max-width: 800px; margin: 0 auto;">
+            <!-- 합성 영역 -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; text-align: center;">재료 합성</h3>
+                
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <!-- 슬롯 1 -->
+                    <div id="labSlot1" onclick="openLabSlotModal(1)" style="width: 120px; height: 120px; border: 2px dashed var(--border); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
+                        <div style="font-size: 2rem; margin-bottom: 5px;">➕</div>
+                        <div style="font-size: 0.8rem; color: #888;">재료 선택</div>
+                    </div>
+                    
+                    <div style="font-size: 2rem; color: #888;">+</div>
+                    
+                    <!-- 슬롯 2 -->
+                    <div id="labSlot2" onclick="openLabSlotModal(2)" style="width: 120px; height: 120px; border: 2px dashed var(--border); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
+                        <div style="font-size: 2rem; margin-bottom: 5px;">➕</div>
+                        <div style="font-size: 0.8rem; color: #888;">재료 선택</div>
+                    </div>
+                    
+                    <div style="font-size: 2rem; color: #888;">→</div>
+                    
+                    <!-- 결과 슬롯 -->
+                    <div id="labResultSlot" style="width: 120px; height: 120px; border: 2px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg);">
+                        <div style="font-size: 2rem; margin-bottom: 5px;">❓</div>
+                        <div style="font-size: 0.8rem; color: #888;">결과물</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button id="synthesizeBtn" onclick="synthesize()" style="padding: 12px 40px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; opacity: 0.5;" disabled>
+                        🔮 합성하기
+                    </button>
+                </div>
+                
+                <div id="labMessage" style="margin-top: 15px; text-align: center; font-size: 0.9rem; color: #888; min-height: 20px;"></div>
+            </div>
+            
+            <!-- 레시피 목록 -->
+            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px;">📜 레시피 목록</h3>
+                
+                <!-- 카테고리 탭 -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button onclick="filterRecipes('all')" class="recipe-filter-btn active" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">전체</button>
+                    <button onclick="filterRecipes('food')" class="recipe-filter-btn" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">🍎 먹이</button>
+                    <button onclick="filterRecipes('decoration')" class="recipe-filter-btn" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">🌳 장식물</button>
+                </div>
+                
+                <div id="recipeList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;"></div>
+            </div>
         </div>
     </div>
     
@@ -2058,7 +2107,15 @@
             dual_fire_water: { name: '증기의 오르골', icon: '♨️', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['fire', 'water'] },
             dual_earth_wind: { name: '사막의 모래시계', icon: '⏳', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['earth', 'wind'] },
             dual_light_dark: { name: '황혼의 거울', icon: '🪞', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['light', 'dark'] },
-            all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 }
+            all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 },
+            
+            // 합성 장식물
+            flame_lamp: { name: '화염 램프', icon: '🏮', attr: 'fire', power: 3, quality: 'rare', price: 0 },
+            aqua_fountain: { name: '아쿠아 분수', icon: '⛲', attr: 'water', power: 3, quality: 'rare', price: 0 },
+            wind_chime: { name: '바람의 종', icon: '🔔', attr: 'wind', power: 3, quality: 'rare', price: 0 },
+            earth_statue: { name: '대지의 석상', icon: '🗿', attr: 'earth', power: 3, quality: 'rare', price: 0 },
+            light_orb: { name: '빛의 오브', icon: '💡', attr: 'light', power: 3, quality: 'rare', price: 0 },
+            shadow_crystal: { name: '그림자 결정', icon: '🔳', attr: 'dark', power: 3, quality: 'rare', price: 0 }
         };
 
         const FOOD_NAMES = {
@@ -2078,7 +2135,271 @@
             description: '정령의 질병을 치료합니다'
         };
 
-        // 도감 힌트 데이터
+        // ===== 연구실 합성 시스템 =====
+        // 합성 아이템 정의 (결과물)
+        const SYNTH_ITEMS = {
+            // 먹이 합성 결과물 (단일 속성)
+            fire_tart: { name: '불꽃열매 타르트', icon: '🥧', type: 'food', attr: 'fire', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            water_jelly: { name: '이슬 에이드', icon: '🥤', type: 'food', attr: 'water', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            wind_candy: { name: '바람꿀차', icon: '🍵', type: 'food', attr: 'wind', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            earth_pie: { name: '대지버섯 볶음', icon: '🥘', type: 'food', attr: 'earth', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            light_cookie: { name: '넥타르', icon: '🍯', type: 'food', attr: 'light', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            dark_chocolate: { name: '다크 초콜릿', icon: '🍫', type: 'food', attr: 'dark', attrGain: 6, affectionGain: 3, growthGain: 3 },
+            rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'all', attrGain: 3, affectionGain: 5, growthGain: 5 },
+            
+            // 먹이 합성 결과물 (혼합 속성)
+            fire_water_steam: { name: '스팀 푸딩', icon: '♨️', type: 'food', attr: 'dual', dualAttr: ['fire', 'water'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            fire_wind_heat: { name: '열풍 크래커', icon: '🌪️', type: 'food', attr: 'dual', dualAttr: ['fire', 'wind'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            fire_earth_lava: { name: '화산 스프', icon: '🍲', type: 'food', attr: 'dual', dualAttr: ['fire', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            fire_light_sun: { name: '태양 타르트', icon: '🌅', type: 'food', attr: 'dual', dualAttr: ['fire', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            fire_dark_ash: { name: '잿빛 머랭쿠키', icon: '🖤', type: 'food', attr: 'dual', dualAttr: ['fire', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            water_wind_mist: { name: '안개 캔디', icon: '🌫️', type: 'food', attr: 'dual', dualAttr: ['water', 'wind'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            water_earth_pond: { name: '연못 샐러드', icon: '🥗', type: 'food', attr: 'dual', dualAttr: ['water', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            water_light_ice: { name: '빙하 아이스바', icon: '🧊', type: 'food', attr: 'dual', dualAttr: ['water', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            water_dark_deep: { name: '심해 젤리', icon: '🪼', type: 'food', attr: 'dual', dualAttr: ['water', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            wind_earth_desert: { name: '황야 비스킷', icon: '🏜️', type: 'food', attr: 'dual', dualAttr: ['wind', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            wind_light_cloud: { name: '구름 솜사탕', icon: '☁️', type: 'food', attr: 'dual', dualAttr: ['wind', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            wind_dark_night: { name: '밤바람청', icon: '🌃', type: 'food', attr: 'dual', dualAttr: ['wind', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            earth_light_sprout: { name: '새싹 파이', icon: '🌿', type: 'food', attr: 'dual', dualAttr: ['earth', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            earth_dark_mushroom: { name: '동굴 버섯 수프', icon: '🍄', type: 'food', attr: 'dual', dualAttr: ['earth', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            
+            // 장식물 합성 결과물
+            flame_lamp: { name: '화염 램프', icon: '🏮', type: 'decoration', attr: 'fire', power: 3, quality: 'rare' },
+            aqua_fountain: { name: '아쿠아 분수', icon: '⛲', type: 'decoration', attr: 'water', power: 3, quality: 'rare' },
+            wind_chime: { name: '바람의 종', icon: '🔔', type: 'decoration', attr: 'wind', power: 3, quality: 'rare' },
+            earth_statue: { name: '대지의 석상', icon: '🗿', type: 'decoration', attr: 'earth', power: 3, quality: 'rare' },
+            light_orb: { name: '빛의 오브', icon: '💡', type: 'decoration', attr: 'light', power: 3, quality: 'rare' },
+            shadow_crystal: { name: '그림자 결정', icon: '🔳', type: 'decoration', attr: 'dark', power: 3, quality: 'rare' }
+        };
+        
+        // 합성 레시피 정의
+        const RECIPES = {
+            // 먹이 합성 (같은 먹이 5+5 = 타르트류 3개)
+            fire_tart: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 5 },
+                    { type: 'fire', category: 'food', count: 5 }
+                ],
+                result: { type: 'fire_tart', count: 3 },
+                category: 'food'
+            },
+            water_jelly: {
+                ingredients: [
+                    { type: 'water', category: 'food', count: 5 },
+                    { type: 'water', category: 'food', count: 5 }
+                ],
+                result: { type: 'water_jelly', count: 3 },
+                category: 'food'
+            },
+            wind_candy: {
+                ingredients: [
+                    { type: 'wind', category: 'food', count: 5 },
+                    { type: 'wind', category: 'food', count: 5 }
+                ],
+                result: { type: 'wind_candy', count: 3 },
+                category: 'food'
+            },
+            earth_pie: {
+                ingredients: [
+                    { type: 'earth', category: 'food', count: 5 },
+                    { type: 'earth', category: 'food', count: 5 }
+                ],
+                result: { type: 'earth_pie', count: 3 },
+                category: 'food'
+            },
+            light_cookie: {
+                ingredients: [
+                    { type: 'light', category: 'food', count: 5 },
+                    { type: 'light', category: 'food', count: 5 }
+                ],
+                result: { type: 'light_cookie', count: 3 },
+                category: 'food'
+            },
+            dark_chocolate: {
+                ingredients: [
+                    { type: 'dark', category: 'food', count: 5 },
+                    { type: 'dark', category: 'food', count: 5 }
+                ],
+                result: { type: 'dark_chocolate', count: 3 },
+                category: 'food'
+            },
+            rainbow_cake: {
+                ingredients: [
+                    { type: 'light', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'rainbow_cake', count: 1 },
+                category: 'food'
+            },
+            // 혼합 속성 먹이 (서로 다른 속성 3+3 = 혼합 먹이 2개)
+            fire_water_steam: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 3 },
+                    { type: 'water', category: 'food', count: 3 }
+                ],
+                result: { type: 'fire_water_steam', count: 2 },
+                category: 'food'
+            },
+            fire_wind_heat: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 3 },
+                    { type: 'wind', category: 'food', count: 3 }
+                ],
+                result: { type: 'fire_wind_heat', count: 2 },
+                category: 'food'
+            },
+            fire_earth_lava: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 3 },
+                    { type: 'earth', category: 'food', count: 3 }
+                ],
+                result: { type: 'fire_earth_lava', count: 2 },
+                category: 'food'
+            },
+            fire_light_sun: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 3 },
+                    { type: 'light', category: 'food', count: 3 }
+                ],
+                result: { type: 'fire_light_sun', count: 2 },
+                category: 'food'
+            },
+            fire_dark_ash: {
+                ingredients: [
+                    { type: 'fire', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'fire_dark_ash', count: 2 },
+                category: 'food'
+            },
+            water_wind_mist: {
+                ingredients: [
+                    { type: 'water', category: 'food', count: 3 },
+                    { type: 'wind', category: 'food', count: 3 }
+                ],
+                result: { type: 'water_wind_mist', count: 2 },
+                category: 'food'
+            },
+            water_earth_pond: {
+                ingredients: [
+                    { type: 'water', category: 'food', count: 3 },
+                    { type: 'earth', category: 'food', count: 3 }
+                ],
+                result: { type: 'water_earth_pond', count: 2 },
+                category: 'food'
+            },
+            water_light_ice: {
+                ingredients: [
+                    { type: 'water', category: 'food', count: 3 },
+                    { type: 'light', category: 'food', count: 3 }
+                ],
+                result: { type: 'water_light_ice', count: 2 },
+                category: 'food'
+            },
+            water_dark_deep: {
+                ingredients: [
+                    { type: 'water', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'water_dark_deep', count: 2 },
+                category: 'food'
+            },
+            wind_earth_desert: {
+                ingredients: [
+                    { type: 'wind', category: 'food', count: 3 },
+                    { type: 'earth', category: 'food', count: 3 }
+                ],
+                result: { type: 'wind_earth_desert', count: 2 },
+                category: 'food'
+            },
+            wind_light_cloud: {
+                ingredients: [
+                    { type: 'wind', category: 'food', count: 3 },
+                    { type: 'light', category: 'food', count: 3 }
+                ],
+                result: { type: 'wind_light_cloud', count: 2 },
+                category: 'food'
+            },
+            wind_dark_night: {
+                ingredients: [
+                    { type: 'wind', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'wind_dark_night', count: 2 },
+                category: 'food'
+            },
+            earth_light_sprout: {
+                ingredients: [
+                    { type: 'earth', category: 'food', count: 3 },
+                    { type: 'light', category: 'food', count: 3 }
+                ],
+                result: { type: 'earth_light_sprout', count: 2 },
+                category: 'food'
+            },
+            earth_dark_mushroom: {
+                ingredients: [
+                    { type: 'earth', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'earth_dark_mushroom', count: 2 },
+                category: 'food'
+            },
+            // 장식물 합성 (같은 속성 common 장식물 2개 = rare 장식물 1개)
+            flame_lamp: {
+                ingredients: [
+                    { type: 'fire_common1', category: 'decoration', count: 1 },
+                    { type: 'fire_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'flame_lamp', count: 1 },
+                category: 'decoration'
+            },
+            aqua_fountain: {
+                ingredients: [
+                    { type: 'water_common1', category: 'decoration', count: 1 },
+                    { type: 'water_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'aqua_fountain', count: 1 },
+                category: 'decoration'
+            },
+            wind_chime: {
+                ingredients: [
+                    { type: 'wind_common1', category: 'decoration', count: 1 },
+                    { type: 'wind_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'wind_chime', count: 1 },
+                category: 'decoration'
+            },
+            earth_statue: {
+                ingredients: [
+                    { type: 'earth_common1', category: 'decoration', count: 1 },
+                    { type: 'earth_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'earth_statue', count: 1 },
+                category: 'decoration'
+            },
+            light_orb: {
+                ingredients: [
+                    { type: 'light_common1', category: 'decoration', count: 1 },
+                    { type: 'light_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'light_orb', count: 1 },
+                category: 'decoration'
+            },
+            shadow_crystal: {
+                ingredients: [
+                    { type: 'dark_common1', category: 'decoration', count: 1 },
+                    { type: 'dark_common2', category: 'decoration', count: 1 }
+                ],
+                result: { type: 'shadow_crystal', count: 1 },
+                category: 'decoration'
+            }
+        };
+        
+        // 연구실 슬롯 상태
+        let labSlot1 = null; // { type: 'fire', category: 'food', count: 5 }
+        let labSlot2 = null;
+        let currentLabSlot = null; // 현재 선택 중인 슬롯
+        let discoveredRecipes = []; // 발견한 레시피 목록
         const ENCYCLOPEDIA_HINTS = {
             // 전설
             'titania': '나비를 거느리는 정령들의 군주.',
@@ -2676,6 +2997,7 @@
                 activatedEvents = data.activatedEvents || [];
                 lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
                 hasVisitedShop = data.hasVisitedShop || false;
+                discoveredRecipes = data.discoveredRecipes || [];
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -2725,7 +3047,8 @@
                 darkModeLocked,
                 activatedEvents,
                 lowSatisfactionStartTime,
-                hasVisitedShop
+                hasVisitedShop,
+                discoveredRecipes
             }));
         }
 
@@ -2922,11 +3245,11 @@
             // 알 ~ 번데기만 외형 묘사 있음
             if (!APPEARANCE_DESCRIPTIONS[stage]) return null;
             
-            // 현재 속성 계산 (먹이 + 테라리움)
+            // 현재 속성 계산 (먹이 70% + 테라리움 30%)
             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrarium[attr] * 0.5);
+                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrarium[attr] * 0.3);
             }
             
             // 속성을 내림차순으로 정렬
@@ -3092,7 +3415,7 @@
                 const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                 const spiritAttrs = {};
                 for (let attr in foodAttrs) {
-                    spiritAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrarium[attr] * 0.5);
+                    spiritAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrarium[attr] * 0.3);
                 }
                 
                 // 정령의 주 속성 찾기 (가장 높은 속성)
@@ -3254,6 +3577,7 @@
             const FOOD_ORDER = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
             const eventFoods = [];
             const normalFoods = [];
+            const synthFoods = [];
             
             // 고정된 순서대로 정렬
             FOOD_ORDER.forEach(type => {
@@ -3266,6 +3590,13 @@
             Object.keys(EVENT_ITEMS).forEach(type => {
                 if (foodCounts[type] && EVENT_ITEMS[type].type === 'food') {
                     eventFoods.push([type, foodCounts[type]]);
+                }
+            });
+            
+            // 합성 먹이
+            Object.keys(SYNTH_ITEMS).forEach(type => {
+                if (foodCounts[type] && SYNTH_ITEMS[type].type === 'food') {
+                    synthFoods.push([type, foodCounts[type]]);
                 }
             });
 
@@ -3282,6 +3613,31 @@
                                     <div class="option-info">
                                         <div class="option-name">${item.name} ×${count}</div>
                                         <div class="option-effect" style="color: #c41e3a;">모든 스탯+5, 성장+10</div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : ''}
+                ${synthFoods.length > 0 ? `
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #9b59b6;">🔬 합성 먹이</div>
+                    <div class="food-grid" style="margin-bottom: 15px;">
+                        ${synthFoods.map(([type, count]) => {
+                            const item = SYNTH_ITEMS[type];
+                            let effectText;
+                            if (item.attr === 'all') {
+                                effectText = `전속성+${item.attrGain}`;
+                            } else if (item.attr === 'dual' && item.dualAttr) {
+                                effectText = `${item.dualAttr.join('+')} 각+${item.attrGain}`;
+                            } else {
+                                effectText = `${item.attr}+${item.attrGain}`;
+                            }
+                            return `
+                                <button class="option-btn" style="border: 2px solid #9b59b6;" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
+                                    <span class="option-icon">${item.icon}</span>
+                                    <div class="option-info">
+                                        <div class="option-name">${item.name} ×${count}</div>
+                                        <div class="option-effect" style="color: #9b59b6;">${effectText}, 애정+${item.affectionGain}</div>
                                     </div>
                                 </button>
                             `;
@@ -3381,6 +3737,68 @@
                 showNotification(`${eventItem.icon} ${eventItem.name}을(를) 주었습니다! (모든 스탯 +5, 성장 +10)`);
                 return;
             }
+            
+            // 합성 먹이 체크
+            const synthItem = SYNTH_ITEMS[foodType];
+            if (synthItem && synthItem.type === 'food') {
+                // 합성 먹이 효과 적용
+                if (!spirit.hiddenAttributes) {
+                    spirit.hiddenAttributes = { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                }
+                
+                // 속성 증가
+                if (synthItem.attr === 'all') {
+                    // 전체 속성 증가
+                    Object.keys(spirit.hiddenAttributes).forEach(attr => {
+                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + synthItem.attrGain);
+                    });
+                } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
+                    // 혼합 속성 증가 (두 속성 모두)
+                    synthItem.dualAttr.forEach(attr => {
+                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + synthItem.attrGain);
+                    });
+                } else {
+                    spirit.hiddenAttributes[synthItem.attr] = Math.min(500, spirit.hiddenAttributes[synthItem.attr] + synthItem.attrGain);
+                }
+                
+                // 애정도 증가
+                spirit.parameters.affection += synthItem.affectionGain || 0;
+                
+                // 질병 상태가 아닐 때만 성장
+                if (!spirit.isSick) {
+                    spirit.growth += synthItem.growthGain || 0;
+                }
+                
+                spirit.lastFeed = Date.now();
+                spirit.lastFed = Date.now();
+                spirit.lastInteraction = Date.now();
+                spirit.status = '특별한 음식을 먹었습니다!';
+                
+                if (!spirit.feedCount) spirit.feedCount = 0;
+                spirit.feedCount += 1;
+                
+                addLog(spirit, `${synthItem.icon} ${synthItem.name}을(를) 먹었습니다!`);
+                
+                if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
+                    completeSpirit(spirit);
+                }
+                
+                closeModal('feedModal');
+                saveGame();
+                renderSpirits();
+                renderInventory();
+                
+                let effectMsg;
+                if (synthItem.attr === 'all') {
+                    effectMsg = `전속성 +${synthItem.attrGain}`;
+                } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
+                    effectMsg = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
+                } else {
+                    effectMsg = `${synthItem.attr} +${synthItem.attrGain}`;
+                }
+                showNotification(`${synthItem.icon} ${synthItem.name}을(를) 주었습니다! (${effectMsg}, 애정도 +${synthItem.affectionGain})`);
+                return;
+            }
 
             const isRare = foodType === 'light' || foodType === 'dark';
             const attrGain = isRare ? 6 : 3;  // 희귀 +6, 일반 +3
@@ -3392,7 +3810,7 @@
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
             }
-            spirit.hiddenAttributes[foodType] = Math.min(200, spirit.hiddenAttributes[foodType] + attrGain);
+            spirit.hiddenAttributes[foodType] = Math.min(500, spirit.hiddenAttributes[foodType] + attrGain);
 
             // 질병 상태가 아닐 때만 성장
             if (!spirit.isSick) {
@@ -3999,11 +4417,14 @@
             // 장식물 채집 (장소별 + 등급별 확률)
             const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
             
+            // 합성 전용 장식물 목록 (채집 불가)
+            const synthOnlyDecos = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
+            
             // 50% 확률로 일반(common) 장식물 (장소 고정)
             if (Math.random() < (0.5 * decoBonus * autoGatherMultiplier)) {
                 const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'common' && locationDecoTypes.includes(deco.attr);
+                    return deco.quality === 'common' && locationDecoTypes.includes(deco.attr) && !synthOnlyDecos.includes(key);
                 });
                 if (commonDecos.length > 0) {
                     const randomDeco = commonDecos[Math.floor(Math.random() * commonDecos.length)];
@@ -4016,7 +4437,7 @@
             if (Math.random() < (0.2 * decoBonus * autoGatherMultiplier)) {
                 const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attr);
+                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attr) && !synthOnlyDecos.includes(key);
                 });
                 if (rareDecos.length > 0) {
                     const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
@@ -4029,7 +4450,7 @@
             if (!isAuto && Math.random() < (0.08 * decoBonus)) {
                 const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attr);
+                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attr) && !synthOnlyDecos.includes(key);
                 });
                 if (epicDecos.length > 0) {
                     const randomDeco = epicDecos[Math.floor(Math.random() * epicDecos.length)];
@@ -4461,10 +4882,10 @@
             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
-            // 최종 속성 = (먹이 속성 × 0.5) + (테라리움 속성 × 0.5)
+            // 최종 속성 = (먹이 속성 × 0.7) + (테라리움 속성 × 0.3)
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
+                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
             }
             
             const sortedAttrs = Object.entries(finalAttrs)
@@ -5347,10 +5768,10 @@
                     };
                 }
 
-                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 200)
+                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 500)
                 Object.keys(terrarium).forEach(attr => {
                     if (terrarium[attr] > 0) {
-                        spirit.hiddenAttributes[attr] = Math.min(200, spirit.hiddenAttributes[attr] + terrarium[attr]);
+                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + terrarium[attr]);
                     }
                 });
                 
@@ -5745,10 +6166,10 @@
                         ${(() => {
                             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                             const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-                            // 최종 속성 = (먹이 × 0.5) + (테라리움 × 0.5)
+                            // 최종 속성 = (먹이 × 0.7) + (테라리움 × 0.3)
                             const attrs = {};
                             for (let attr in foodAttrs) {
-                                attrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
+                                attrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
                             }
                             const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
                             const attrNames = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' };
@@ -5992,9 +6413,12 @@
                     inventory.decorations.forEach(d => {
                         decorCounts[d] = (decorCounts[d] || 0) + 1;
                     });
+                    
+                    // 합성 전용 아이템 (상점에서 제외)
+                    const synthOnlyItems = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
 
                     // 속성별, 품질별, 이름별로 정렬
-                    const sortedDecoKeys = Object.keys(decorCounts).sort((a, b) => {
+                    const sortedDecoKeys = Object.keys(decorCounts).filter(key => !synthOnlyItems.includes(key)).sort((a, b) => {
                         const dataA = DECORATION_TYPES[a];
                         const dataB = DECORATION_TYPES[b];
                         if (!dataA || !dataB) return 0;
@@ -6273,6 +6697,9 @@
                     epic: []
                 };
                 
+                // 합성 전용 아이템 (상점에서 제외)
+                const synthOnlyItems = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
+                
                 // 속성 표시용 헬퍼 함수
                 function getDecoAttrDisplay(data) {
                     if (data.attr === 'dual' && data.dualAttr) {
@@ -6288,6 +6715,10 @@
                     const decoData = DECORATION_TYPES[key];
                     
                     // legendary는 상점에서 판매 안함 (미니게임 전용)
+                    if (decoData.quality === 'legendary') return;
+                    
+                    // 합성 전용 아이템 제외
+                    if (synthOnlyItems.includes(key)) return;
                     if (decoData.quality === 'legendary') return;
                     
                     // 속성 필터 (복합 속성은 all 필터에서만 표시하거나, 해당 속성 포함 시 표시)
@@ -8300,6 +8731,8 @@
                 } else if (tab === 'lab') {
                     document.querySelector('.tab:nth-child(3)').classList.add('active');
                     document.getElementById('labSection').classList.add('active');
+                    renderRecipeList();
+                    updateLabUI();
                 } else if (tab === 'shop') {
                     document.querySelector('.tab:nth-child(4)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
@@ -8431,6 +8864,494 @@
             
             applyLightMode();
             saveGame();
+        }
+        
+        // ===== 연구실 합성 시스템 함수 =====
+        
+        // 아이템 아이콘 가져오기
+        function getItemIcon(type, category) {
+            if (category === 'food') {
+                // 합성 아이템인지 확인
+                if (SYNTH_ITEMS[type]) {
+                    return SYNTH_ITEMS[type].icon;
+                }
+                // 기본 먹이
+                const icons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
+                return icons[type] || '❓';
+            } else if (category === 'decoration') {
+                // 합성 장식물인지 확인
+                if (SYNTH_ITEMS[type]) {
+                    return SYNTH_ITEMS[type].icon;
+                }
+                // 기본 장식물
+                return DECORATION_TYPES[type]?.icon || '❓';
+            }
+            return '❓';
+        }
+        
+        // 아이템 이름 가져오기
+        function getItemName(type, category) {
+            if (category === 'food') {
+                if (SYNTH_ITEMS[type]) {
+                    return SYNTH_ITEMS[type].name;
+                }
+                return FOOD_NAMES[type] || type;
+            } else if (category === 'decoration') {
+                if (SYNTH_ITEMS[type]) {
+                    return SYNTH_ITEMS[type].name;
+                }
+                return DECORATION_TYPES[type]?.name || type;
+            }
+            return type;
+        }
+        
+        // 인벤토리에서 아이템 개수 세기
+        function countInventoryItem(type, category) {
+            if (category === 'food') {
+                return inventory.food.filter(f => f === type).length;
+            } else if (category === 'decoration') {
+                return inventory.decorations.filter(d => d === type).length;
+            }
+            return 0;
+        }
+        
+        // 연구실 슬롯 모달 열기
+        function openLabSlotModal(slotNum) {
+            currentLabSlot = slotNum;
+            
+            // 먹이와 장식물 목록 생성
+            const foodCounts = {};
+            inventory.food.forEach(f => {
+                foodCounts[f] = (foodCounts[f] || 0) + 1;
+            });
+            
+            const decoCounts = {};
+            inventory.decorations.forEach(d => {
+                decoCounts[d] = (decoCounts[d] || 0) + 1;
+            });
+            
+            let html = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; justify-content: center; align-items: center;" onclick="if(event.target === this) closeLabModal()">
+                    <div style="background: var(--card); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-family: 'Nanum Myeongjo', serif; margin: 0;">재료 선택 (슬롯 ${slotNum})</h3>
+                            <button onclick="closeLabModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">✕</button>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; margin-bottom: 10px;">🍎 먹이</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            `;
+            
+            // 먹이 버튼들
+            const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+            foodOrder.forEach(type => {
+                const count = foodCounts[type] || 0;
+                if (count > 0) {
+                    html += `
+                        <button onclick="selectLabItem('${type}', 'food')" style="padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            ${getItemIcon(type, 'food')} ${FOOD_NAMES[type]} ×${count}
+                        </button>
+                    `;
+                }
+            });
+            
+            // 합성 먹이도 표시
+            Object.keys(SYNTH_ITEMS).forEach(type => {
+                if (SYNTH_ITEMS[type].type === 'food') {
+                    const count = foodCounts[type] || 0;
+                    if (count > 0) {
+                        html += `
+                            <button onclick="selectLabItem('${type}', 'food')" style="padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                ${SYNTH_ITEMS[type].icon} ${SYNTH_ITEMS[type].name} ×${count}
+                            </button>
+                        `;
+                    }
+                }
+            });
+            
+            if (Object.keys(foodCounts).length === 0) {
+                html += `<div style="color: #888; font-size: 0.9rem;">먹이가 없습니다</div>`;
+            }
+            
+            html += `
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 10px;">🌳 장식물</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            `;
+            
+            // 장식물 버튼들
+            Object.keys(decoCounts).forEach(type => {
+                const count = decoCounts[type];
+                const deco = DECORATION_TYPES[type] || SYNTH_ITEMS[type];
+                if (deco && count > 0) {
+                    html += `
+                        <button onclick="selectLabItem('${type}', 'decoration')" style="padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            ${deco.icon} ${deco.name} ×${count}
+                        </button>
+                    `;
+                }
+            });
+            
+            if (Object.keys(decoCounts).length === 0) {
+                html += `<div style="color: #888; font-size: 0.9rem;">장식물이 없습니다</div>`;
+            }
+            
+            html += `
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="clearLabSlot(${slotNum})" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer;">슬롯 비우기</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 모달 추가
+            const modal = document.createElement('div');
+            modal.id = 'labModal';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+        
+        // 연구실 모달 닫기
+        function closeLabModal() {
+            const modal = document.getElementById('labModal');
+            if (modal) modal.remove();
+        }
+        
+        // 연구실 슬롯에 아이템 선택
+        function selectLabItem(type, category) {
+            const count = countInventoryItem(type, category);
+            if (count <= 0) {
+                showNotification('해당 아이템이 없습니다');
+                return;
+            }
+            
+            // 개수 선택 (최대 보유량)
+            const maxCount = Math.min(count, 10);
+            let selectedCount = 1;
+            
+            // 간단히 1개로 설정 (나중에 개수 선택 UI 추가 가능)
+            // 레시피에 맞게 필요 개수 자동 설정
+            let neededCount = 1;
+            
+            // 레시피에서 필요한 개수 찾기
+            Object.values(RECIPES).forEach(recipe => {
+                recipe.ingredients.forEach(ing => {
+                    if (ing.type === type && ing.category === category) {
+                        neededCount = Math.max(neededCount, ing.count);
+                    }
+                });
+            });
+            
+            selectedCount = Math.min(neededCount, count);
+            
+            if (currentLabSlot === 1) {
+                labSlot1 = { type, category, count: selectedCount };
+            } else {
+                labSlot2 = { type, category, count: selectedCount };
+            }
+            
+            closeLabModal();
+            updateLabUI();
+            checkRecipe();
+        }
+        
+        // 슬롯 비우기
+        function clearLabSlot(slotNum) {
+            if (slotNum === 1) {
+                labSlot1 = null;
+            } else {
+                labSlot2 = null;
+            }
+            closeLabModal();
+            updateLabUI();
+            checkRecipe();
+        }
+        
+        // 연구실 UI 업데이트
+        function updateLabUI() {
+            const slot1El = document.getElementById('labSlot1');
+            const slot2El = document.getElementById('labSlot2');
+            
+            if (slot1El) {
+                if (labSlot1) {
+                    slot1El.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 5px;">${getItemIcon(labSlot1.type, labSlot1.category)}</div>
+                        <div style="font-size: 0.8rem; color: var(--text);">${getItemName(labSlot1.type, labSlot1.category)}</div>
+                        <div style="font-size: 0.75rem; color: #888;">×${labSlot1.count}</div>
+                    `;
+                    slot1El.style.borderStyle = 'solid';
+                    slot1El.style.borderColor = '#9b59b6';
+                } else {
+                    slot1El.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 5px;">➕</div>
+                        <div style="font-size: 0.8rem; color: #888;">재료 선택</div>
+                    `;
+                    slot1El.style.borderStyle = 'dashed';
+                    slot1El.style.borderColor = 'var(--border)';
+                }
+            }
+            
+            if (slot2El) {
+                if (labSlot2) {
+                    slot2El.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 5px;">${getItemIcon(labSlot2.type, labSlot2.category)}</div>
+                        <div style="font-size: 0.8rem; color: var(--text);">${getItemName(labSlot2.type, labSlot2.category)}</div>
+                        <div style="font-size: 0.75rem; color: #888;">×${labSlot2.count}</div>
+                    `;
+                    slot2El.style.borderStyle = 'solid';
+                    slot2El.style.borderColor = '#9b59b6';
+                } else {
+                    slot2El.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 5px;">➕</div>
+                        <div style="font-size: 0.8rem; color: #888;">재료 선택</div>
+                    `;
+                    slot2El.style.borderStyle = 'dashed';
+                    slot2El.style.borderColor = 'var(--border)';
+                }
+            }
+        }
+        
+        // 레시피 체크
+        function checkRecipe() {
+            const resultSlot = document.getElementById('labResultSlot');
+            const synthesizeBtn = document.getElementById('synthesizeBtn');
+            const labMessage = document.getElementById('labMessage');
+            
+            if (!labSlot1 || !labSlot2) {
+                if (resultSlot) {
+                    resultSlot.innerHTML = `
+                        <div style="font-size: 2rem; margin-bottom: 5px;">❓</div>
+                        <div style="font-size: 0.8rem; color: #888;">결과물</div>
+                    `;
+                }
+                if (synthesizeBtn) {
+                    synthesizeBtn.disabled = true;
+                    synthesizeBtn.style.opacity = '0.5';
+                }
+                if (labMessage) labMessage.textContent = '재료를 선택해주세요';
+                return null;
+            }
+            
+            // 레시피 매칭
+            for (const [recipeId, recipe] of Object.entries(RECIPES)) {
+                const ing1 = recipe.ingredients[0];
+                const ing2 = recipe.ingredients[1];
+                
+                // 슬롯1-재료1, 슬롯2-재료2 매칭 확인
+                const match1 = (labSlot1.type === ing1.type && labSlot1.category === ing1.category && labSlot1.count >= ing1.count) &&
+                              (labSlot2.type === ing2.type && labSlot2.category === ing2.category && labSlot2.count >= ing2.count);
+                
+                // 슬롯1-재료2, 슬롯2-재료1 매칭 확인 (순서 바꿔서)
+                const match2 = (labSlot1.type === ing2.type && labSlot1.category === ing2.category && labSlot1.count >= ing2.count) &&
+                              (labSlot2.type === ing1.type && labSlot2.category === ing1.category && labSlot2.count >= ing1.count);
+                
+                if (match1 || match2) {
+                    // 레시피 발견!
+                    const resultItem = SYNTH_ITEMS[recipe.result.type];
+                    
+                    if (resultSlot) {
+                        resultSlot.innerHTML = `
+                            <div style="font-size: 2rem; margin-bottom: 5px;">${resultItem.icon}</div>
+                            <div style="font-size: 0.8rem; color: var(--text);">${resultItem.name}</div>
+                            <div style="font-size: 0.75rem; color: #9b59b6;">×${recipe.result.count}</div>
+                        `;
+                        resultSlot.style.borderColor = '#9b59b6';
+                    }
+                    if (synthesizeBtn) {
+                        synthesizeBtn.disabled = false;
+                        synthesizeBtn.style.opacity = '1';
+                    }
+                    if (labMessage) {
+                        labMessage.innerHTML = `<span style="color: #9b59b6;">✨ 합성 가능!</span>`;
+                    }
+                    return recipeId;
+                }
+            }
+            
+            // 매칭되는 레시피 없음
+            if (resultSlot) {
+                resultSlot.innerHTML = `
+                    <div style="font-size: 2rem; margin-bottom: 5px;">💨</div>
+                    <div style="font-size: 0.8rem; color: #888;">실패</div>
+                `;
+                resultSlot.style.borderColor = 'var(--border)';
+            }
+            if (synthesizeBtn) {
+                synthesizeBtn.disabled = true;
+                synthesizeBtn.style.opacity = '0.5';
+            }
+            if (labMessage) {
+                labMessage.textContent = '이 조합으로는 만들 수 없습니다';
+            }
+            return null;
+        }
+        
+        // 합성 실행
+        function synthesize() {
+            const recipeId = checkRecipe();
+            if (!recipeId) {
+                showNotification('합성할 수 없는 조합입니다');
+                return;
+            }
+            
+            const recipe = RECIPES[recipeId];
+            const ing1 = recipe.ingredients[0];
+            const ing2 = recipe.ingredients[1];
+            
+            // 재료 소모 (슬롯 순서에 맞게)
+            let slot1Ing, slot2Ing;
+            if (labSlot1.type === ing1.type && labSlot1.category === ing1.category) {
+                slot1Ing = ing1;
+                slot2Ing = ing2;
+            } else {
+                slot1Ing = ing2;
+                slot2Ing = ing1;
+            }
+            
+            // 인벤토리에서 재료 제거
+            for (let i = 0; i < slot1Ing.count; i++) {
+                const idx = slot1Ing.category === 'food' 
+                    ? inventory.food.indexOf(slot1Ing.type)
+                    : inventory.decorations.indexOf(slot1Ing.type);
+                if (idx !== -1) {
+                    if (slot1Ing.category === 'food') {
+                        inventory.food.splice(idx, 1);
+                    } else {
+                        inventory.decorations.splice(idx, 1);
+                    }
+                }
+            }
+            
+            for (let i = 0; i < slot2Ing.count; i++) {
+                const idx = slot2Ing.category === 'food'
+                    ? inventory.food.indexOf(slot2Ing.type)
+                    : inventory.decorations.indexOf(slot2Ing.type);
+                if (idx !== -1) {
+                    if (slot2Ing.category === 'food') {
+                        inventory.food.splice(idx, 1);
+                    } else {
+                        inventory.decorations.splice(idx, 1);
+                    }
+                }
+            }
+            
+            // 결과물 추가
+            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            for (let i = 0; i < recipe.result.count; i++) {
+                if (resultItem.type === 'food') {
+                    inventory.food.push(recipe.result.type);
+                } else if (resultItem.type === 'decoration') {
+                    inventory.decorations.push(recipe.result.type);
+                }
+            }
+            
+            // 레시피 발견 기록
+            if (!discoveredRecipes.includes(recipeId)) {
+                discoveredRecipes.push(recipeId);
+            }
+            
+            // 슬롯 초기화
+            labSlot1 = null;
+            labSlot2 = null;
+            
+            // UI 업데이트
+            updateLabUI();
+            checkRecipe();
+            renderInventory();
+            renderRecipeList();
+            saveGame();
+            
+            showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${recipe.result.count} 합성 성공!`);
+        }
+        
+        // 레시피 목록 렌더링
+        function renderRecipeList(filter = 'all') {
+            const container = document.getElementById('recipeList');
+            if (!container) return;
+            
+            let html = '';
+            let discoveredCount = 0;
+            
+            Object.entries(RECIPES).forEach(([recipeId, recipe]) => {
+                // 발견한 레시피만 표시
+                if (!discoveredRecipes.includes(recipeId)) return;
+                
+                if (filter !== 'all' && recipe.category !== filter) return;
+                
+                discoveredCount++;
+                const resultItem = SYNTH_ITEMS[recipe.result.type];
+                const ing1 = recipe.ingredients[0];
+                const ing2 = recipe.ingredients[1];
+                
+                const ing1Name = getItemName(ing1.type, ing1.category);
+                const ing2Name = getItemName(ing2.type, ing2.category);
+                const ing1Icon = getItemIcon(ing1.type, ing1.category);
+                const ing2Icon = getItemIcon(ing2.type, ing2.category);
+                
+                // 효과 텍스트
+                let effectText = '';
+                if (resultItem.type === 'food') {
+                    const effects = [];
+                    if (resultItem.attrGain) {
+                        if (resultItem.attr === 'all') {
+                            effects.push(`전속성 +${resultItem.attrGain}`);
+                        } else if (resultItem.attr === 'dual' && resultItem.dualAttr) {
+                            effects.push(`${resultItem.dualAttr.join('+')} 각 +${resultItem.attrGain}`);
+                        } else {
+                            effects.push(`${resultItem.attr} +${resultItem.attrGain}`);
+                        }
+                    }
+                    if (resultItem.affectionGain) effects.push(`애정도 +${resultItem.affectionGain}`);
+                    if (resultItem.growthGain) effects.push(`성장 +${resultItem.growthGain}`);
+                    effectText = effects.join(', ');
+                } else if (resultItem.type === 'decoration') {
+                    effectText = `${resultItem.attr} +${resultItem.power} (${resultItem.quality})`;
+                }
+                
+                html += `
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 1.5rem;">${resultItem.icon}</span>
+                            <span style="font-weight: 600;">${resultItem.name}</span>
+                            <span style="color: #9b59b6; font-size: 0.85rem;">×${recipe.result.count}</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888; margin-bottom: 5px;">
+                            ${ing1Icon} ${ing1Name} ×${ing1.count} + ${ing2Icon} ${ing2Name} ×${ing2.count}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #9b59b6;">
+                            효과: ${effectText}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            const totalRecipes = Object.keys(RECIPES).length;
+            const headerText = `<div style="margin-bottom: 15px; font-size: 0.9rem; color: #888;">발견한 레시피: ${discoveredRecipes.length} / ${totalRecipes}</div>`;
+            
+            container.innerHTML = headerText + (html || '<div style="color: #888; text-align: center; padding: 20px;">아직 발견한 레시피가 없습니다.<br>재료를 조합해 새로운 레시피를 발견해보세요!</div>');
+        }
+        
+        // 레시피 필터
+        function filterRecipes(filter) {
+            // 버튼 활성화 상태 변경
+            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'var(--bg)';
+                btn.style.fontWeight = 'normal';
+            });
+            event.target.classList.add('active');
+            event.target.style.background = '#9b59b6';
+            event.target.style.color = 'white';
+            event.target.style.fontWeight = '600';
+            
+            renderRecipeList(filter);
         }
         
         // 게임 데이터 내보내기
