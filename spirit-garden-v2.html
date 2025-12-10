@@ -3407,6 +3407,9 @@
             
             // 튜토리얼 체크
             checkTutorialAction('feed');
+            
+            // 속성 불균형 튜토리얼 체크
+            checkImbalanceAndTutorial(spirit);
         }
 
         function openMusicModal(spiritId) {
@@ -3830,6 +3833,9 @@
             // 일지 추가
             addLog(spirit, '약초를 먹고 건강해졌습니다');
             addLog(spirit, spirit.status);
+            
+            // 질병 튜토리얼: 약초 사용 액션 체크
+            checkSickTutorialAction('useMedicine');
             
             saveGame();
             updateSpiritCard(spirit);
@@ -5390,6 +5396,13 @@
                 spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
                 addLog(spirit, reason);
                 showNotification(`${spirit.name}이(가) 병에 걸렸습니다!`);
+                
+                // 첫 질병 시 튜토리얼 시작
+                if (!localStorage.getItem('spiritGarden_sickTutorialSeen')) {
+                    setTimeout(() => {
+                        startSickTutorial();
+                    }, 1000);
+                }
             }
         }
 
@@ -6376,6 +6389,8 @@
                 inventory.food.push(type);
                 if (type === 'medicine') {
                     showNotification(`${MEDICINE.name}을(를) ${price}💰에 구매했습니다`);
+                    // 질병 튜토리얼: 약초 구매 액션 체크
+                    checkSickTutorialAction('buyMedicine');
                 } else {
                     showNotification(`${FOOD_NAMES[type]}을(를) ${price}💰에 구매했습니다`);
                 }
@@ -8202,6 +8217,8 @@
                 if (tab === 'garden') {
                     document.querySelector('.tab:nth-child(1)').classList.add('active');
                     document.getElementById('gardenSection').classList.add('active');
+                    // 질병 튜토리얼: 육성 탭 열기 액션 체크
+                    checkSickTutorialAction('openGarden');
                 } else if (tab === 'terrarium') {
                     document.querySelector('.tab:nth-child(2)').classList.add('active');
                     document.getElementById('terrariumSection').classList.add('active');
@@ -8210,6 +8227,8 @@
                     document.querySelector('.tab:nth-child(3)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
                     renderShop();
+                    // 질병 튜토리얼: 상점 탭 열기 액션 체크
+                    checkSickTutorialAction('openShop');
                 } else if (tab === 'minigame') {
                     document.querySelector('.tab:nth-child(4)').classList.add('active');
                     document.getElementById('minigameSection').classList.add('active');
@@ -11087,6 +11106,389 @@
             }
             
             localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
+        }
+        
+        // ===== 질병 튜토리얼 (첫 질병 발생 시) =====
+        let sickTutorialStep = 0;
+        let sickTutorialActive = false;
+        
+        const SICK_TUTORIAL_STEPS = [
+            {
+                type: 'dialog',
+                text: '정령이 질병에 걸렸구나. 유아기의 정령들은 약해서 종종 이런 일이 일어나곤 해.'
+            },
+            {
+                type: 'dialog',
+                text: '그래도 걱정하지마. 상점에서 약초를 사서 먹이면 되니까.'
+            },
+            {
+                type: 'action',
+                action: 'openShop',
+                text: '상점 탭을 눌러볼래?'
+            },
+            {
+                type: 'dialog',
+                text: '안녕, 상점 주인. 오늘도 의욕이 없어보이네.'
+            },
+            {
+                type: 'shopkeeper',
+                text: '시비걸거면 가세요...'
+            },
+            {
+                type: 'dialog',
+                text: '저렇다니까. 아, 약초를 사러 왔었지. 구매하기에서 약초를 찾아 구매해봐.'
+            },
+            {
+                type: 'action',
+                action: 'buyMedicine',
+                text: '약초를 구매해봐!'
+            },
+            {
+                type: 'dialog',
+                text: '약초를 샀으면 이제 육성탭으로 돌아가자.'
+            },
+            {
+                type: 'action',
+                action: 'openGarden',
+                text: '육성 탭을 눌러봐.'
+            },
+            {
+                type: 'action',
+                action: 'useMedicine',
+                text: '질병에 걸린 정령에게 약초 사용을 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '자, 금방 나았지? 앞으로도 당황하지말고 이렇게 하면 돼. 그럼 계속 힘내라고~'
+            }
+        ];
+        
+        function startSickTutorial() {
+            // 이미 본 적 있으면 시작하지 않음
+            if (localStorage.getItem('spiritGarden_sickTutorialSeen')) return;
+            
+            sickTutorialStep = 0;
+            sickTutorialActive = true;
+            showSickTutorialStep();
+        }
+        
+        function showSickTutorialStep() {
+            if (sickTutorialStep >= SICK_TUTORIAL_STEPS.length) {
+                endSickTutorial();
+                return;
+            }
+            
+            const step = SICK_TUTORIAL_STEPS[sickTutorialStep];
+            
+            if (step.type === 'dialog') {
+                showSickTutorialDialog(step.text);
+            } else if (step.type === 'shopkeeper') {
+                showSickTutorialShopkeeper(step.text);
+            } else if (step.type === 'action') {
+                showSickTutorialAction(step.text, step.action);
+            }
+        }
+        
+        function showSickTutorialDialog(text) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #f39c12;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                    </div>
+                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <button onclick="nextSickTutorialStep()" style="width: 100%; padding: 12px; background: #f39c12; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showSickTutorialShopkeeper(text) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #888;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">👤</span>
+                        <span style="font-size: 0.9rem; color: #888; font-weight: 600;">상점 주인</span>
+                    </div>
+                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <button onclick="nextSickTutorialStep()" style="width: 100%; padding: 12px; background: #888; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showSickTutorialAction(text, action) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #f39c12;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                    </div>
+                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
+                    👇 해당 버튼을 눌러보세요!
+                </div>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+            
+            window.tutorialWaitingFor = action;
+            
+            // 강조할 요소 찾아서 하이라이트
+            highlightSickTutorialTarget(action);
+        }
+        
+        function highlightSickTutorialTarget(action) {
+            clearTutorialHighlight();
+            
+            let targetSelector = '';
+            
+            if (action === 'openShop') {
+                targetSelector = 'button.tab[onclick*="shop"]';
+            } else if (action === 'buyMedicine') {
+                targetSelector = 'button[onclick*="buyItem"][onclick*="medicine"]';
+            } else if (action === 'openGarden') {
+                targetSelector = 'button.tab[onclick*="garden"]';
+            } else if (action === 'useMedicine') {
+                targetSelector = 'button[onclick*="giveMedicine"]';
+            }
+            
+            if (targetSelector) {
+                const target = document.querySelector(targetSelector);
+                if (target) {
+                    target.classList.add('tutorial-highlight');
+                }
+            }
+        }
+        
+        function nextSickTutorialStep() {
+            sickTutorialStep++;
+            showSickTutorialStep();
+        }
+        
+        function skipSickTutorial() {
+            endSickTutorial();
+        }
+        
+        function endSickTutorial() {
+            sickTutorialActive = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_sickTutorialSeen', 'true');
+        }
+        
+        // 질병 튜토리얼용 액션 체크
+        function checkSickTutorialAction(action) {
+            if (!sickTutorialActive) return;
+            if (window.tutorialWaitingFor !== action) return;
+            
+            clearTutorialHighlight();
+            sickTutorialStep++;
+            showSickTutorialStep();
+        }
+        
+        // ===== 속성 불균형 튜토리얼 (첫 불균형 발생 시) =====
+        let imbalanceTutorialStep = 0;
+        let imbalanceTutorialActive = false;
+        
+        const IMBALANCE_TUTORIAL_STEPS = [
+            {
+                type: 'dialog',
+                text: '처음엔 한 속성에만 신경쓰는게 좋다고 했더니 그 말을 아주 잘 들었구나, 후배...'
+            },
+            {
+                type: 'dialog',
+                text: '자, 봐. 속성 수치를 보면 높은 속성이 50이상, 낮은 속성은 10 이하지?'
+            },
+            {
+                type: 'dialog',
+                text: '이런 경우엔 정령에게 속성 불균형이 찾아와.'
+            },
+            {
+                type: 'dialog',
+                text: '자연에서는 모든 속성을 골고루 쌓을 수 있지만 인공 테라리움에선 그러기 쉽지 않거든.'
+            },
+            {
+                type: 'dialog',
+                text: '속성 불균형은 낮은 속성을 10 이상으로 올려주면 자연스럽게 풀릴거야.'
+            },
+            {
+                type: 'dialog',
+                text: '...그런거면 처음부터 말해달라고? 이 녀석이.'
+            },
+            {
+                type: 'dialog',
+                text: '일단 난 설명해줬으니 간다. 힘내라~'
+            }
+        ];
+        
+        function startImbalanceTutorial() {
+            // 이미 본 적 있으면 시작하지 않음
+            if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
+            
+            imbalanceTutorialStep = 0;
+            imbalanceTutorialActive = true;
+            showImbalanceTutorialStep();
+        }
+        
+        function showImbalanceTutorialStep() {
+            if (imbalanceTutorialStep >= IMBALANCE_TUTORIAL_STEPS.length) {
+                endImbalanceTutorial();
+                return;
+            }
+            
+            const step = IMBALANCE_TUTORIAL_STEPS[imbalanceTutorialStep];
+            showImbalanceTutorialDialog(step.text);
+        }
+        
+        function showImbalanceTutorialDialog(text) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #f39c12;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                    </div>
+                    <button onclick="skipImbalanceTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <button onclick="nextImbalanceTutorialStep()" style="width: 100%; padding: 12px; background: #f39c12; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function nextImbalanceTutorialStep() {
+            imbalanceTutorialStep++;
+            showImbalanceTutorialStep();
+        }
+        
+        function skipImbalanceTutorial() {
+            endImbalanceTutorial();
+        }
+        
+        function endImbalanceTutorial() {
+            imbalanceTutorialActive = false;
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_imbalanceTutorialSeen', 'true');
+        }
+        
+        // 속성 불균형 체크 함수
+        function checkImbalanceAndTutorial(spirit) {
+            if (!spirit || !spirit.hiddenAttributes) return;
+            if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
+            
+            const attrs = spirit.hiddenAttributes;
+            const attrValues = Object.values(attrs);
+            const maxAttr = Math.max(...attrValues);
+            const minAttr = Math.min(...attrValues);
+            
+            // 불균형 조건: 최고 50 이상 & 최저 10 이하
+            if (maxAttr >= 50 && minAttr <= 10) {
+                setTimeout(() => {
+                    startImbalanceTutorial();
+                }, 500);
+            }
         }
         
         function checkAndShowOpening() {
