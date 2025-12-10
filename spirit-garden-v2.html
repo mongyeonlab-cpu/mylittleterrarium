@@ -3436,7 +3436,15 @@
                 if (!spirit.musicListened) spirit.musicListened = 0;
                 spirit.musicListened += 1;
                 
-                spirit.status = `${spirit.name}이(가) 크리스마스 캐롤에 맞춰 행복해합니다!`;
+                // 성장 단계별 이벤트 음악 대사
+                const eventStage = getStage(spirit.growth);
+                if (eventStage === 'egg') {
+                    spirit.status = `${spirit.name}에서 크리스마스 캐롤에 반응하는 따뜻한 진동이 느껴집니다.`;
+                } else if (eventStage === 'pupa') {
+                    spirit.status = `${spirit.name}이(가) 크리스마스 캐롤에 미세하게 꿈틀거립니다.`;
+                } else {
+                    spirit.status = `${spirit.name}이(가) 크리스마스 캐롤에 맞춰 행복해합니다!`;
+                }
                 addLog(spirit, `🎄 ${eventItem.name}을(를) 들었습니다!`);
                 
                 inventory.music.splice(inventoryIndex, 1);
@@ -3483,14 +3491,42 @@
             if (!spirit.musicListened) spirit.musicListened = 0;
             spirit.musicListened += 1;
             
-            // 음악 관련 랜덤 메시지
-            const musicMessages = [
-                `${spirit.name}이(가) ${musicData.name}을(를) 흥얼거립니다.`,
-                `${spirit.name}이(가) ${musicData.name}에 맞춰 춤을 춥니다.`,
-                `${spirit.name}이(가) ${musicData.name}의 선율을 떠올립니다.`,
-                `${spirit.name}이(가) 음악에 취해 있습니다.`,
-                `${spirit.name}이(가) ${musicData.name}의 여운에 젖어 있습니다.`
-            ];
+            // 성장 단계 확인
+            const stage = getStage(spirit.growth);
+            const isEgg = stage === 'egg';
+            const isPupaStage = stage === 'pupa';
+            
+            // 음악 관련 랜덤 메시지 (성장 단계별)
+            let musicMessages = [];
+            
+            if (isEgg) {
+                // 알 상태 음악 반응
+                musicMessages = [
+                    `${spirit.name}에서 음악에 반응하는 진동이 느껴집니다.`,
+                    `${spirit.name}이(가) ${musicData.name}의 선율에 미세하게 떨립니다.`,
+                    `${spirit.name}의 껍질이 음악에 맞춰 희미하게 빛납니다.`,
+                    `${spirit.name} 안에서 음악을 좋아하는 것 같은 기운이 느껴집니다.`,
+                    `${spirit.name}이(가) ${musicData.name}을(를) 듣고 평온해 보입니다.`
+                ];
+            } else if (isPupaStage) {
+                // 번데기 상태 음악 반응
+                musicMessages = [
+                    `${spirit.name}에서 음악에 반응하는 약한 진동이 느껴집니다.`,
+                    `${spirit.name}이(가) ${musicData.name}의 선율에 미세하게 꿈틀거립니다.`,
+                    `${spirit.name}의 껍질이 음악에 맞춰 살짝 떨립니다.`,
+                    `${spirit.name} 안에서 음악을 즐기는 것 같은 기운이 느껴집니다.`,
+                    `${spirit.name}이(가) ${musicData.name}을(를) 들으며 변태를 준비합니다.`
+                ];
+            } else {
+                // 애벌레 상태 음악 반응 (기존)
+                musicMessages = [
+                    `${spirit.name}이(가) ${musicData.name}을(를) 흥얼거립니다.`,
+                    `${spirit.name}이(가) ${musicData.name}에 맞춰 춤을 춥니다.`,
+                    `${spirit.name}이(가) ${musicData.name}의 선율을 떠올립니다.`,
+                    `${spirit.name}이(가) 음악에 취해 있습니다.`,
+                    `${spirit.name}이(가) ${musicData.name}의 여운에 젖어 있습니다.`
+                ];
+            }
             spirit.status = musicMessages[Math.floor(Math.random() * musicMessages.length)];
 
             // 일지 추가
@@ -3542,11 +3578,69 @@
             spirit.lastPat = Date.now();
             spirit.lastInteraction = Date.now();  // 상호작용 시간 업데이트
             
+            // 성장 단계 확인
+            const stage = getStage(spirit.growth);
+            const isEgg = stage === 'egg';
+            const isPupaStage = stage === 'pupa';
+            
             // 애정도에 따른 반응 메시지
             let messages = [];
             let notificationEmoji = '';
             
-            if (currentAffection < 10) {
+            // 알 상태 대사
+            if (isEgg) {
+                if (currentAffection < 10) {
+                    messages = [
+                        `${spirit.name}에서 차가운 기운이 느껴집니다.`,
+                        `${spirit.name}이(가) 아직 낯선 온기에 적응 중입니다.`,
+                        `${spirit.name}의 껍질이 살짝 떨립니다.`
+                    ];
+                    notificationEmoji = '😟';
+                } else if (currentAffection < 50) {
+                    messages = [
+                        `${spirit.name}에서 따뜻한 기운이 느껴집니다.`,
+                        `${spirit.name}이(가) 당신의 온기를 좋아하는 것 같습니다.`,
+                        `${spirit.name}의 껍질에서 미세한 진동이 느껴집니다.`
+                    ];
+                    notificationEmoji = '😊';
+                } else {
+                    messages = [
+                        `${spirit.name}에서 행복한 기운이 전해집니다.`,
+                        `${spirit.name}이(가) 당신의 손길에 반응합니다.`,
+                        `${spirit.name} 안에서 무언가 기뻐하는 것 같습니다.`,
+                        `${spirit.name}이(가) 포근한 온기에 만족해합니다.`
+                    ];
+                    notificationEmoji = '🥰';
+                }
+            }
+            // 번데기 상태 대사
+            else if (isPupaStage) {
+                if (currentAffection < 10) {
+                    messages = [
+                        `${spirit.name}에서 미약한 반응이 느껴집니다.`,
+                        `${spirit.name}이(가) 아직 당신의 손길에 익숙하지 않은 것 같습니다.`,
+                        `${spirit.name}의 껍질이 살짝 경직됩니다.`
+                    ];
+                    notificationEmoji = '😟';
+                } else if (currentAffection < 50) {
+                    messages = [
+                        `${spirit.name}에서 따뜻한 진동이 느껴집니다.`,
+                        `${spirit.name}이(가) 당신의 손길에 편안해하는 것 같습니다.`,
+                        `${spirit.name}의 껍질이 부드럽게 반응합니다.`
+                    ];
+                    notificationEmoji = '😊';
+                } else {
+                    messages = [
+                        `${spirit.name}에서 행복한 진동이 전해집니다.`,
+                        `${spirit.name}이(가) 당신의 손길을 기다렸던 것 같습니다.`,
+                        `${spirit.name} 안에서 기쁨이 느껴집니다.`,
+                        `${spirit.name}이(가) 당신의 사랑을 느끼고 있습니다.`
+                    ];
+                    notificationEmoji = '🥰';
+                }
+            }
+            // 애벌레 상태 대사 (기존)
+            else if (currentAffection < 10) {
                 // 낯설어함, 경계함
                 messages = [
                     `${spirit.name}이(가) 당신을 낯설어합니다...`,
