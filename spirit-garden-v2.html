@@ -1068,6 +1068,17 @@
 
     <div id="shopSection" class="section">
         <div style="max-width: 1000px; margin: 0 auto;">
+            <!-- 상점 주인 대사 -->
+            <div id="shopkeeperArea" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem;">👤</div>
+                    <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">상점 주인</div>
+                </div>
+                <div style="flex: 1; font-family: 'Gowun Batang', serif; font-size: 1.1rem; color: var(--text); font-style: italic;" id="shopkeeperDialogue">
+                    어서오세요...
+                </div>
+            </div>
+            
             <div style="text-align: center; margin-bottom: 30px;">
                 <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🏪 정령 상점</h2>
                 <div style="font-size: 1.5rem; font-weight: 700; color: var(--fire); margin-bottom: 20px;">보유 코인: <span id="shopCoinDisplay">0</span> 💰</div>
@@ -1160,6 +1171,9 @@
                     <div style="font-size: 1.2rem;">
                         <span style="color: #e74c3c;">❤️</span> 
                         <span id="minigameLives">❤️❤️❤️</span>
+                    </div>
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--fire);">
+                        ⏱️ <span id="minigameTimer">60</span>초
                     </div>
                     <div style="font-size: 1.3rem; font-weight: 700; color: var(--text);">
                         점수: <span id="minigameScore">0</span>
@@ -1373,6 +1387,7 @@
         let installedDecorations = []; // 설치된 장식물 목록 (객체 배열: { type, index })
         let lightMode = true; // 조명 모드 (true: 빛, false: 어둠)
         let coins = 0; // 화폐
+        let hasVisitedShop = false; // 상점 첫 방문 여부
         let currentSpiritId = null;
         let pendingSpirit = null;
         let lastGatherTime = null;
@@ -2590,6 +2605,7 @@
                 darkModeLocked = data.darkModeLocked || false;
                 activatedEvents = data.activatedEvents || [];
                 lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
+                hasVisitedShop = data.hasVisitedShop || false;
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -2638,7 +2654,8 @@
                 isPaused,
                 darkModeLocked,
                 activatedEvents,
-                lowSatisfactionStartTime
+                lowSatisfactionStartTime,
+                hasVisitedShop
             }));
         }
 
@@ -5633,7 +5650,13 @@
                             <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
                         </div>
                         ${(() => {
-                            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                            const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                            const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                            // 최종 속성 = (먹이 × 0.5) + (테라리움 × 0.5)
+                            const attrs = {};
+                            for (let attr in foodAttrs) {
+                                attrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
+                            }
                             const attrIcons = { fire: '🔥', water: '💧', wind: '🌿', earth: '🪨', light: '✨', dark: '🌙' };
                             const attrNames = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' };
                             const attrValues = Object.values(attrs);
@@ -5644,15 +5667,16 @@
                             return `
                                 <div style="margin: 8px 0; padding: 8px; background: var(--bg); border: 1px solid ${isImbalanced ? '#f44336' : 'var(--border)'}; border-radius: 8px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">속성</span>
+                                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">속성 (먹이+환경)</span>
                                         ${isImbalanced ? '<span style="font-size: 0.75rem; color: #f44336; font-weight: 600;">⚠️ 불균형</span>' : ''}
                                     </div>
                                     <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center;">
                                         ${Object.entries(attrs).map(([key, val]) => {
                                             const isMax = val === maxAttr && maxAttr > 0;
                                             const isMin = val === minAttr && isImbalanced;
+                                            const isPerfect = val >= 90;
                                             return `
-                                                <div style="font-size: 0.75rem; ${isMax ? 'color: #4caf50; font-weight: 700;' : ''} ${isMin ? 'color: #f44336; font-weight: 700;' : ''}">
+                                                <div style="font-size: 0.75rem; ${isPerfect ? 'color: gold; font-weight: 700;' : isMax ? 'color: #4caf50; font-weight: 700;' : ''} ${isMin ? 'color: #f44336; font-weight: 700;' : ''}">
                                                     <div>${attrIcons[key]}</div>
                                                     <div>${Math.floor(val)}</div>
                                                 </div>
@@ -5748,8 +5772,60 @@
             renderBuyList();
         }
 
+        // 상점 주인 대사 시스템
+        function updateShopkeeperDialogue() {
+            const dialogueEl = document.getElementById('shopkeeperDialogue');
+            if (!dialogueEl) return;
+            
+            let dialogue = '';
+            let gaveGift = false;
+            
+            // 우선순위 대사 체크
+            if (!hasVisitedShop) {
+                // 첫 방문
+                dialogue = '처음 보는 얼굴이네요...';
+                hasVisitedShop = true;
+                saveGame();
+            } else if (coins === 0) {
+                // 0코인일 때 선물
+                dialogue = '...이거라도 가져가요.';
+                coins += 10;
+                gaveGift = true;
+                saveGame();
+                updateCoinDisplay();
+            } else if (coins <= 50) {
+                // 50코인 이하
+                dialogue = '주머니가 가벼워 보이네요.';
+            } else {
+                // 일반 랜덤 대사
+                const randomDialogues = [
+                    '어서오세요...',
+                    '날씨가 좋네요. ...싫다.',
+                    '날이 추워서 일하기 싫어요.',
+                    '<계산대에 엎드려 자고있다.>',
+                    '또 오셨네요...',
+                    '천천히 둘러보세요...',
+                    '...뭘 봐요.',
+                    '오늘은 특별한 건 없어요.',
+                    '...하품.',
+                    '손님이 오면 일해야 하잖아요...'
+                ];
+                dialogue = randomDialogues[Math.floor(Math.random() * randomDialogues.length)];
+            }
+            
+            dialogueEl.textContent = dialogue;
+            
+            // 선물 받았을 때 알림
+            if (gaveGift) {
+                setTimeout(() => {
+                    showNotification('💰 상점 주인에게 10코인을 받았습니다!');
+                }, 500);
+            }
+        }
+        
         function renderShop() {
             updateCoinDisplay();
+            updateShopkeeperDialogue();
             renderSellList();
             renderBuyList();
         }
@@ -9586,6 +9662,8 @@
         let minigameWords = [];
         let minigameInterval = null;
         let minigameSpawnInterval = null;
+        let minigameTimerInterval = null;
+        let minigameTimeLeft = 60;
         let minigameDifficulty = 'normal';
         let minigameDefeated = 0;
         let minigamePaused = false;
@@ -9742,6 +9820,26 @@
                     updateMinigameWords();
                 }
             }, 50);
+            
+            // 타이머 시작 (1분 제한)
+            minigameTimeLeft = 60;
+            document.getElementById('minigameTimer').textContent = minigameTimeLeft;
+            minigameTimerInterval = setInterval(() => {
+                if (!minigamePaused) {
+                    minigameTimeLeft--;
+                    document.getElementById('minigameTimer').textContent = minigameTimeLeft;
+                    
+                    // 10초 이하면 빨간색으로 표시
+                    if (minigameTimeLeft <= 10) {
+                        document.getElementById('minigameTimer').style.color = '#e74c3c';
+                    }
+                    
+                    // 시간 종료
+                    if (minigameTimeLeft <= 0) {
+                        endMinigame();
+                    }
+                }
+            }, 1000);
             
             // 첫 단어 바로 생성
             spawnMinigameWord();
@@ -9935,6 +10033,13 @@
                 clearInterval(minigameSpawnInterval);
                 minigameSpawnInterval = null;
             }
+            if (minigameTimerInterval) {
+                clearInterval(minigameTimerInterval);
+                minigameTimerInterval = null;
+            }
+            
+            // 타이머 색상 초기화
+            document.getElementById('minigameTimer').style.color = '';
             
             // 남은 단어 제거
             minigameWords.forEach(w => {
