@@ -2317,7 +2317,7 @@
                         child: '🌨️',
                         adult: '⛄'
                     },
-                    chance: 0.25 // 25% 확률
+                    chance: 0.4 // 40% 확률
                 }
             }
         };
@@ -5250,13 +5250,10 @@
                     };
                 }
 
-                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 100까지만)
+                // 테라리움의 각 속성값만큼 정령의 속성 증가
                 Object.keys(terrarium).forEach(attr => {
                     if (terrarium[attr] > 0) {
-                        spirit.hiddenAttributes[attr] = Math.min(
-                            spirit.hiddenAttributes[attr] + terrarium[attr],
-                            100  // 속성 최대치
-                        );
+                        spirit.hiddenAttributes[attr] += terrarium[attr];
                     }
                 });
                 
@@ -5785,12 +5782,15 @@
                         const count = foodCounts[type];
                         const isRare = type === 'light' || type === 'dark';
                         const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                        const effectText = isRare ? `${ENV_ICONS[type]} 속성 +2, 성장 +3` : `${ENV_ICONS[type]} 속성 +1, 성장 +2`;
+                        const rarityLabel = isRare ? ' <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span>' : '';
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}</div>
+                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}${rarityLabel}</div>
+                                        <div style="font-size: 0.85rem; color: #666;">${effectText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
                                     </div>
                                 </div>
@@ -5846,6 +5846,8 @@
                         
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
                         const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        const qualityText = decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
+                        const attrName = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' }[decoData.attr] || '';
                         
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -5853,6 +5855,7 @@
                                     <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
                                     <div>
                                         <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[decoData.attr]} ${attrName} 속성 +${decoData.value} | ${qualityText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
                                     </div>
                                 </div>
@@ -5897,6 +5900,7 @@
                                     <span style="font-size: 1.5rem;">🎵</span>
                                     <div>
                                         <div style="font-weight: 700;">${musicData.name} ×${count}</div>
+                                        <div style="font-size: 0.85rem; color: #666;">${musicData.effect}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
                                     </div>
                                 </div>
@@ -6007,6 +6011,7 @@
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
                                     <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                    <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +1, 성장 +2</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
                                 </div>
                             </div>
@@ -6024,7 +6029,8 @@
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span></div>
+                                    <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +2, 성장 +3</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
                                 </div>
                             </div>
@@ -7606,15 +7612,15 @@
                 },
                 {
                     title: '🌬️ 질풍 조합',
-                    attrs: ['wind-earth', 'wind-light', 'wind-dark']
+                    attrs: ['earth-wind', 'light-wind', 'dark-wind']
                 },
                 {
                     title: '🌱 대지 조합',
-                    attrs: ['earth-light', 'earth-dark']
+                    attrs: ['earth-light', 'dark-earth']
                 },
                 {
                     title: '✨🌙 환혹',
-                    attrs: ['light-dark']
+                    attrs: ['dark-light']
                 },
                 {
                     title: '⚖️🌪️ 다속성',
