@@ -281,7 +281,7 @@
         .spirit-status {
             font-size: 0.85rem;
             color: #888;
-            margin-bottom: 16px;
+            margin-bottom: 4px;
             min-height: 40px;
         }
 
@@ -5757,8 +5757,8 @@
                         })()}
                         <div class="spirit-status">${spirit.status}</div>
                         ${spirit.logs && spirit.logs.length > 0 ? `
-                            <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleLogs(${spirit.id})">
+                            <div style="margin-top: 6px; margin-bottom: 16px; border-top: 1px solid var(--border); padding-top: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 8px; background: var(--bg); border-radius: 6px;" onclick="toggleLogs(${spirit.id})">
                                     <span style="font-size: 0.9rem; font-weight: 600;">일지 (${spirit.logs.length}개)</span>
                                     <span id="logToggle${spirit.id}" style="font-size: 0.8rem;">▼</span>
                                 </div>
@@ -5958,9 +5958,9 @@
                         const attrDiff = (attrOrder[dataA.attr] || 0) - (attrOrder[dataB.attr] || 0);
                         if (attrDiff !== 0) return attrDiff;
                         
-                        // 2. 품질별 정렬 (높은 순)
-                        const qualityOrder = { epic: 0, rare: 1, common: 2 };
-                        const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                        // 2. 품질별 정렬 (높은 순: legendary > epic > rare > common)
+                        const qualityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
+                        const qualityDiff = (qualityOrder[dataA.quality] || 3) - (qualityOrder[dataB.quality] || 3);
                         if (qualityDiff !== 0) return qualityDiff;
                         
                         // 3. 이름별 정렬
@@ -5983,8 +5983,8 @@
                         const count = decorCounts[key];
                         
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
-                        const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                        const qualityText = decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
+                        const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        const qualityText = decoData.quality === 'legendary' ? '<span style="color: #ff6b35;">전설</span>' : decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
                         const attrName = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' }[decoData.attr] || '';
                         
                         items.push(`
