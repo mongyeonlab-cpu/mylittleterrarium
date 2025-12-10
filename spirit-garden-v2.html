@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>나의 작은 테라리움 - Spirit Garden</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -848,6 +849,35 @@
                 border-bottom: none;
             }
         }
+        
+        /* 튜토리얼 버튼 강조 효과 */
+        @keyframes tutorialPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            50% { box-shadow: 0 0 20px 10px rgba(255, 193, 7, 0.4); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+        }
+        
+        .tutorial-highlight {
+            animation: tutorialPulse 1.5s infinite !important;
+            border: 3px solid #ffc107 !important;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .tutorial-highlight::after {
+            content: '👇';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            animation: bounce 0.5s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -957,8 +987,15 @@
     </div>
 
     <div id="albumSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
-        <div class="collection-grid" id="collectionGrid"></div>
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">💝 정령 앨범</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="shareAlbum()" style="padding: 10px 20px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+                📷 앨범 이미지로 저장
+            </button>
+        </div>
+        <div id="albumShareArea">
+            <div class="collection-grid" id="collectionGrid"></div>
+        </div>
     </div>
     
     <!-- 일지 섹션 -->
@@ -1333,7 +1370,7 @@
     <div class="modal" id="nameModal">
         <div class="modal-content">
             <div class="modal-title">정령의 이름을 지어주세요</div>
-            <input type="text" class="name-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="10">
+            <input type="text" class="name-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="10" onkeypress="if(event.key === 'Enter') confirmName()">
             <button onclick="confirmName()" style="width: 100%;">확인</button>
         </div>
     </div>
@@ -2770,28 +2807,26 @@
             
             // 튜토리얼: 이름 클릭 액션 체크
             checkTutorialAction('clickName');
+        }
+        
+        // 이름 확인 함수
+        function confirmName() {
+            const spirit = spirits.find(s => s.id === currentSpiritId);
+            if (!spirit) return;
             
-            // 이름 변경 모드로 전환
-            const confirmBtn = document.querySelector('#nameModal button');
-            const originalHandler = confirmBtn.onclick;
-            confirmBtn.onclick = function() {
-                const newName = document.getElementById('nameInput').value.trim();
-                if (!newName) {
-                    showNotification('이름을 입력해주세요');
-                    return;
-                }
-                spirit.name = newName;
-                closeModal('nameModal');
-                saveGame();
-                updateSpiritCard(spirit);
-                showNotification('이름을 변경했습니다');
-                
-                // 튜토리얼: 이름 변경 완료 액션 체크
-                checkTutorialAction('rename');
-                
-                // 원래 함수로 복구
-                confirmBtn.onclick = originalHandler;
-            };
+            const newName = document.getElementById('nameInput').value.trim();
+            if (!newName) {
+                showNotification('이름을 입력해주세요');
+                return;
+            }
+            spirit.name = newName;
+            closeModal('nameModal');
+            saveGame();
+            updateSpiritCard(spirit);
+            showNotification('이름을 변경했습니다');
+            
+            // 튜토리얼: 이름 변경 완료 액션 체크
+            checkTutorialAction('rename');
         }
 
         // 정령의 주요 속성 찾기
@@ -5764,6 +5799,13 @@
                     </div>
                 `;
             }).join('');
+            
+            // 튜토리얼 진행 중이면 강조 표시 재적용
+            if ((tutorialActive || tutorial2Active) && window.tutorialWaitingFor) {
+                setTimeout(() => {
+                    highlightTutorialTarget(window.tutorialWaitingFor);
+                }, 100);
+            }
         }
 
         function updateCoinDisplay() {
@@ -7973,6 +8015,57 @@
                         </div>
                     `;
                 }
+            }
+        }
+
+        // 앨범 이미지 공유 기능
+        async function shareAlbum() {
+            if (collection.length === 0) {
+                showNotification('앨범에 정령이 없습니다');
+                return;
+            }
+            
+            showNotification('📷 이미지 생성 중...');
+            
+            try {
+                const albumArea = document.getElementById('albumShareArea');
+                
+                // 임시로 배경색 설정 (투명 방지)
+                const originalBg = albumArea.style.background;
+                albumArea.style.background = getComputedStyle(document.body).getPropertyValue('--bg') || '#fafaf8';
+                
+                // 타이틀과 통계 추가
+                const header = document.createElement('div');
+                header.id = 'albumShareHeader';
+                header.style.cssText = 'text-align: center; padding: 20px; background: var(--bg);';
+                header.innerHTML = `
+                    <div style="font-family: 'Nanum Myeongjo', serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 10px;">💝 나의 작은 테라리움</div>
+                    <div style="font-size: 1rem; color: #888; margin-bottom: 5px;">수집한 정령: ${collection.length}마리 | 도감: ${Object.keys(encyclopedia).length}종</div>
+                    <div style="font-size: 0.85rem; color: #aaa;">${new Date().toLocaleDateString('ko-KR')}</div>
+                `;
+                albumArea.insertBefore(header, albumArea.firstChild);
+                
+                const canvas = await html2canvas(albumArea, {
+                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg') || '#fafaf8',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+                
+                // 헤더 제거 및 배경 복원
+                header.remove();
+                albumArea.style.background = originalBg;
+                
+                // 이미지 다운로드
+                const link = document.createElement('a');
+                link.download = `spirit-album-${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                showNotification('✅ 앨범 이미지가 저장되었습니다!');
+            } catch (error) {
+                console.error('앨범 이미지 생성 오류:', error);
+                showNotification('❌ 이미지 생성에 실패했습니다');
             }
         }
 
@@ -10417,7 +10510,7 @@
             {
                 type: 'action',
                 action: 'getEgg',
-                text: '자, 먼저 정령 알을 받아봐. 저기 위에 있는 "새로운 알 받기" 버튼을 눌러봐.'
+                text: '자, 먼저 정령 알을 받아보자. 아래로 내리면 "새로운 알 받기" 버튼이 있을거야.'
             },
             {
                 type: 'dialog',
@@ -10453,12 +10546,12 @@
             {
                 type: 'action',
                 action: 'clickName',
-                text: '그리고 정령에게 이름을 지어줄 수도 있어. 알 이름을 눌러봐.'
+                text: '그리고 정령에게 이름을 지어줄 수도 있어. 정령 카드에서 노란색으로 강조된 이름 부분을 눌러봐!'
             },
             {
                 type: 'action',
                 action: 'rename',
-                text: '자, 네가 새 이름을 지어줘.'
+                text: '자, 입력창에 새 이름을 지어주고 확인을 눌러!'
             },
             {
                 type: 'dialog',
@@ -10663,12 +10756,70 @@
             
             // 해당 액션을 기다림
             window.tutorialWaitingFor = action;
+            
+            // 강조할 요소 찾아서 하이라이트
+            highlightTutorialTarget(action);
+        }
+        
+        // 튜토리얼 대상 요소 강조
+        function highlightTutorialTarget(action) {
+            // 기존 강조 제거
+            clearTutorialHighlight();
+            
+            let targetSelector = null;
+            
+            switch(action) {
+                case 'getEgg':
+                    targetSelector = '.new-spirit-btn';
+                    break;
+                case 'clickName':
+                    targetSelector = '.spirit-name';
+                    break;
+                case 'rename':
+                    targetSelector = '#nameInput';
+                    break;
+                case 'feed':
+                    targetSelector = 'button[onclick*="openFeedModal"]';
+                    break;
+                case 'music':
+                    targetSelector = 'button[onclick*="openMusicModal"]';
+                    break;
+                case 'pat':
+                    targetSelector = 'button[onclick*="patSpirit"]';
+                    break;
+                case 'toggleLight':
+                    targetSelector = '#lightBtn';
+                    break;
+                case 'openAlbum':
+                    targetSelector = '.tab:nth-child(6)';
+                    break;
+                case 'openAlbumDetail':
+                    targetSelector = '.collection-card';
+                    break;
+            }
+            
+            if (targetSelector) {
+                const target = document.querySelector(targetSelector);
+                if (target) {
+                    target.classList.add('tutorial-highlight');
+                    // 해당 요소로 스크롤
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+        
+        // 튜토리얼 강조 제거
+        function clearTutorialHighlight() {
+            document.querySelectorAll('.tutorial-highlight').forEach(el => {
+                el.classList.remove('tutorial-highlight');
+            });
         }
         
         function checkTutorialAction(action) {
             if (!tutorialActive && !tutorial2Active) return;
             if (window.tutorialWaitingFor === action) {
                 window.tutorialWaitingFor = null;
+                clearTutorialHighlight();
                 if (tutorial2Active) {
                     nextTutorial2Step();
                 } else {
@@ -10689,6 +10840,7 @@
         function endTutorial() {
             tutorialActive = false;
             window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
             
             const modal = document.getElementById('tutorialModal');
             if (modal) {
@@ -10856,6 +11008,9 @@
             document.body.appendChild(modal);
             
             window.tutorialWaitingFor = action;
+            
+            // 강조할 요소 찾아서 하이라이트
+            highlightTutorialTarget(action);
         }
         
         function nextTutorial2Step() {
@@ -10870,6 +11025,7 @@
         function endTutorial2() {
             tutorial2Active = false;
             window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
             
             const modal = document.getElementById('tutorialModal');
             if (modal) {
