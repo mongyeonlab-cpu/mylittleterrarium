@@ -1428,7 +1428,7 @@
                 '{name}이(가) 가만히 웅크리고 있습니다.',
                 '{name}이(가) 천천히 움직입니다.',
                 '{name}이(가) 테라리움 유리에 몸을 문지릅니다.',
-                '{name}이(가) 날개를 살짝 떨고 있습니다.',
+                '{name}이(가) 몸을 살짝 떨고 있습니다.',
                 '{name}이(가) 자신의 몸을 정리합니다.',
                 '{name}이(가) 무언가를 찾는 듯합니다.',
                 '{name}이(가) 외로워합니다.',
@@ -1549,13 +1549,27 @@
                 '{name}이(가) 당신의 손에 입맞춤합니다.',
                 '{name}이(가) 당신 없이는 못 산다는 듯 쳐다봅니다.'
             ],
-            // 음악 관련 (최근에 음악 들음)
+            // 음악 관련 (최근에 음악 들음) - 애벌레용
             music: [
                 '{name}이(가) {music}을(를) 흥얼거립니다.',
                 '{name}이(가) {music}에 맞춰 춤을 춥니다.',
                 '{name}이(가) {music}의 선율을 떠올립니다.',
                 '{name}이(가) 음악에 취해 있습니다.',
                 '{name}이(가) {music}의 여운에 젖어 있습니다.'
+            ],
+            // 알 상태 음악 관련
+            egg_music: [
+                '{name}에서 {music}에 반응하는 진동이 느껴집니다.',
+                '{name}의 껍질이 {music}에 맞춰 희미하게 빛납니다.',
+                '{name}이(가) {music}의 선율에 반응합니다.',
+                '{name} 안에서 음악을 즐기는 듯한 기운이 느껴집니다.'
+            ],
+            // 번데기 상태 음악 관련
+            pupa_music: [
+                '{name}에서 {music}에 반응하는 약한 진동이 느껴집니다.',
+                '{name}의 껍질이 {music}에 맞춰 살짝 떨립니다.',
+                '{name}이(가) {music}의 선율에 미세하게 반응합니다.',
+                '{name} 안에서 음악을 즐기는 듯한 기운이 느껴집니다.'
             ],
             // 장식물 관련 (30개 전체)
             decorations: {
@@ -1685,7 +1699,7 @@
                 ],
                 light_rare2: [
                     '{name}이(가) 태양석의 따뜻한 빛을 쬡니다.',
-                    '{name}이(가) 태양석 앞에서 날개를 펼칩니다.',
+                    '{name}이(가) 태양석 앞에서 몸을 쭉 펴고 있습니다.',
                     '{name}이(가) 태양석의 광채를 온몸으로 받고 있습니다.'
                 ],
                 light_epic: [
@@ -3151,14 +3165,22 @@
                 `;
             }
             
-            // 이벤트 먹이와 일반 먹이 분리
+            // 이벤트 먹이와 일반 먹이 분리 (고정 순서)
+            const FOOD_ORDER = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
             const eventFoods = [];
             const normalFoods = [];
-            Object.entries(foodCounts).forEach(([type, count]) => {
-                if (EVENT_ITEMS[type] && EVENT_ITEMS[type].type === 'food') {
-                    eventFoods.push([type, count]);
-                } else {
-                    normalFoods.push([type, count]);
+            
+            // 고정된 순서대로 정렬
+            FOOD_ORDER.forEach(type => {
+                if (foodCounts[type]) {
+                    normalFoods.push([type, foodCounts[type]]);
+                }
+            });
+            
+            // 이벤트 먹이 (이벤트 아이템 키 순서대로)
+            Object.keys(EVENT_ITEMS).forEach(type => {
+                if (foodCounts[type] && EVENT_ITEMS[type].type === 'food') {
+                    eventFoods.push([type, foodCounts[type]]);
                 }
             });
 
@@ -3344,14 +3366,22 @@
                 musicCounts[m] = (musicCounts[m] || 0) + 1;
             });
             
-            // 이벤트 음악과 일반 음악 분리
+            // 이벤트 음악과 일반 음악 분리 (고정 순서)
             const eventMusic = [];
             const normalMusic = [];
-            Object.entries(musicCounts).forEach(([type, count]) => {
-                if (EVENT_ITEMS[type] && EVENT_ITEMS[type].type === 'music') {
-                    eventMusic.push([type, count]);
-                } else {
-                    normalMusic.push([type, count]);
+            
+            // 일반 음악 순서
+            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+            musicOrder.forEach(type => {
+                if (musicCounts[type]) {
+                    normalMusic.push([type, musicCounts[type]]);
+                }
+            });
+            
+            // 이벤트 음악 (이벤트 아이템 키 순서대로)
+            Object.keys(EVENT_ITEMS).forEach(type => {
+                if (musicCounts[type] && EVENT_ITEMS[type].type === 'music') {
+                    eventMusic.push([type, musicCounts[type]]);
                 }
             });
             
@@ -3369,23 +3399,19 @@
                 `;
             }).join('');
             
-            // 순서대로 표시 (classic, jazz, rock, pop, ballad)
-            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-            const musicHTML = musicOrder
-                .filter(type => musicCounts[type] && !EVENT_ITEMS[type])
-                .map(type => {
-                    const musicData = MUSIC_TYPES[type];
-                    const count = musicCounts[type];
-                    return `
-                        <button class="option-btn" onclick="playMusicByType('${type}')">
-                            <span class="option-icon">${musicData.icon}</span>
-                            <div class="option-info">
-                                <div class="option-name">${musicData.name} ×${count}</div>
-                                <div class="option-effect">${musicData.effect}</div>
-                            </div>
-                        </button>
-                    `;
-                }).join('');
+            // 일반 음악 HTML
+            const musicHTML = normalMusic.map(([type, count]) => {
+                const musicData = MUSIC_TYPES[type];
+                return `
+                    <button class="option-btn" onclick="playMusicByType('${type}')">
+                        <span class="option-icon">${musicData.icon}</span>
+                        <div class="option-info">
+                            <div class="option-name">${musicData.name} ×${count}</div>
+                            <div class="option-effect">${musicData.effect}</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
             
             let html = '<div class="music-grid">';
             if (eventMusicHTML) {
@@ -3672,7 +3698,7 @@
                     `${spirit.name}이(가) 행복하게 당신을 바라봅니다`,
                     `${spirit.name}이(가) 당신에게 애교를 부립니다`,
                     `${spirit.name}이(가) 당신의 손을 비빕니다`,
-                    `${spirit.name}이(가) 기뻐하며 날아오릅니다!`,
+                    `${spirit.name}이(가) 기뻐하며 펄쩍 뜁니다!`,
                     `${spirit.name}이(가) 당신 곁을 떠나지 않으려 합니다`,
                     `${spirit.name}이(가) 당신의 사랑을 온몸으로 느낍니다`
                 ];
@@ -8958,6 +8984,14 @@
                 if (timeSinceLastFed > 300 && Math.random() < 0.7) {
                     availableMessages = [...RANDOM_MESSAGES.egg_hungry];
                 }
+                // 최근에 음악 들음 (5분 이내, 30% 확률)
+                else if (timeSinceLastMusic < 300 && spirit.lastMusicType && Math.random() < 0.3) {
+                    const musicData = MUSIC_TYPES[spirit.lastMusicType];
+                    const musicName = musicData ? musicData.name : '음악';
+                    availableMessages = RANDOM_MESSAGES.egg_music.map(msg => 
+                        msg.replace('{music}', musicName)
+                    );
+                }
                 // 잠 (15% 확률)
                 else if (Math.random() < 0.15) {
                     if (lightMode) {
@@ -8984,6 +9018,14 @@
                 // 배고픔 (5분 이상 안 먹임) - 70% 확률
                 if (timeSinceLastFed > 300 && Math.random() < 0.7) {
                     availableMessages = [...RANDOM_MESSAGES.pupa_hungry];
+                }
+                // 최근에 음악 들음 (5분 이내, 30% 확률)
+                else if (timeSinceLastMusic < 300 && spirit.lastMusicType && Math.random() < 0.3) {
+                    const musicData = MUSIC_TYPES[spirit.lastMusicType];
+                    const musicName = musicData ? musicData.name : '음악';
+                    availableMessages = RANDOM_MESSAGES.pupa_music.map(msg => 
+                        msg.replace('{music}', musicName)
+                    );
                 }
                 // 잠 (15% 확률)
                 else if (Math.random() < 0.15) {
