@@ -987,15 +987,8 @@
     </div>
 
     <div id="albumSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">💝 정령 앨범</h2>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button onclick="shareAlbum()" style="padding: 10px 20px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
-                📷 앨범 이미지로 저장
-            </button>
-        </div>
-        <div id="albumShareArea">
-            <div class="collection-grid" id="collectionGrid"></div>
-        </div>
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
+        <div class="collection-grid" id="collectionGrid"></div>
     </div>
     
     <!-- 일지 섹션 -->
@@ -1107,12 +1100,17 @@
 
     <!-- 앨범 상세 정보 모달 -->
     <div id="albumDetailModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; justify-content: center; align-items: center;">
-        <div style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <div id="albumDetailContent" style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 id="modalTitle" style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); margin: 0;"></h2>
                 <button onclick="closeAlbumDetail()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text);">✕</button>
             </div>
             <div id="modalContent"></div>
+            <div style="margin-top: 15px; text-align: center;">
+                <button onclick="saveAlbumDetailImage()" style="padding: 10px 20px; background: var(--water); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                    📷 이미지로 저장
+                </button>
+            </div>
         </div>
     </div>
 
@@ -8018,53 +8016,46 @@
             }
         }
 
-        // 앨범 이미지 공유 기능
-        async function shareAlbum() {
-            if (collection.length === 0) {
-                showNotification('앨범에 정령이 없습니다');
-                return;
-            }
-            
+        // 앨범 상세 이미지 저장 기능
+        async function saveAlbumDetailImage() {
             showNotification('📷 이미지 생성 중...');
             
             try {
-                const albumArea = document.getElementById('albumShareArea');
+                const content = document.getElementById('albumDetailContent');
                 
-                // 임시로 배경색 설정 (투명 방지)
-                const originalBg = albumArea.style.background;
-                albumArea.style.background = getComputedStyle(document.body).getPropertyValue('--bg') || '#fafaf8';
+                // 저장 버튼 임시 숨기기
+                const saveBtn = content.querySelector('button[onclick="saveAlbumDetailImage()"]').parentElement;
+                const originalDisplay = saveBtn.style.display;
+                saveBtn.style.display = 'none';
                 
-                // 타이틀과 통계 추가
-                const header = document.createElement('div');
-                header.id = 'albumShareHeader';
-                header.style.cssText = 'text-align: center; padding: 20px; background: var(--bg);';
-                header.innerHTML = `
-                    <div style="font-family: 'Nanum Myeongjo', serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 10px;">💝 나의 작은 테라리움</div>
-                    <div style="font-size: 1rem; color: #888; margin-bottom: 5px;">수집한 정령: ${collection.length}마리 | 도감: ${Object.keys(encyclopedia).length}종</div>
-                    <div style="font-size: 0.85rem; color: #aaa;">${new Date().toLocaleDateString('ko-KR')}</div>
-                `;
-                albumArea.insertBefore(header, albumArea.firstChild);
+                // X 버튼 임시 숨기기
+                const closeBtn = content.querySelector('button[onclick="closeAlbumDetail()"]');
+                const closeBtnOriginal = closeBtn.style.display;
+                closeBtn.style.display = 'none';
                 
-                const canvas = await html2canvas(albumArea, {
-                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg') || '#fafaf8',
+                const canvas = await html2canvas(content, {
+                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--card') || '#ffffff',
                     scale: 2,
                     useCORS: true,
                     logging: false
                 });
                 
-                // 헤더 제거 및 배경 복원
-                header.remove();
-                albumArea.style.background = originalBg;
+                // 버튼들 복원
+                saveBtn.style.display = originalDisplay;
+                closeBtn.style.display = closeBtnOriginal;
+                
+                // 정령 이름 가져오기
+                const spiritName = document.getElementById('modalTitle').textContent || 'spirit';
                 
                 // 이미지 다운로드
                 const link = document.createElement('a');
-                link.download = `spirit-album-${new Date().toISOString().slice(0,10)}.png`;
+                link.download = `${spiritName}-${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
-                showNotification('✅ 앨범 이미지가 저장되었습니다!');
+                showNotification('✅ 이미지가 저장되었습니다!');
             } catch (error) {
-                console.error('앨범 이미지 생성 오류:', error);
+                console.error('이미지 생성 오류:', error);
                 showNotification('❌ 이미지 생성에 실패했습니다');
             }
         }
