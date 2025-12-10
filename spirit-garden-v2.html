@@ -2306,7 +2306,7 @@
                     { type: 'food', id: 'christmas_cookie', name: '크리스마스 쿠키', icon: '🍪' },
                     { type: 'music', id: 'christmas_carol', name: '크리스마스 캐롤', icon: '🎵' }
                 ],
-                // 이로치 버전 (10% 확률)
+                // 이로치 버전 (25% 확률)
                 shiny: {
                     name: '눈꽃 정령',
                     icon: '❄️',
@@ -2317,7 +2317,7 @@
                         child: '🌨️',
                         adult: '⛄'
                     },
-                    chance: 0.1 // 10% 확률
+                    chance: 0.25 // 25% 확률
                 }
             }
         };
@@ -3453,7 +3453,7 @@
             if (eventItem && eventItem.type === 'music') {
                 const effects = eventItem.effects;
                 spirit.parameters.affection += effects.affection || 0;
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + (effects.charm || 0));
+                spirit.parameters.charm += effects.charm || 0;
                 
                 spirit.lastMusic = Date.now();
                 spirit.lastInteraction = Date.now();
@@ -3492,17 +3492,17 @@
             
             // 효과 적용 (만족도 높으면 보너스)
             if (musicType === 'classic') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + singleStatBonus);
+                spirit.parameters.intelligence += 10 + singleStatBonus;
             } else if (musicType === 'jazz') {
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + singleStatBonus);
+                spirit.parameters.charm += 10 + singleStatBonus;
             } else if (musicType === 'rock') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + singleStatBonus);
+                spirit.parameters.strength += 10 + singleStatBonus;
             } else if (musicType === 'pop') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
+                spirit.parameters.intelligence += 5 + dualStatBonus;
+                spirit.parameters.charm += 5 + dualStatBonus;
             } else if (musicType === 'ballad') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
+                spirit.parameters.strength += 5 + dualStatBonus;
+                spirit.parameters.charm += 5 + dualStatBonus;
             }
 
             // 애정도 증가 (만족도 높으면 +1 보너스)
@@ -5240,17 +5240,10 @@
             let shouldCheck = false;
             let reason = '';
             
-            // 조건 1: 체력 20 이하이고 속성 불균형 (최고 속성과 30 이상 차이)
+            // 조건 1: 체력 20 이하
             if (spirit.parameters.strength <= 20) {
-                const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-                const attrValues = Object.values(attrs);
-                const maxAttr = Math.max(...attrValues);
-                const minAttr = Math.min(...attrValues);
-                
-                if (maxAttr - minAttr >= 30) {
-                    shouldCheck = true;
-                    reason = '체력이 약해 속성 불균형을 이기지 못하고 병에 걸렸습니다';
-                }
+                shouldCheck = true;
+                reason = '체력이 약해 병에 걸렸습니다';
             }
             
             // 조건 2: 30분 이상 상호작용 없음
@@ -9194,7 +9187,7 @@
                 case 'song': // 노래 - 랜덤 스탯 +1
                     const statTypes = ['intelligence', 'strength', 'charm'];
                     const randomStat = statTypes[Math.floor(Math.random() * statTypes.length)];
-                    spirit2.parameters[randomStat] = Math.min(100, spirit2.parameters[randomStat] + 1);
+                    spirit2.parameters[randomStat] += 1;
                     break;
                     
                 case 'fight': // 싸움 - 약간의 스트레스, 애정도 -1
@@ -9769,7 +9762,10 @@
             if (exactMatches.length > 0) {
                 processMatchedWord(exactMatches[0], input);
             } else {
-                // 일치하는 단어 없음 - 입력 유지 (틀린 것)
+                // 일치하는 단어 없음 - 입력 초기화 (틀린 것)
+                setTimeout(() => {
+                    input.value = '';
+                }, 0);
             }
         }
         
@@ -10390,14 +10386,16 @@
                         <span style="font-size: 1.5rem;">🧙</span>
                         <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
                     </div>
-                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="skipTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                        </button>
+                    </div>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
+                    <div style="display: flex; justify-content: flex-end; align-items: center;">
                         <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
                     </div>
                 </div>
@@ -10434,17 +10432,17 @@
                         <span style="font-size: 1.5rem;">🧙</span>
                         <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
                     </div>
-                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="skipTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                        </button>
+                    </div>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12; margin-bottom: 15px;">
+                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
                         👇 아래 버튼을 눌러보세요!
-                    </div>
-                    <div style="display: flex; justify-content: flex-start;">
-                        <button onclick="skipTutorial()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
                     </div>
                 </div>
             `;
@@ -10584,14 +10582,16 @@
                         <span style="font-size: 1.5rem;">🧙</span>
                         <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
                     </div>
-                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="skipTutorial2()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                        </button>
+                    </div>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <button onclick="skipTutorial2()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
+                    <div style="display: flex; justify-content: flex-end; align-items: center;">
                         <button onclick="nextTutorial2Step()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
                     </div>
                 </div>
@@ -10627,17 +10627,17 @@
                         <span style="font-size: 1.5rem;">🧙</span>
                         <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
                     </div>
-                    <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                        ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="skipTutorial2()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
+                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                        </button>
+                    </div>
                 </div>
                 <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12; margin-bottom: 15px;">
+                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
                         👇 해당 버튼을 눌러보세요!
-                    </div>
-                    <div style="display: flex; justify-content: flex-start;">
-                        <button onclick="skipTutorial2()" style="padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">건너뛰기</button>
                     </div>
                 </div>
             `;
