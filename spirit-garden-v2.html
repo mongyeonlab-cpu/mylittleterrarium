@@ -899,10 +899,11 @@
         </div>
     </div>
 
-    <!-- 설정 버튼 (오른쪽 상단) -->
-    <button id="settingsBtn" onclick="switchTab('settings')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; font-size: 1.5rem; opacity: 0.6;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">⚙️</button>
-
-    <h1>나의 작은 테라리움</h1>
+    <!-- 제목 영역 -->
+    <div style="display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px;">
+        <h1 style="margin: 0;">나의 작은 테라리움</h1>
+        <button id="settingsBtn" onclick="switchTab('settings')" style="position: absolute; right: 0; background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.5;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">⚙️</button>
+    </div>
     <div class="subtitle">Spirit Garden</div>
 
     <div class="time-display" id="timeDisplay"></div>
