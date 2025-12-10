@@ -2261,29 +2261,29 @@
         // 합성 전용 정령
         const FUSION_TYPES = {
             // 같은 속성 상위 버전
-            'fusion-fire': { name: '폭염의 정령', icon: '🔥💥', desc: '두 화염이 합쳐져 탄생한 극한의 불꽃.', recipe: ['fire', 'fire'], rarity: 'rare' },
-            'fusion-water': { name: '심해의 정령', icon: '💧🌊', desc: '두 물결이 합쳐져 탄생한 깊은 바다의 정령.', recipe: ['water', 'water'], rarity: 'rare' },
-            'fusion-wind': { name: '태풍의 정령', icon: '🌬️🌪️', desc: '두 바람이 합쳐져 탄생한 거대한 폭풍.', recipe: ['wind', 'wind'], rarity: 'rare' },
-            'fusion-earth': { name: '거인의 정령', icon: '🌱🏔️', desc: '두 대지가 합쳐져 탄생한 산맥의 정령.', recipe: ['earth', 'earth'], rarity: 'rare' },
-            'fusion-light': { name: '섬광의 정령', icon: '✨⚡', desc: '두 빛이 합쳐져 탄생한 눈부신 섬광.', recipe: ['light', 'light'], rarity: 'rare' },
-            'fusion-dark': { name: '심연의 정령', icon: '🌙🕳️', desc: '두 어둠이 합쳐져 탄생한 끝없는 심연.', recipe: ['dark', 'dark'], rarity: 'rare' },
+            'fusion-fire': { name: '이프리트', icon: '🔥💥', desc: '두 화염이 합쳐져 탄생한 극한의 불꽃 정령.', recipe: ['fire', 'fire'], rarity: 'rare' },
+            'fusion-water': { name: '엘라임', icon: '💧🌊', desc: '두 물결이 합쳐져 탄생한 깊은 바다의 정령.', recipe: ['water', 'water'], rarity: 'rare' },
+            'fusion-wind': { name: '미네르바', icon: '🌬️🌪️', desc: '두 바람이 합쳐져 탄생한 거대한 폭풍의 정령.', recipe: ['wind', 'wind'], rarity: 'rare' },
+            'fusion-earth': { name: '노아스', icon: '🌱🏔️', desc: '두 대지가 합쳐져 탄생한 산맥의 정령.', recipe: ['earth', 'earth'], rarity: 'rare' },
+            'fusion-light': { name: '루미엘', icon: '✨⚡', desc: '두 빛이 합쳐져 탄생한 눈부신 섬광의 정령.', recipe: ['light', 'light'], rarity: 'rare' },
+            'fusion-dark': { name: '녹투스', icon: '🌙🕳️', desc: '두 어둠이 합쳐져 탄생한 끝없는 심연의 정령.', recipe: ['dark', 'dark'], rarity: 'rare' },
             
             // 상극 속성 (균형 계열)
-            'fusion-balance-flame': { name: '영원한 불꽃', icon: '🔥💧', desc: '불과 물의 상극이 만들어낸 꺼지지 않는 불꽃.', recipe: ['fire', 'water'], rarity: 'epic' },
-            'fusion-balance-storm': { name: '고요한 폭풍', icon: '🌬️🌱', desc: '바람과 대지의 상극이 만들어낸 정적인 회오리.', recipe: ['wind', 'earth'], rarity: 'epic' },
-            'fusion-balance-twilight': { name: '황혼의 정령', icon: '✨🌙', desc: '빛과 어둠의 상극이 만들어낸 경계의 존재.', recipe: ['light', 'dark'], rarity: 'epic' },
+            'fusion-balance-flame': { name: '에테르나', icon: '🔥💧', desc: '불과 물의 상극이 만들어낸 영원의 정령.', recipe: ['fire', 'water'], rarity: 'epic' },
+            'fusion-balance-storm': { name: '사일렌시아', icon: '🌬️🌱', desc: '바람과 대지의 상극이 만들어낸 고요의 정령.', recipe: ['wind', 'earth'], rarity: 'epic' },
+            'fusion-balance-twilight': { name: '트와일라', icon: '✨🌙', desc: '빛과 어둠의 상극이 만들어낸 황혼의 정령.', recipe: ['light', 'dark'], rarity: 'epic' },
             
             // 특수 조합
-            'fusion-phoenix': { name: '불사조', icon: '🔥🐦', desc: '불과 빛이 합쳐져 탄생한 전설의 새.', recipe: ['fire', 'light'], rarity: 'legendary' },
-            'fusion-leviathan': { name: '리바이어던', icon: '💧🐉', desc: '물과 어둠이 합쳐져 탄생한 심해의 괴물.', recipe: ['water', 'dark'], rarity: 'legendary' },
-            'fusion-dragon': { name: '드래곤', icon: '🔥🌬️', desc: '불과 바람이 합쳐져 탄생한 전설의 용.', recipe: ['fire', 'wind'], rarity: 'legendary' },
-            'fusion-golem': { name: '골렘', icon: '🌱💎', desc: '대지와 빛이 합쳐져 탄생한 살아있는 돌.', recipe: ['earth', 'light'], rarity: 'legendary' },
-            'fusion-spirit-king': { name: '정령왕', icon: '👑✨', desc: '모든 속성이 조화롭게 합쳐진 정령들의 왕.', recipe: ['balanced', 'balanced'], rarity: 'legendary' },
+            'fusion-phoenix': { name: '솔라리스', icon: '🔥🐦', desc: '불과 빛이 합쳐져 탄생한 태양의 정령.', recipe: ['fire', 'light'], rarity: 'legendary' },
+            'fusion-leviathan': { name: '아비수스', icon: '💧🐉', desc: '물과 어둠이 합쳐져 탄생한 심해의 정령.', recipe: ['water', 'dark'], rarity: 'legendary' },
+            'fusion-dragon': { name: '템페스타', icon: '🔥🌬️', desc: '불과 바람이 합쳐져 탄생한 폭염의 정령.', recipe: ['fire', 'wind'], rarity: 'legendary' },
+            'fusion-golem': { name: '크리스탈리아', icon: '🌱💎', desc: '대지와 빛이 합쳐져 탄생한 수정의 정령.', recipe: ['earth', 'light'], rarity: 'legendary' },
+            'fusion-spirit-king': { name: '엘리멘타', icon: '👑✨', desc: '모든 속성이 조화롭게 합쳐진 정령들의 왕.', recipe: ['balanced', 'balanced'], rarity: 'legendary' },
             
             // 스탯 기반 합성
-            'fusion-sage': { name: '현자의 정령', icon: '📚🧙', desc: '뛰어난 지력을 가진 정령들의 합성체.', recipe: ['intelligent', 'intelligent'], rarity: 'epic' },
-            'fusion-titan': { name: '타이탄', icon: '💪🏛️', desc: '강력한 힘을 가진 정령들의 합성체.', recipe: ['strong', 'strong'], rarity: 'epic' },
-            'fusion-siren': { name: '세이렌', icon: '💖🎵', desc: '매혹적인 정령들의 합성체.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' }
+            'fusion-sage': { name: '사피엔스', icon: '📚🧙', desc: '뛰어난 지력을 가진 정령들이 합쳐진 지혜의 정령.', recipe: ['intelligent', 'intelligent'], rarity: 'epic' },
+            'fusion-titan': { name: '포르티스', icon: '💪🏛️', desc: '강력한 힘을 가진 정령들이 합쳐진 강인의 정령.', recipe: ['strong', 'strong'], rarity: 'epic' },
+            'fusion-siren': { name: '카리스마', icon: '💖🎵', desc: '매혹적인 정령들이 합쳐진 매력의 정령.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' }
         };
         
         // ========== 이벤트 정령 시스템 ==========
@@ -4288,6 +4288,44 @@
                     }
                     return;
                 }
+            }
+            
+            // 교배 정령 전용 진화 (40% 확률)
+            if (spirit.isBred && spirit.fusionType && FUSION_TYPES[spirit.fusionType]) {
+                if (Math.random() < 0.4) {
+                    const fusion = FUSION_TYPES[spirit.fusionType];
+                    spirit.isCompleted = true;
+                    
+                    // 날개 타입 결정
+                    if (!spirit.lightTime) spirit.lightTime = 0;
+                    if (!spirit.darkTime) spirit.darkTime = 0;
+                    let wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
+                    
+                    spirit.evolutionData = {
+                        type: spirit.fusionType,
+                        attributeType: spirit.fusionType,
+                        name: fusion.name,
+                        icon: fusion.icon,
+                        desc: fusion.desc,
+                        wingType: wingType,
+                        isFusion: true,
+                        fusionRarity: fusion.rarity
+                    };
+                    
+                    // 도감 등록
+                    if (!encyclopedia[spirit.fusionType]) {
+                        encyclopedia[spirit.fusionType] = { firstSeen: new Date().toISOString(), count: 1 };
+                        showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
+                    } else {
+                        encyclopedia[spirit.fusionType].count++;
+                    }
+                    
+                    saveGame();
+                    renderSpirits();
+                    showNotification(`🧬 ${fusion.name}이(가) 완성되었습니다! 교배의 힘이 발현되었어요!`);
+                    return;
+                }
+                // 40% 실패 시 일반 육성 진화로 진행 (아래 코드 계속)
             }
             
             // 스탯으로 진화 결정
