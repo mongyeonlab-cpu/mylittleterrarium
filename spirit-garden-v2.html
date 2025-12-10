@@ -3328,9 +3328,9 @@
             if (eventItem && eventItem.type === 'food') {
                 // 이벤트 먹이 효과 적용
                 const effects = eventItem.effects;
-                spirit.parameters.intelligence += effects.intelligence || 0;
-                spirit.parameters.strength += effects.strength || 0;
-                spirit.parameters.charm += effects.charm || 0;
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + (effects.intelligence || 0));
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + (effects.strength || 0));
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + (effects.charm || 0));
                 // 질병 상태가 아닐 때만 성장
                 if (!spirit.isSick) {
                     spirit.growth += effects.growth || 0;
@@ -3516,7 +3516,7 @@
             if (eventItem && eventItem.type === 'music') {
                 const effects = eventItem.effects;
                 spirit.parameters.affection += effects.affection || 0;
-                spirit.parameters.charm += effects.charm || 0;
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + (effects.charm || 0));
                 
                 spirit.lastMusic = Date.now();
                 spirit.lastInteraction = Date.now();
@@ -3555,17 +3555,17 @@
             
             // 효과 적용 (만족도 높으면 보너스)
             if (musicType === 'classic') {
-                spirit.parameters.intelligence += 10 + singleStatBonus;
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + singleStatBonus);
             } else if (musicType === 'jazz') {
-                spirit.parameters.charm += 10 + singleStatBonus;
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + singleStatBonus);
             } else if (musicType === 'rock') {
-                spirit.parameters.strength += 10 + singleStatBonus;
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + singleStatBonus);
             } else if (musicType === 'pop') {
-                spirit.parameters.intelligence += 5 + dualStatBonus;
-                spirit.parameters.charm += 5 + dualStatBonus;
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
             } else if (musicType === 'ballad') {
-                spirit.parameters.strength += 5 + dualStatBonus;
-                spirit.parameters.charm += 5 + dualStatBonus;
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus);
+                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
             }
 
             // 애정도 증가 (만족도 높으면 +1 보너스)
@@ -4838,7 +4838,7 @@
                 </div>
                 
                 <!-- 교배 섹션 -->
-                <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
+                <div id="breedSection" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
                     <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🧬 교배</h3>
                     ${canBreed ? `
                         <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유해 다른 정령과 교배할 수 있어요.</p>
@@ -8023,26 +8023,47 @@
             try {
                 const content = document.getElementById('albumDetailContent');
                 
+                // 스크롤 위치 저장 및 맨 위로 이동
+                const originalScrollTop = content.scrollTop;
+                content.scrollTop = 0;
+                
                 // 저장 버튼 임시 숨기기
                 const saveBtn = content.querySelector('button[onclick="saveAlbumDetailImage()"]').parentElement;
-                const originalDisplay = saveBtn.style.display;
+                const originalSaveBtnDisplay = saveBtn.style.display;
                 saveBtn.style.display = 'none';
                 
                 // X 버튼 임시 숨기기
                 const closeBtn = content.querySelector('button[onclick="closeAlbumDetail()"]');
-                const closeBtnOriginal = closeBtn.style.display;
+                const originalCloseBtnDisplay = closeBtn.style.display;
                 closeBtn.style.display = 'none';
+                
+                // 교배 섹션 임시 숨기기
+                const breedSection = document.getElementById('breedSection');
+                const originalBreedDisplay = breedSection ? breedSection.style.display : '';
+                if (breedSection) breedSection.style.display = 'none';
+                
+                // 스크롤바 임시 제거 및 전체 높이로 확장
+                const originalOverflow = content.style.overflow;
+                const originalMaxHeight = content.style.maxHeight;
+                content.style.overflow = 'visible';
+                content.style.maxHeight = 'none';
                 
                 const canvas = await html2canvas(content, {
                     backgroundColor: getComputedStyle(document.body).getPropertyValue('--card') || '#ffffff',
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    windowHeight: content.scrollHeight,
+                    height: content.scrollHeight
                 });
                 
-                // 버튼들 복원
-                saveBtn.style.display = originalDisplay;
-                closeBtn.style.display = closeBtnOriginal;
+                // 모든 요소 복원
+                saveBtn.style.display = originalSaveBtnDisplay;
+                closeBtn.style.display = originalCloseBtnDisplay;
+                if (breedSection) breedSection.style.display = originalBreedDisplay;
+                content.style.overflow = originalOverflow;
+                content.style.maxHeight = originalMaxHeight;
+                content.scrollTop = originalScrollTop;
                 
                 // 정령 이름 가져오기
                 const spiritName = document.getElementById('modalTitle').textContent || 'spirit';
