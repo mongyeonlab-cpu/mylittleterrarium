@@ -5246,7 +5246,20 @@
                 reason = '체력이 약해 병에 걸렸습니다';
             }
             
-            // 조건 2: 30분 이상 상호작용 없음
+            // 조건 2: 속성 불균형 (최고 속성 50 이상 & 최저 속성 10 이하)
+            if (!shouldCheck) {
+                const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                const attrValues = Object.values(attrs);
+                const maxAttr = Math.max(...attrValues);
+                const minAttr = Math.min(...attrValues);
+                
+                if (maxAttr >= 50 && minAttr <= 10) {
+                    shouldCheck = true;
+                    reason = '속성 불균형으로 인해 병에 걸렸습니다';
+                }
+            }
+            
+            // 조건 3: 30분 이상 상호작용 없음
             if (!shouldCheck) {
                 const now = Date.now();
                 const lastFeed = spirit.lastFed || spirit.birthTime;
@@ -5584,6 +5597,36 @@
                             <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
                             <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
                         </div>
+                        ${(() => {
+                            const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                            const attrIcons = { fire: '🔥', water: '💧', wind: '🌿', earth: '🪨', light: '✨', dark: '🌙' };
+                            const attrNames = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' };
+                            const attrValues = Object.values(attrs);
+                            const maxAttr = Math.max(...attrValues);
+                            const minAttr = Math.min(...attrValues);
+                            const isImbalanced = maxAttr >= 50 && minAttr <= 10;
+                            
+                            return `
+                                <div style="margin: 8px 0; padding: 8px; background: var(--bg); border: 1px solid ${isImbalanced ? '#f44336' : 'var(--border)'}; border-radius: 8px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">속성</span>
+                                        ${isImbalanced ? '<span style="font-size: 0.75rem; color: #f44336; font-weight: 600;">⚠️ 불균형</span>' : ''}
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center;">
+                                        ${Object.entries(attrs).map(([key, val]) => {
+                                            const isMax = val === maxAttr && maxAttr > 0;
+                                            const isMin = val === minAttr && isImbalanced;
+                                            return `
+                                                <div style="font-size: 0.75rem; ${isMax ? 'color: #4caf50; font-weight: 700;' : ''} ${isMin ? 'color: #f44336; font-weight: 700;' : ''}">
+                                                    <div>${attrIcons[key]}</div>
+                                                    <div>${Math.floor(val)}</div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        })()}
                         ${(() => {
                             const keywords = getStatusKeywords(spirit);
                             if (keywords.length === 0) return '';
