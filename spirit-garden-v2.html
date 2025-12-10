@@ -2287,7 +2287,10 @@
             // 아름다운 계열 (charm 최고)
             'beautiful-low': { prefix: '귀여운', icon: '✨' },
             'beautiful-mid': { prefix: '아름다운', icon: '🌸' },
-            'beautiful-high': { prefix: '세상을 매혹하는', icon: '🌺' }
+            'beautiful-high': { prefix: '세상을 매혹하는', icon: '🌺' },
+            
+            // 현자 계열 (모든 스탯 100)
+            'sage': { prefix: '현자', icon: '🧙' }
         };
         
         // 속성별 정령 이름
@@ -4405,22 +4408,28 @@
             let evolutionKey = '';
             
             if (!hasLowStats) {
-                // 최고 스탯 결정
-                if (params.intelligence >= params.strength && params.intelligence >= params.charm) {
-                    statType = 'intelligent';
-                } else if (params.strength >= params.intelligence && params.strength >= params.charm) {
-                    statType = 'strong';
+                // 현자 체크 (모든 스탯 100)
+                if (params.intelligence >= 100 && params.strength >= 100 && params.charm >= 100) {
+                    statType = 'sage';
+                    evolutionKey = 'sage';
                 } else {
-                    statType = 'beautiful';
-                }
+                    // 최고 스탯 결정 (동점 시 랜덤)
+                    const maxStats = [];
+                    if (params.intelligence === maxStat) maxStats.push('intelligent');
+                    if (params.strength === maxStat) maxStats.push('strong');
+                    if (params.charm === maxStat) maxStats.push('beautiful');
+                    
+                    // 동점인 스탯 중 랜덤 선택
+                    statType = maxStats[Math.floor(Math.random() * maxStats.length)];
 
-                // 진화 단계 결정 (스탯 수치 기준)
-                if (maxStat >= 80) {
-                    evolutionKey = `${statType}-high`;  // 80+ : 세상의~
-                } else if (maxStat >= 50) {
-                    evolutionKey = `${statType}-mid`;  // 50-79 : 지적인/강한/아름다운
-                } else {
-                    evolutionKey = `${statType}-low`;  // 20-49 : 똑똑한/튼튼한/귀여운
+                    // 진화 단계 결정 (스탯 수치 기준)
+                    if (maxStat >= 80) {
+                        evolutionKey = `${statType}-high`;  // 80+ : 세상의~
+                    } else if (maxStat >= 50) {
+                        evolutionKey = `${statType}-mid`;  // 50-79 : 지적인/강한/아름다운
+                    } else {
+                        evolutionKey = `${statType}-low`;  // 20-49 : 똑똑한/튼튼한/귀여운
+                    }
                 }
             }
 
@@ -5503,6 +5512,12 @@
             const iconElement = card.querySelector('.spirit-icon');
             if (iconElement && iconElement.textContent !== icon) {
                 iconElement.textContent = icon;
+            }
+
+            // 이름 업데이트
+            const nameElement = card.querySelector('.spirit-name');
+            if (nameElement && nameElement.textContent !== spirit.name) {
+                nameElement.textContent = spirit.name;
             }
 
             // 스테이지 업데이트
