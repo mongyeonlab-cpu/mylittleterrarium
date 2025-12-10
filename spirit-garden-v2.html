@@ -1039,11 +1039,13 @@
             <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px;">📜 레시피 목록</h3>
                 
-                <!-- 카테고리 탭 -->
-                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button onclick="filterRecipes('all')" class="recipe-filter-btn active" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">전체</button>
-                    <button onclick="filterRecipes('food')" class="recipe-filter-btn" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">🍎 먹이</button>
-                    <button onclick="filterRecipes('decoration')" class="recipe-filter-btn" style="padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); cursor: pointer;">🌳 장식물</button>
+                <!-- 카테고리 필터 -->
+                <div style="margin-bottom: 20px;">
+                    <select id="recipeFilterSelect" onchange="filterRecipes(this.value)" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 1rem; cursor: pointer; min-width: 150px;">
+                        <option value="all">📋 전체</option>
+                        <option value="food">🍎 먹이</option>
+                        <option value="decoration">🌳 장식물</option>
+                    </select>
                 </div>
                 
                 <div id="recipeList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;"></div>
@@ -9340,17 +9342,6 @@
         
         // 레시피 필터
         function filterRecipes(filter) {
-            // 버튼 활성화 상태 변경
-            document.querySelectorAll('.recipe-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-                btn.style.background = 'var(--bg)';
-                btn.style.fontWeight = 'normal';
-            });
-            event.target.classList.add('active');
-            event.target.style.background = '#9b59b6';
-            event.target.style.color = 'white';
-            event.target.style.fontWeight = '600';
-            
             renderRecipeList(filter);
         }
         
