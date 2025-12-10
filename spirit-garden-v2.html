@@ -8043,9 +8043,9 @@
                 if (breedSection) breedSection.style.display = 'none';
                 
                 // 스크롤바 임시 제거 및 전체 높이로 확장
-                const originalOverflow = content.style.overflow;
+                const originalOverflow = content.style.overflowY;
                 const originalMaxHeight = content.style.maxHeight;
-                content.style.overflow = 'visible';
+                content.style.overflowY = 'visible';
                 content.style.maxHeight = 'none';
                 
                 const canvas = await html2canvas(content, {
@@ -8061,8 +8061,8 @@
                 saveBtn.style.display = originalSaveBtnDisplay;
                 closeBtn.style.display = originalCloseBtnDisplay;
                 if (breedSection) breedSection.style.display = originalBreedDisplay;
-                content.style.overflow = originalOverflow;
-                content.style.maxHeight = originalMaxHeight;
+                content.style.overflowY = 'auto';
+                content.style.maxHeight = '80vh';
                 content.scrollTop = originalScrollTop;
                 
                 // 정령 이름 가져오기
