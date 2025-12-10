@@ -5704,7 +5704,7 @@
                                 attrs[attr] = (foodAttrs[attr] * 0.5) + (terrariumAttrs[attr] * 0.5);
                             }
                             const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
-                            const attrNames = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' };
+                            const attrNames = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' };
                             const attrValues = Object.values(attrs);
                             const maxAttr = Math.max(...attrValues);
                             const minAttr = Math.min(...attrValues);
@@ -5984,7 +5984,7 @@
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
                         const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                         const qualityText = decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
-                        const attrName = { fire: '불', water: '물', wind: '풀', earth: '흙', light: '빛', dark: '어둠' }[decoData.attr] || '';
+                        const attrName = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' }[decoData.attr] || '';
                         
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
