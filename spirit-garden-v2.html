@@ -10747,6 +10747,9 @@
             const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
             if (tutorialSeen) return;
             
+            // 다른 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorial2Active || sickTutorialActive || imbalanceTutorialActive) return;
+            
             // 튜토리얼용 기본 아이템 지급
             if (!inventory.food) inventory.food = [];
             if (!inventory.music) inventory.music = [];
@@ -11033,6 +11036,9 @@
         ];
         
         function startTutorial2() {
+            // 다른 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorialActive || sickTutorialActive || imbalanceTutorialActive) return;
+            
             tutorial2Step = 0;
             tutorial2Active = true;
             showTutorial2Step();
@@ -11230,6 +11236,12 @@
         function startSickTutorial() {
             // 이미 본 적 있으면 시작하지 않음
             if (localStorage.getItem('spiritGarden_sickTutorialSeen')) return;
+            
+            // 다른 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorialActive || tutorial2Active || imbalanceTutorialActive) return;
+            
+            // 육성 탭으로 이동
+            switchTab('garden');
             
             sickTutorialStep = 0;
             sickTutorialActive = true;
@@ -11467,6 +11479,12 @@
         function startImbalanceTutorial() {
             // 이미 본 적 있으면 시작하지 않음
             if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
+            
+            // 다른 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorialActive || tutorial2Active || sickTutorialActive) return;
+            
+            // 육성 탭으로 이동
+            switchTab('garden');
             
             imbalanceTutorialStep = 0;
             imbalanceTutorialActive = true;
