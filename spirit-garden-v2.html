@@ -2365,7 +2365,10 @@
             // 스탯 기반 합성
             'fusion-sage': { name: '사피엔스', icon: '📚🧙', desc: '뛰어난 지력을 가진 정령들이 합쳐진 지혜의 정령.', recipe: ['intelligent', 'intelligent'], rarity: 'epic' },
             'fusion-titan': { name: '포르티스', icon: '💪🏛️', desc: '강력한 힘을 가진 정령들이 합쳐진 강인의 정령.', recipe: ['strong', 'strong'], rarity: 'epic' },
-            'fusion-siren': { name: '카리스마', icon: '💖🎵', desc: '매혹적인 정령들이 합쳐진 매력의 정령.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' }
+            'fusion-siren': { name: '카리스마', icon: '💖🎵', desc: '매혹적인 정령들이 합쳐진 매력의 정령.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' },
+            
+            // 전설 정령 교배
+            'fusion-oblivion': { name: '오블리비온', icon: '🦋🌌', desc: '정령의 군주들 사이에서 태어난 망각의 정령.', recipe: ['titania', 'oberon'], rarity: 'mythic' }
         };
         
         // ========== 이벤트 정령 시스템 ==========
@@ -7194,6 +7197,7 @@
         
         function getRarityColor(rarity) {
             switch(rarity) {
+                case 'mythic': return '#ff00ff';
                 case 'legendary': return '#ff6b35';
                 case 'epic': return '#9b59b6';
                 case 'rare': return '#3498db';
@@ -7204,6 +7208,7 @@
         
         function getRarityText(rarity) {
             switch(rarity) {
+                case 'mythic': return '🌌 신화';
                 case 'legendary': return '⭐ 전설';
                 case 'epic': return '💜 에픽';
                 case 'rare': return '💙 레어';
@@ -7669,6 +7674,15 @@
         }
         
         function predictBreedResult(mySpirit, friendData) {
+            // 티타니아 + 오베론 교배 체크 (오블리비온)
+            const myType = mySpirit.type || mySpirit.evolutionType;
+            const friendType = friendData.evolutionType || friendData.type;
+            
+            if ((myType === 'titania' && friendType === 'oberon') ||
+                (myType === 'oberon' && friendType === 'titania')) {
+                return { ...FUSION_TYPES['fusion-oblivion'], key: 'fusion-oblivion' };
+            }
+            
             // 이벤트 정령 교배 - 둘 중 하나라도 이벤트 정령이면 이벤트 정령으로
             const myEventType = mySpirit.isEventSpirit ? mySpirit.eventType : null;
             const friendEventType = friendData.isEventSpirit ? friendData.eventType : null;
@@ -7890,6 +7904,18 @@
                     <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${oberonUnlocked ? '오베론' : '???????'}</div>
                     <div class="encyclopedia-count" style="font-size: 0.8rem;">${oberonUnlocked ? `${oberonCount}회` : '미달성'}</div>
                     <div style="font-size: 0.7rem; color: ${oberonUnlocked ? 'gold' : '#888'}; margin-top: 5px;">${oberonUnlocked ? ENCYCLOPEDIA_HINTS['oberon'] : '나방을 거느리는 정령들의 군주.'}</div>
+                </div>
+            `;
+            
+            // 오블리비온
+            const oblivionCount = encyclopedia['fusion-oblivion'] || 0;
+            const oblivionUnlocked = oblivionCount > 0;
+            html += `
+                <div class="${oblivionUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #ff00ff;">
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${oblivionUnlocked ? '🦋🌌' : '?'}</div>
+                    <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${oblivionUnlocked ? '오블리비온' : '???????'}</div>
+                    <div class="encyclopedia-count" style="font-size: 0.8rem;">${oblivionUnlocked ? `${oblivionCount}회` : '미달성'}</div>
+                    <div style="font-size: 0.7rem; color: ${oblivionUnlocked ? '#ff00ff' : '#888'}; margin-top: 5px;">${oblivionUnlocked ? '정령의 군주들 사이에서 태어난 망각의 정령.' : '군주들의 후예.'}</div>
                 </div>
             `;
             
