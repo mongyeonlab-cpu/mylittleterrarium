@@ -1048,7 +1048,7 @@
                 <div style="display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: var(--text);">
                     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
                         <span>버전</span>
-                        <span style="font-weight: 700;">2.1.0</span>
+                        <span style="font-weight: 700;">베타</span>
                     </div>
                 </div>
             </div>
@@ -1393,7 +1393,33 @@
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
-            // 기본 행동 (조건 없음)
+            // 알 상태 기본 행동
+            egg_basic: [
+                '{name}이(가) 가만히 있습니다.',
+                '{name}이(가) 조용히 놓여 있습니다.',
+                '{name}에서 미세한 온기가 느껴집니다.',
+                '{name}의 껍질이 살짝 흔들립니다.',
+                '{name}에서 작은 소리가 들리는 것 같습니다.',
+                '{name}이(가) 희미하게 빛납니다.',
+                '{name}의 표면에 이슬이 맺혀 있습니다.',
+                '{name}이(가) 따뜻하게 품어지길 기다리는 듯합니다.',
+                '{name} 안에서 무언가 움직이는 것 같습니다.',
+                '{name}이(가) 부화를 준비하고 있는 것 같습니다.'
+            ],
+            // 번데기 상태 기본 행동
+            pupa_basic: [
+                '{name}이(가) 미동도 하지 않습니다.',
+                '{name}이(가) 조용히 변태 중입니다.',
+                '{name}에서 약한 진동이 느껴집니다.',
+                '{name}의 껍질이 아주 살짝 꿈틀거립니다.',
+                '{name}이(가) 고요히 잠들어 있습니다.',
+                '{name} 안에서 변화가 일어나고 있는 것 같습니다.',
+                '{name}의 표면이 희미하게 빛납니다.',
+                '{name}이(가) 나비가 될 꿈을 꾸고 있는 것 같습니다.',
+                '{name}이(가) 새로운 모습을 준비하고 있습니다.',
+                '{name}에서 신비로운 기운이 느껴집니다.'
+            ],
+            // 기본 행동 (조건 없음) - 애벌레용
             basic: [
                 '{name}이(가) 꿈틀거립니다.',
                 '{name}이(가) 몸을 부르르 떱니다.',
@@ -1409,7 +1435,21 @@
                 '{name}이(가) 심심해 보입니다.',
                 '{name}이(가) 한숨을 쉽니다.'
             ],
-            // 배고픔
+            // 알 상태 배고픔
+            egg_hungry: [
+                '{name}에서 허기진 기운이 느껴집니다.',
+                '{name}이(가) 영양분이 필요한 것 같습니다.',
+                '{name}의 빛이 조금 약해진 것 같습니다.',
+                '{name}이(가) 힘없이 놓여 있습니다.'
+            ],
+            // 번데기 상태 배고픔
+            pupa_hungry: [
+                '{name}이(가) 힘없이 축 처져 있습니다.',
+                '{name}에서 약한 기운이 느껴집니다.',
+                '{name}의 변태가 느려진 것 같습니다.',
+                '{name}이(가) 에너지가 부족해 보입니다.'
+            ],
+            // 배고픔 - 애벌레용
             hungry: [
                 '{name}이(가) 배고파 보입니다.',
                 '{name}이(가) 먹이를 찾고 있습니다.',
@@ -1417,7 +1457,31 @@
                 '{name}이(가) 입맛을 다십니다.',
                 '{name}이(가) 배를 움켜쥐고 있습니다.'
             ],
-            // 낮잠 (조명 켜짐)
+            // 알 상태 낮잠
+            egg_napLight: [
+                '{name}이(가) 햇살 아래에서 따뜻합니다.',
+                '{name}에서 평온한 기운이 느껴집니다.',
+                '{name}이(가) 포근하게 놓여 있습니다.'
+            ],
+            // 알 상태 밤잠
+            egg_sleepDark: [
+                '{name}이(가) 어둠 속에서 고요합니다.',
+                '{name}이(가) 조용히 쉬고 있습니다.',
+                '{name}에서 잔잔한 숨소리가 들리는 듯합니다.'
+            ],
+            // 번데기 상태 낮잠
+            pupa_napLight: [
+                '{name}이(가) 햇살 아래에서 변태 중입니다.',
+                '{name}이(가) 따뜻한 빛을 받으며 쉬고 있습니다.',
+                '{name}의 껍질이 햇살에 빛납니다.'
+            ],
+            // 번데기 상태 밤잠
+            pupa_sleepDark: [
+                '{name}이(가) 어둠 속에서 깊이 잠들어 있습니다.',
+                '{name}이(가) 고요한 밤에 변화하고 있습니다.',
+                '{name}이(가) 달빛 아래 조용히 쉬고 있습니다.'
+            ],
+            // 낮잠 (조명 켜짐) - 애벌레용
             napLight: [
                 '{name}이(가) 낮잠을 자고 있습니다.',
                 '{name}이(가) 햇살 아래에서 졸고 있습니다.',
@@ -1425,7 +1489,7 @@
                 '{name}이(가) 스르륵 잠이 들었습니다.',
                 '{name}이(가) 나뭇잎 위에서 낮잠을 즐깁니다.'
             ],
-            // 밤잠 (조명 꺼짐)
+            // 밤잠 (조명 꺼짐) - 애벌레용
             sleepDark: [
                 '{name}이(가) 잠을 자고 있습니다.',
                 '{name}이(가) 깊은 잠에 빠졌습니다.',
@@ -1433,7 +1497,19 @@
                 '{name}이(가) 어둠 속에서 편히 쉬고 있습니다.',
                 '{name}이(가) 조용히 꿈나라로 떠났습니다.'
             ],
-            // 애정도 낮음 (0-10)
+            // 알 상태 애정도 낮음
+            egg_affectionLow: [
+                '{name}이(가) 쓸쓸해 보입니다.',
+                '{name}에서 외로운 기운이 느껴집니다.',
+                '{name}이(가) 관심이 필요한 것 같습니다.'
+            ],
+            // 번데기 상태 애정도 낮음
+            pupa_affectionLow: [
+                '{name}이(가) 외로워 보입니다.',
+                '{name}에서 쓸쓸한 기운이 느껴집니다.',
+                '{name}이(가) 보살핌이 필요해 보입니다.'
+            ],
+            // 애정도 낮음 (0-10) - 애벌레용
             affectionVeryLow: [
                 '{name}이(가) 당신을 피해 테라리움 구석에 숨습니다.',
                 '{name}이(가) 당신을 경계하며 멀리 떨어집니다.',
@@ -2087,7 +2163,7 @@
                 keywords.push({ text: '태양을 동경하는', color: keywordColor });
             }
             if (spirit.darkTime >= 10) {
-                keywords.push({ text: '어둠을 좋아하는', color: keywordColor });
+                keywords.push({ text: '달을 숭배하는', color: keywordColor });
             }
             
             // 먹이 횟수 (feedCount 카운트)
@@ -2852,18 +2928,18 @@
         function getRefusalMessage(spiritName, action) {
             const messages = {
                 feed: [
-                    `${spiritName}이(가) 고개를 돌립니다. "지금은 먹고 싶지 않아..."`,
-                    `${spiritName}이(가) 먹이를 거부합니다. "기분이 별로야..."`,
-                    `${spiritName}이(가) 슬픈 눈으로 쳐다봅니다. "환경을 개선해줘..."`,
-                    `${spiritName}이(가) 입을 꾹 다뭅니다. "불만이 너무 쌓였어..."`,
-                    `${spiritName}이(가) 무기력하게 있습니다. "힘이 안 나..."`
+                    `${spiritName}이(가) 고개를 돌립니다. 환경이 마음에 안 드는 것 같습니다.`,
+                    `${spiritName}이(가) 먹이를 거부합니다. 기분이 안 좋아 보입니다.`,
+                    `${spiritName}이(가) 슬픈 눈으로 쳐다봅니다. 불만이 쌓인 것 같습니다.`,
+                    `${spiritName}이(가) 입을 꾹 다뭅니다. 무언가 불편한 것 같습니다.`,
+                    `${spiritName}이(가) 무기력하게 있습니다. 힘이 없어 보입니다.`
                 ],
                 pet: [
-                    `${spiritName}이(가) 손길을 피합니다. "지금은 싫어..."`,
-                    `${spiritName}이(가) 쓰다듬기를 거부합니다. "기분이 안 좋아..."`,
-                    `${spiritName}이(가) 몸을 웅크립니다. "나 좀 내버려둬..."`,
-                    `${spiritName}이(가) 고개를 저습니다. "환경이 마음에 안 들어..."`,
-                    `${spiritName}이(가) 삐진 듯 등을 돌립니다. "삐졌어..."`
+                    `${spiritName}이(가) 손길을 피합니다. 환경이 마음에 안 드는 것 같습니다.`,
+                    `${spiritName}이(가) 쓰다듬기를 거부합니다. 기분이 안 좋아 보입니다.`,
+                    `${spiritName}이(가) 몸을 웅크립니다. 불만이 쌓인 것 같습니다.`,
+                    `${spiritName}이(가) 고개를 저습니다. 무언가 불편한 것 같습니다.`,
+                    `${spiritName}이(가) 삐진 듯 등을 돌립니다. 토라진 것 같습니다.`
                 ]
             };
             const list = messages[action] || messages.feed;
@@ -8724,57 +8800,119 @@
             const now = Date.now();
             const timeSinceLastFed = spirit.lastFed ? (now - spirit.lastFed) / 1000 : Infinity;
             const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
+            const stage = getStage(spirit.growth);
+            
+            // 알/번데기 상태인지 확인
+            const isEgg = stage === 'egg';
+            const isPupa = stage === 'pupa';
             
             let availableMessages = [];
             
-            // 크리스마스 이벤트 정령 체크
-            const hasChristmasSpirit = spirits.some(s => s.isEventSpirit && s.eventType === 'christmas2025' && !s.isDead && !s.isCompleted);
-            const isChristmasSpirit = spirit.isEventSpirit && spirit.eventType === 'christmas2025';
-            
-            // 크리스마스 장식 체크
-            const hasChristmasTree = installedDecorations.some(d => {
-                const decoType = typeof d === 'string' ? d : d.type;
-                return decoType === 'christmas_tree';
-            });
-            const hasChristmasGift = installedDecorations.some(d => {
-                const decoType = typeof d === 'string' ? d : d.type;
-                return decoType === 'christmas_gift';
-            });
-            
-            // 크리스마스 이벤트 대사 (25% 확률로 우선 출력)
-            if ((hasChristmasSpirit || isChristmasSpirit) && Math.random() < 0.25) {
-                let christmasMessages = [];
+            // 크리스마스 이벤트 정령 체크 (알/번데기가 아닐 때만)
+            if (!isEgg && !isPupa) {
+                const hasChristmasSpirit = spirits.some(s => s.isEventSpirit && s.eventType === 'christmas2025' && !s.isDead && !s.isCompleted);
+                const isChristmasSpirit = spirit.isEventSpirit && spirit.eventType === 'christmas2025';
                 
-                // 이벤트 정령 개인 대사
-                if (isChristmasSpirit) {
-                    christmasMessages.push(
-                        `${spirit.name}이(가) 캐롤을 흥얼거립니다 🎵`,
-                        `${spirit.name} 주변으로 눈송이가 내립니다 ❄️`,
-                        `${spirit.name}이(가) 빨간 모자를 고쳐 씁니다 🎅`
-                    );
-                    if (hasChristmasGift) {
-                        christmasMessages.push(`${spirit.name}이(가) 선물 상자를 궁금해합니다 🎁`);
-                    }
-                    if (hasChristmasTree) {
-                        christmasMessages.push(`${spirit.name}이(가) 트리 위 반짝이는 별을 바라봅니다 ⭐`);
-                    }
-                }
+                // 크리스마스 장식 체크
+                const hasChristmasTree = installedDecorations.some(d => {
+                    const decoType = typeof d === 'string' ? d : d.type;
+                    return decoType === 'christmas_tree';
+                });
+                const hasChristmasGift = installedDecorations.some(d => {
+                    const decoType = typeof d === 'string' ? d : d.type;
+                    return decoType === 'christmas_gift';
+                });
                 
-                // 크리스마스 정령 없어도 장식이 있으면 개인 반응
-                if (!isChristmasSpirit && hasChristmasSpirit) {
-                    if (hasChristmasTree) {
-                        christmasMessages.push(`${spirit.name}이(가) 크리스마스 트리를 신기하게 바라봅니다 🎄`);
+                // 크리스마스 이벤트 대사 (25% 확률로 우선 출력)
+                if ((hasChristmasSpirit || isChristmasSpirit) && Math.random() < 0.25) {
+                    let christmasMessages = [];
+                    
+                    // 이벤트 정령 개인 대사
+                    if (isChristmasSpirit) {
+                        christmasMessages.push(
+                            `${spirit.name}이(가) 캐롤을 흥얼거립니다 🎵`,
+                            `${spirit.name} 주변으로 눈송이가 내립니다 ❄️`,
+                            `${spirit.name}이(가) 빨간 모자를 고쳐 씁니다 🎅`
+                        );
+                        if (hasChristmasGift) {
+                            christmasMessages.push(`${spirit.name}이(가) 선물 상자를 궁금해합니다 🎁`);
+                        }
+                        if (hasChristmasTree) {
+                            christmasMessages.push(`${spirit.name}이(가) 트리 위 반짝이는 별을 바라봅니다 ⭐`);
+                        }
                     }
-                    if (hasChristmasGift) {
-                        christmasMessages.push(`${spirit.name}이(가) 선물 상자 주변을 맴돕니다 🎁`);
+                    
+                    // 크리스마스 정령 없어도 장식이 있으면 개인 반응
+                    if (!isChristmasSpirit && hasChristmasSpirit) {
+                        if (hasChristmasTree) {
+                            christmasMessages.push(`${spirit.name}이(가) 크리스마스 트리를 신기하게 바라봅니다 🎄`);
+                        }
+                        if (hasChristmasGift) {
+                            christmasMessages.push(`${spirit.name}이(가) 선물 상자 주변을 맴돕니다 🎁`);
+                        }
                     }
-                }
-                
-                if (christmasMessages.length > 0) {
-                    return christmasMessages[Math.floor(Math.random() * christmasMessages.length)];
+                    
+                    if (christmasMessages.length > 0) {
+                        return christmasMessages[Math.floor(Math.random() * christmasMessages.length)];
+                    }
                 }
             }
             
+            // === 알 상태 대사 ===
+            if (isEgg) {
+                // 배고픔 (5분 이상 안 먹임) - 70% 확률
+                if (timeSinceLastFed > 300 && Math.random() < 0.7) {
+                    availableMessages = [...RANDOM_MESSAGES.egg_hungry];
+                }
+                // 잠 (15% 확률)
+                else if (Math.random() < 0.15) {
+                    if (lightMode) {
+                        availableMessages = [...RANDOM_MESSAGES.egg_napLight];
+                    } else {
+                        availableMessages = [...RANDOM_MESSAGES.egg_sleepDark];
+                    }
+                }
+                // 애정도 낮음 (20% 확률)
+                else if (affection < 30 && Math.random() < 0.2) {
+                    availableMessages = [...RANDOM_MESSAGES.egg_affectionLow];
+                }
+                // 기본 대사
+                if (availableMessages.length === 0) {
+                    availableMessages = [...RANDOM_MESSAGES.egg_basic];
+                }
+                
+                const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+                return randomMessage.replace('{name}', spirit.name);
+            }
+            
+            // === 번데기 상태 대사 ===
+            if (isPupa) {
+                // 배고픔 (5분 이상 안 먹임) - 70% 확률
+                if (timeSinceLastFed > 300 && Math.random() < 0.7) {
+                    availableMessages = [...RANDOM_MESSAGES.pupa_hungry];
+                }
+                // 잠 (15% 확률)
+                else if (Math.random() < 0.15) {
+                    if (lightMode) {
+                        availableMessages = [...RANDOM_MESSAGES.pupa_napLight];
+                    } else {
+                        availableMessages = [...RANDOM_MESSAGES.pupa_sleepDark];
+                    }
+                }
+                // 애정도 낮음 (20% 확률)
+                else if (affection < 30 && Math.random() < 0.2) {
+                    availableMessages = [...RANDOM_MESSAGES.pupa_affectionLow];
+                }
+                // 기본 대사
+                if (availableMessages.length === 0) {
+                    availableMessages = [...RANDOM_MESSAGES.pupa_basic];
+                }
+                
+                const randomMessage = availableMessages[Math.floor(Math.random() * availableMessages.length)];
+                return randomMessage.replace('{name}', spirit.name);
+            }
+            
+            // === 애벌레 상태 대사 (기존 로직) ===
             // 배고픔 (5분=300초 이상 안 먹임) - 70% 확률로 배고픔 메시지
             if (timeSinceLastFed > 300 && Math.random() < 0.7) {
                 availableMessages = [...RANDOM_MESSAGES.hungry];
