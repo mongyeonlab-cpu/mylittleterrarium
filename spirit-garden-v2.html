@@ -911,6 +911,7 @@
     <div class="tabs">
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
+        <button class="tab" onclick="switchTab('lab')">실험실</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('minigame')">미니게임</button>
         <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
@@ -993,6 +994,14 @@
     </div>
     
     <!-- 일지 섹션 -->
+    <div id="labSection" class="section">
+        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">🧪 실험실</h2>
+        <div style="max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
+            <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
+        </div>
+    </div>
+    
     <div id="journalSection" class="section">
         <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">📖 일지</h2>
         <div style="max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;">
@@ -2043,7 +2052,13 @@
             dark_rare1: { name: '달빛석', icon: '🌑', attr: 'dark', power: 2, quality: 'rare', price: 60 },
             dark_rare2: { name: '그림자 수정', icon: '🔮', attr: 'dark', power: 2, quality: 'rare', price: 60 },
             dark_epic: { name: '밤의 정수', icon: '🌌', attr: 'dark', power: 3, quality: 'epic', price: 100 },
-            dark_legendary: { name: '영원한 어둠', icon: '🕳️', attr: 'dark', power: 5, quality: 'legendary', price: 999 }
+            dark_legendary: { name: '영원한 어둠', icon: '🕳️', attr: 'dark', power: 5, quality: 'legendary', price: 999 },
+            
+            // 복합 속성 (희귀)
+            dual_fire_water: { name: '증기의 오르골', icon: '♨️', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['fire', 'water'] },
+            dual_earth_wind: { name: '사막의 모래시계', icon: '⏳', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['earth', 'wind'] },
+            dual_light_dark: { name: '황혼의 거울', icon: '🪞', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['light', 'dark'] },
+            all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 }
         };
 
         const FOOD_NAMES = {
@@ -6004,6 +6019,10 @@
                             // 전체 보기
                         } else if (['intelligence', 'strength', 'charm'].includes(sellFilter)) {
                             return; // 스탯 필터 시 장식물 숨김
+                        } else if (decoData.attr === 'dual') {
+                            if (!decoData.dualAttr || !decoData.dualAttr.includes(sellFilter)) return;
+                        } else if (decoData.attr === 'all') {
+                            // all 속성 장식물은 모든 속성 필터에서 표시
                         } else if (decoData.attr !== sellFilter) {
                             return; // 다른 속성이면 숨김
                         }
@@ -6013,7 +6032,17 @@
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
                         const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                         const qualityText = decoData.quality === 'legendary' ? '<span style="color: #ff6b35;">전설</span>' : decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
-                        const attrName = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' }[decoData.attr] || '';
+                        
+                        // 속성 표시 (복합 속성 처리)
+                        let attrDisplay = '';
+                        if (decoData.attr === 'dual' && decoData.dualAttr) {
+                            attrDisplay = decoData.dualAttr.map(a => ENV_ICONS[a]).join('') + ` +${decoData.power}`;
+                        } else if (decoData.attr === 'all') {
+                            attrDisplay = '🌈 전체 속성 +' + decoData.power;
+                        } else {
+                            const attrName = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' }[decoData.attr] || '';
+                            attrDisplay = `${ENV_ICONS[decoData.attr]} ${attrName} 속성 +${decoData.power}`;
+                        }
                         
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
@@ -6021,7 +6050,7 @@
                                     <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
                                     <div>
                                         <div style="font-weight: 700;">${decoData.name} ×${count}</div>
-                                        <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[decoData.attr]} ${attrName} 속성 +${decoData.power} | ${qualityText}</div>
+                                        <div style="font-size: 0.85rem; color: #666;">${attrDisplay} | ${qualityText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
                                     </div>
                                 </div>
@@ -6241,14 +6270,33 @@
                     epic: []
                 };
                 
+                // 속성 표시용 헬퍼 함수
+                function getDecoAttrDisplay(data) {
+                    if (data.attr === 'dual' && data.dualAttr) {
+                        return data.dualAttr.map(a => ENV_ICONS[a]).join('') + ` +${data.power}`;
+                    } else if (data.attr === 'all') {
+                        return '🌈 전체 속성 +' + data.power;
+                    } else {
+                        return `${ENV_ICONS[data.attr]} +${data.power}`;
+                    }
+                }
+                
                 Object.keys(DECORATION_TYPES).forEach(key => {
                     const decoData = DECORATION_TYPES[key];
                     
                     // legendary는 상점에서 판매 안함 (미니게임 전용)
                     if (decoData.quality === 'legendary') return;
                     
-                    // 속성 필터
-                    if (buyFilter !== 'all' && decoData.attr !== buyFilter) return;
+                    // 속성 필터 (복합 속성은 all 필터에서만 표시하거나, 해당 속성 포함 시 표시)
+                    if (buyFilter !== 'all') {
+                        if (decoData.attr === 'dual') {
+                            if (!decoData.dualAttr || !decoData.dualAttr.includes(buyFilter)) return;
+                        } else if (decoData.attr === 'all') {
+                            // all 속성 장식물은 모든 속성 필터에서 표시
+                        } else if (decoData.attr !== buyFilter) {
+                            return;
+                        }
+                    }
                     
                     decorationsByQuality[decoData.quality].push({ key, data: decoData });
                 });
@@ -6263,7 +6311,7 @@
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
                                         <div style="font-weight: 700;">${data.name}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
                                 <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
@@ -6282,7 +6330,7 @@
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
                                         <div style="font-weight: 700;">${data.name}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
                                 <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
@@ -6301,7 +6349,7 @@
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
                                         <div style="font-weight: 700;">${data.name}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${ENV_ICONS[data.attr]} +${data.power}</div>
+                                        <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
                                 <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
@@ -8223,31 +8271,34 @@
                     document.querySelector('.tab:nth-child(2)').classList.add('active');
                     document.getElementById('terrariumSection').classList.add('active');
                     renderTerrariumManagement();
-                } else if (tab === 'shop') {
+                } else if (tab === 'lab') {
                     document.querySelector('.tab:nth-child(3)').classList.add('active');
+                    document.getElementById('labSection').classList.add('active');
+                } else if (tab === 'shop') {
+                    document.querySelector('.tab:nth-child(4)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
                     renderShop();
                     // 질병 튜토리얼: 상점 탭 열기 액션 체크
                     checkSickTutorialAction('openShop');
                 } else if (tab === 'minigame') {
-                    document.querySelector('.tab:nth-child(4)').classList.add('active');
+                    document.querySelector('.tab:nth-child(5)').classList.add('active');
                     document.getElementById('minigameSection').classList.add('active');
                     // 미니게임 탭 전환 시 게임 중이면 일시정지
                     if (minigameActive) {
                         pauseMinigame();
                     }
                 } else if (tab === 'encyclopedia') {
-                    document.querySelector('.tab:nth-child(5)').classList.add('active');
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('encyclopediaSection').classList.add('active');
                     renderEncyclopedia();
                 } else if (tab === 'album') {
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
+                    document.querySelector('.tab:nth-child(7)').classList.add('active');
                     document.getElementById('albumSection').classList.add('active');
                     renderCollection();
                     // 튜토리얼2: 앨범 탭 열기 액션 체크
                     checkTutorialAction('openAlbum');
                 } else if (tab === 'journal') {
-                    document.querySelector('.tab:nth-child(7)').classList.add('active');
+                    document.querySelector('.tab:nth-child(8)').classList.add('active');
                     document.getElementById('journalSection').classList.add('active');
                 } else if (tab === 'settings') {
                     // 설정은 탭 바에 없으므로 active 처리 안함
@@ -8592,21 +8643,34 @@
                     const attr = decoData.attr;
                     const power = decoData.power;
                     
-                    // 해당 속성 증가 (최대 50까지)
-                    terrarium[attr] = Math.min(50, terrarium[attr] + power);
+                    // 복합 속성 장식물 처리
+                    if (attr === 'dual' && decoData.dualAttr) {
+                        // 두 속성 모두 증가 (대립 속성 감소 없음)
+                        decoData.dualAttr.forEach(dualAttr => {
+                            terrarium[dualAttr] = Math.min(50, terrarium[dualAttr] + power);
+                        });
+                    } else if (attr === 'all') {
+                        // 모든 속성 증가 (대립 속성 감소 없음)
+                        ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(allAttr => {
+                            terrarium[allAttr] = Math.min(50, terrarium[allAttr] + power);
+                        });
+                    } else {
+                        // 해당 속성 증가 (최대 50까지)
+                        terrarium[attr] = Math.min(50, terrarium[attr] + power);
 
-                    // 대립 속성 감소 (power만큼)
-                    const opposites = {
-                        fire: 'water',
-                        water: 'fire',
-                        wind: 'earth',
-                        earth: 'wind',
-                        light: 'dark',
-                        dark: 'light'
-                    };
-                    const opposite = opposites[attr];
-                    if (opposite) {
-                        terrarium[opposite] = Math.max(0, terrarium[opposite] - power);
+                        // 대립 속성 감소 (power만큼)
+                        const opposites = {
+                            fire: 'water',
+                            water: 'fire',
+                            wind: 'earth',
+                            earth: 'wind',
+                            light: 'dark',
+                            dark: 'light'
+                        };
+                        const opposite = opposites[attr];
+                        if (opposite) {
+                            terrarium[opposite] = Math.max(0, terrarium[opposite] - power);
+                        }
                     }
                 }
                 
@@ -10862,7 +10926,7 @@
                     targetSelector = '#lightBtn';
                     break;
                 case 'openAlbum':
-                    targetSelector = '.tab:nth-child(6)';
+                    targetSelector = '.tab:nth-child(7)';
                     break;
                 case 'openAlbumDetail':
                     targetSelector = '.collection-card';
@@ -11323,6 +11387,10 @@
                 const target = document.querySelector(targetSelector);
                 if (target) {
                     target.classList.add('tutorial-highlight');
+                    // 강조된 요소로 스크롤
+                    setTimeout(() => {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
                 }
             }
         }
