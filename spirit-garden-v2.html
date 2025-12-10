@@ -3389,7 +3389,7 @@
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
             }
-            spirit.hiddenAttributes[foodType] += attrGain;
+            spirit.hiddenAttributes[foodType] = Math.min(200, spirit.hiddenAttributes[foodType] + attrGain);
 
             // 질병 상태가 아닐 때만 성장
             if (!spirit.isSick) {
@@ -5344,10 +5344,10 @@
                     };
                 }
 
-                // 테라리움의 각 속성값만큼 정령의 속성 증가
+                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 200)
                 Object.keys(terrarium).forEach(attr => {
                     if (terrarium[attr] > 0) {
-                        spirit.hiddenAttributes[attr] += terrarium[attr];
+                        spirit.hiddenAttributes[attr] = Math.min(200, spirit.hiddenAttributes[attr] + terrarium[attr]);
                     }
                 });
                 
