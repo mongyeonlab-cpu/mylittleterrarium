@@ -2165,21 +2165,24 @@
             dark_chocolate: { name: '다크 초콜릿', icon: '🍫', type: 'food', attr: 'dark', attrGain: 6, affectionGain: 3, growthGain: 3 },
             rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'all', attrGain: 3, affectionGain: 5, growthGain: 5 },
             
-            // 먹이 합성 결과물 (혼합 속성)
-            fire_water_steam: { name: '스팀 푸딩', icon: '♨️', type: 'food', attr: 'dual', dualAttr: ['fire', 'water'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            fire_wind_heat: { name: '열풍 크래커', icon: '🌪️', type: 'food', attr: 'dual', dualAttr: ['fire', 'wind'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            fire_earth_lava: { name: '화산 스프', icon: '🍲', type: 'food', attr: 'dual', dualAttr: ['fire', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            fire_light_sun: { name: '태양 타르트', icon: '🌅', type: 'food', attr: 'dual', dualAttr: ['fire', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            fire_dark_ash: { name: '잿빛 머랭쿠키', icon: '🖤', type: 'food', attr: 'dual', dualAttr: ['fire', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            water_wind_mist: { name: '안개 캔디', icon: '🌫️', type: 'food', attr: 'dual', dualAttr: ['water', 'wind'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            water_earth_pond: { name: '연못 샐러드', icon: '🥗', type: 'food', attr: 'dual', dualAttr: ['water', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            water_light_ice: { name: '빙하 아이스바', icon: '🧊', type: 'food', attr: 'dual', dualAttr: ['water', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            water_dark_deep: { name: '심해 젤리', icon: '🪼', type: 'food', attr: 'dual', dualAttr: ['water', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            wind_earth_desert: { name: '황야 비스킷', icon: '🏜️', type: 'food', attr: 'dual', dualAttr: ['wind', 'earth'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            wind_light_cloud: { name: '구름 솜사탕', icon: '☁️', type: 'food', attr: 'dual', dualAttr: ['wind', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            wind_dark_night: { name: '밤바람청', icon: '🌃', type: 'food', attr: 'dual', dualAttr: ['wind', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            earth_light_sprout: { name: '새싹 파이', icon: '🌿', type: 'food', attr: 'dual', dualAttr: ['earth', 'light'], attrGain: 3, affectionGain: 3, growthGain: 5 },
-            earth_dark_mushroom: { name: '동굴 버섯 수프', icon: '🍄', type: 'food', attr: 'dual', dualAttr: ['earth', 'dark'], attrGain: 3, affectionGain: 3, growthGain: 5 },
+            // 먹이 합성 결과물 (혼합 속성) - 밸런스 조정: 성장 2, 속성 4
+            fire_water_steam: { name: '스팀 푸딩', icon: '♨️', type: 'food', attr: 'dual', dualAttr: ['fire', 'water'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            fire_wind_heat: { name: '열풍 크래커', icon: '🌪️', type: 'food', attr: 'dual', dualAttr: ['fire', 'wind'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            fire_earth_lava: { name: '화산 스프', icon: '🍲', type: 'food', attr: 'dual', dualAttr: ['fire', 'earth'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            fire_light_sun: { name: '태양 타르트', icon: '🌅', type: 'food', attr: 'dual', dualAttr: ['fire', 'light'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            fire_dark_ash: { name: '잿빛 머랭쿠키', icon: '🖤', type: 'food', attr: 'dual', dualAttr: ['fire', 'dark'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            water_wind_mist: { name: '안개 캔디', icon: '🌫️', type: 'food', attr: 'dual', dualAttr: ['water', 'wind'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            water_earth_pond: { name: '연못 샐러드', icon: '🥗', type: 'food', attr: 'dual', dualAttr: ['water', 'earth'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            water_light_ice: { name: '빙하 아이스바', icon: '🧊', type: 'food', attr: 'dual', dualAttr: ['water', 'light'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            water_dark_deep: { name: '심해 젤리', icon: '🪼', type: 'food', attr: 'dual', dualAttr: ['water', 'dark'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            wind_earth_desert: { name: '황야 비스킷', icon: '🏜️', type: 'food', attr: 'dual', dualAttr: ['wind', 'earth'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            wind_light_cloud: { name: '구름 솜사탕', icon: '☁️', type: 'food', attr: 'dual', dualAttr: ['wind', 'light'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            wind_dark_night: { name: '밤바람청', icon: '🌃', type: 'food', attr: 'dual', dualAttr: ['wind', 'dark'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            earth_light_sprout: { name: '새싹 파이', icon: '🌿', type: 'food', attr: 'dual', dualAttr: ['earth', 'light'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            earth_dark_mushroom: { name: '동굴 버섯 수프', icon: '🍄', type: 'food', attr: 'dual', dualAttr: ['earth', 'dark'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            
+            // 특수 먹이 - 성장 억제
+            dark_nectar: { name: '암흑의 넥타르', icon: '🖤🍯', type: 'food', attr: 'special', attrGain: 0, affectionGain: 2, growthGain: -2, desc: '성장을 늦추는 신비한 음료' },
             
             // 장식물 합성 결과물
             flame_lamp: { name: '화염 램프', icon: '🏮', type: 'decoration', attr: 'fire', power: 3, quality: 'rare' },
@@ -2410,6 +2413,15 @@
                 ],
                 result: { type: 'shadow_crystal', count: 1 },
                 category: 'decoration'
+            },
+            // 특수 먹이 - 성장 억제
+            dark_nectar: {
+                ingredients: [
+                    { type: 'dark_chocolate', category: 'food', count: 1 },
+                    { type: 'light_cookie', category: 'food', count: 1 }
+                ],
+                result: { type: 'dark_nectar', count: 2 },
+                category: 'food'
             }
         };
         
@@ -3837,6 +3849,8 @@
                     synthItem.dualAttr.forEach(attr => {
                         spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + synthItem.attrGain);
                     });
+                } else if (synthItem.attr === 'special') {
+                    // 특수 먹이 (속성 증가 없음)
                 } else {
                     spirit.hiddenAttributes[synthItem.attr] = Math.min(500, spirit.hiddenAttributes[synthItem.attr] + synthItem.attrGain);
                 }
@@ -3844,9 +3858,9 @@
                 // 애정도 증가
                 spirit.parameters.affection += synthItem.affectionGain || 0;
                 
-                // 질병 상태가 아닐 때만 성장
+                // 질병 상태가 아닐 때만 성장 (음수 성장도 허용, 단 0 미만으로는 안 내려감)
                 if (!spirit.isSick) {
-                    spirit.growth += synthItem.growthGain || 0;
+                    spirit.growth = Math.max(0, spirit.growth + (synthItem.growthGain || 0));
                 }
                 
                 spirit.lastFeed = Date.now();
@@ -3873,10 +3887,12 @@
                     effectMsg = `전속성 +${synthItem.attrGain}`;
                 } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
                     effectMsg = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
+                } else if (synthItem.attr === 'special') {
+                    effectMsg = '특수 효과';
                 } else {
                     effectMsg = `${synthItem.attr} +${synthItem.attrGain}`;
                 }
-                const growthText = synthItem.growthGain ? `, 성장 +${synthItem.growthGain}` : '';
+                const growthText = synthItem.growthGain ? `, 성장 ${synthItem.growthGain > 0 ? '+' : ''}${synthItem.growthGain}` : '';
                 showNotification(`${synthItem.icon} ${synthItem.name}을(를) 주었습니다! (${effectMsg}, 애정도 +${synthItem.affectionGain}${growthText})`);
                 return;
             }
