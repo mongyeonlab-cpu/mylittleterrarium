@@ -177,6 +177,12 @@
             font-size: 3rem;
             line-height: 1;
         }
+        
+        .spirit-icon img {
+            width: 3rem;
+            height: 3rem;
+            object-fit: contain;
+        }
 
         .spirit-info {
             flex: 1;
@@ -488,6 +494,12 @@
         .encyclopedia-icon {
             font-size: 3rem;
             margin-bottom: 8px;
+        }
+        
+        .encyclopedia-icon img {
+            width: 3rem;
+            height: 3rem;
+            object-fit: contain;
         }
         
         .encyclopedia-name {
@@ -1934,7 +1946,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '🥚',
+            egg: '<img src="https://i.imgur.com/N6ZWLRB.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2780,7 +2792,7 @@
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
                 validUntil: '2026-01-31',
                 stages: {
-                    egg: '🎁',
+                    egg: '<img src="https://i.imgur.com/SncqWei.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2797,7 +2809,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '🤍',
+                        egg: '<img src="https://i.imgur.com/SncqWei.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -6431,8 +6443,8 @@
 
             // 아이콘 업데이트
             const iconElement = card.querySelector('.spirit-icon');
-            if (iconElement && iconElement.textContent !== icon) {
-                iconElement.textContent = icon;
+            if (iconElement && iconElement.innerHTML !== icon) {
+                iconElement.innerHTML = icon;
             }
 
             // 이름 업데이트
