@@ -9710,16 +9710,41 @@
             });
             
             // 레시피에서 필요한 개수 가져오기 (한 슬롯당)
-            // 레시피에서 필요한 최소 개수 가져오기
+            // 같은 재료끼리 합성하는 레시피가 있으면 그 개수 우선
             function getNeededCount(type, category) {
+                const otherSlot = currentLabSlot === 1 ? labSlot2 : labSlot1;
+                const isSameMaterial = otherSlot && otherSlot.type === type && otherSlot.category === category;
+                
                 let needed = 999;
+                let sameMatRecipeCount = null;
+                
+                // 같은 재료끼리 합성하는 레시피 확인
                 Object.values(RECIPES).forEach(recipe => {
-                    recipe.ingredients.forEach(ing => {
-                        if (ing.type === type && ing.category === category) {
-                            needed = Math.min(needed, ing.count);
-                        }
-                    });
+                    if (recipe.ingredients.length === 2 &&
+                        recipe.ingredients[0].type === type &&
+                        recipe.ingredients[0].category === category &&
+                        recipe.ingredients[1].type === type &&
+                        recipe.ingredients[1].category === category) {
+                        sameMatRecipeCount = recipe.ingredients[0].count;
+                    }
                 });
+                
+                // 같은 재료 조합이거나, 슬롯1에 넣을 때 같은재료 레시피가 있으면 그 개수
+                if (isSameMaterial && sameMatRecipeCount) {
+                    needed = sameMatRecipeCount;
+                } else if (!isSameMaterial && sameMatRecipeCount && currentLabSlot === 1) {
+                    needed = sameMatRecipeCount;
+                } else {
+                    // 다른 재료 조합 - 최소 필요 개수
+                    Object.values(RECIPES).forEach(recipe => {
+                        recipe.ingredients.forEach(ing => {
+                            if (ing.type === type && ing.category === category) {
+                                needed = Math.min(needed, ing.count);
+                            }
+                        });
+                    });
+                }
+                
                 return needed === 999 ? 1 : needed;
             }
             
@@ -9851,27 +9876,104 @@
                 return;
             }
             
-            // 레시피에서 필요한 최소 개수 찾기
-            let minNeededCount = 999;
+            // 다른 슬롯에 이미 같은 재료가 있는지 확인
+            const otherSlot = currentLabSlot === 1 ? labSlot2 : labSlot1;
+            const isSameMaterial = otherSlot && otherSlot.type === type && otherSlot.category === category;
+            
+            // 레시피에서 필요한 개수 찾기
+            let neededCount = 999;
+            let sameMatRecipeCount = null; // 같은 재료끼리 합성하는 레시피의 개수
+            
+            // 먼저 같은 재료끼리 합성하는 레시피가 있는지 확인
             Object.values(RECIPES).forEach(recipe => {
-                recipe.ingredients.forEach(ing => {
-                    if (ing.type === type && ing.category === category) {
-                        minNeededCount = Math.min(minNeededCount, ing.count);
-                    }
-                });
+                if (recipe.ingredients.length === 2 &&
+                    recipe.ingredients[0].type === type &&
+                    recipe.ingredients[0].category === category &&
+                    recipe.ingredients[1].type === type &&
+                    recipe.ingredients[1].category === category) {
+                    sameMatRecipeCount = recipe.ingredients[0].count;
+                }
             });
-            if (minNeededCount === 999) minNeededCount = 1;
+            
+            // 같은 재료를 슬롯2에 넣거나, 슬롯1에 넣는데 같은재료 레시피가 있으면 그 개수 사용
+            if (isSameMaterial && sameMatRecipeCount) {
+                neededCount = sameMatRecipeCount;
+            } else if (!isSameMaterial && sameMatRecipeCount && currentLabSlot === 1) {
+                // 슬롯1에 넣을 때, 같은 재료 레시피가 있으면 그 개수 사용 (나중에 같은 재료 넣을 수 있으므로)
+                neededCount = sameMatRecipeCount;
+            } else {
+                // 다른 재료 조합 - 최소 필요 개수 사용
+                Object.values(RECIPES).forEach(recipe => {
+                    recipe.ingredients.forEach(ing => {
+                        if (ing.type === type && ing.category === category) {
+                            neededCount = Math.min(neededCount, ing.count);
+                        }
+                    });
+                });
+            }
+            
+            if (neededCount === 999) neededCount = 1;
             
             // 재료 부족 체크
-            if (count < minNeededCount) {
+            if (count < neededCount) {
                 const itemName = getItemName(type, category);
-                showNotification(`⚠️ ${itemName} 부족! (보유: ${count}개, 필요: ${minNeededCount}개)`);
+                showNotification(`⚠️ ${itemName} 부족! (보유: ${count}개, 필요: ${neededCount}개)`);
                 closeLabModal();
                 return;
             }
             
-            // 최소 필요 개수만 선택 (UI 표시와 일치하도록)
-            let selectedCount = minNeededCount;
+            // 필요 개수만큼 선택
+            let selectedCount = neededCount;
+            
+            // 같은 재료를 슬롯2에 넣을 때, 슬롯1의 개수가 다르면 조정
+            if (isSameMaterial && currentLabSlot === 2 && otherSlot.count !== neededCount) {
+                // 슬롯1 재료를 인벤토리로 반환
+                if (otherSlot.category === 'food') {
+                    for (let i = 0; i < otherSlot.count; i++) {
+                        inventory.food.push(otherSlot.type);
+                    }
+                } else if (otherSlot.category === 'decoration') {
+                    for (let i = 0; i < otherSlot.count; i++) {
+                        inventory.decorations.push(otherSlot.type);
+                    }
+                }
+                
+                // 슬롯1에 새로운 개수로 다시 설정
+                const totalCount = countInventoryItem(type, category);
+                if (totalCount < neededCount * 2) {
+                    // 재료가 총 개수가 부족하면 롤백하고 취소
+                    if (otherSlot.category === 'food') {
+                        for (let i = 0; i < otherSlot.count; i++) {
+                            const idx = inventory.food.indexOf(otherSlot.type);
+                            if (idx !== -1) inventory.food.splice(idx, 1);
+                        }
+                    } else if (otherSlot.category === 'decoration') {
+                        for (let i = 0; i < otherSlot.count; i++) {
+                            const idx = inventory.decorations.indexOf(otherSlot.type);
+                            if (idx !== -1) inventory.decorations.splice(idx, 1);
+                        }
+                    }
+                    const itemName = getItemName(type, category);
+                    showNotification(`⚠️ ${itemName} 부족! (보유: ${count + otherSlot.count}개, 필요: ${neededCount * 2}개)`);
+                    closeLabModal();
+                    return;
+                }
+                
+                // 슬롯1 재료 차감
+                if (otherSlot.category === 'food') {
+                    for (let i = 0; i < neededCount; i++) {
+                        const idx = inventory.food.indexOf(type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (otherSlot.category === 'decoration') {
+                    for (let i = 0; i < neededCount; i++) {
+                        const idx = inventory.decorations.indexOf(type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+                
+                labSlot1 = { type, category, count: neededCount };
+            }
             
             // 인벤토리에서 실제로 재료 차감
             if (category === 'food') {
@@ -9901,6 +10003,45 @@
                 labSlot2 = { type, category, count: selectedCount };
                 // 연구실 튜토리얼: 재료2 선택 액션 체크
                 checkLabTutorialAction('selectIngredient2');
+                
+                // 슬롯2에 다른 재료를 넣었을 때, 슬롯1 개수가 레시피와 맞지 않으면 조정
+                if (labSlot1 && !isSameMaterial) {
+                    // 현재 조합에 맞는 레시피 찾기
+                    let correctSlot1Count = null;
+                    Object.values(RECIPES).forEach(recipe => {
+                        const ing1 = recipe.ingredients[0];
+                        const ing2 = recipe.ingredients[1];
+                        
+                        // 슬롯1-재료1, 슬롯2-재료2 매칭
+                        if (labSlot1.type === ing1.type && labSlot1.category === ing1.category &&
+                            type === ing2.type && category === ing2.category) {
+                            correctSlot1Count = ing1.count;
+                        }
+                        // 슬롯1-재료2, 슬롯2-재료1 매칭
+                        if (labSlot1.type === ing2.type && labSlot1.category === ing2.category &&
+                            type === ing1.type && category === ing1.category) {
+                            correctSlot1Count = ing2.count;
+                        }
+                    });
+                    
+                    // 슬롯1 개수가 레시피와 다르면 조정
+                    if (correctSlot1Count !== null && labSlot1.count !== correctSlot1Count) {
+                        const diff = labSlot1.count - correctSlot1Count;
+                        if (diff > 0) {
+                            // 초과분 인벤토리로 반환
+                            if (labSlot1.category === 'food') {
+                                for (let i = 0; i < diff; i++) {
+                                    inventory.food.push(labSlot1.type);
+                                }
+                            } else if (labSlot1.category === 'decoration') {
+                                for (let i = 0; i < diff; i++) {
+                                    inventory.decorations.push(labSlot1.type);
+                                }
+                            }
+                        }
+                        labSlot1.count = correctSlot1Count;
+                    }
+                }
             }
             
             closeLabModal();
