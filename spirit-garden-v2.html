@@ -1517,7 +1517,7 @@
         let lockedItems = { food: [], decorations: [] }; // 판매 잠금된 아이템 목록
         let isLockMode = false; // 잠금 모드 상태
         let terrariumInvFilter = 'all'; // 테라리움 인벤토리 필터 (all, fire, water, wind, earth, light, dark, event)
-        let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic)
+        let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic, legendary)
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
@@ -11071,8 +11071,8 @@
                         if (attrDiff !== 0) return attrDiff;
                         
                         // 2. 품질별 정렬 (높은 순)
-                        const qualityOrder = { epic: 0, rare: 1, common: 2 };
-                        const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                        const qualityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
+                        const qualityDiff = (qualityOrder[dataA.quality] || 3) - (qualityOrder[dataB.quality] || 3);
                         if (qualityDiff !== 0) return qualityDiff;
                         
                         // 3. 이름별 정렬
@@ -11118,7 +11118,7 @@
                                 return `
                                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                            <span style="font-size: 1.3rem;">👑🎄${eventItem.icon}</span>
                                             <div>
                                                 <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
                                                 <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
@@ -11160,6 +11160,7 @@
                         <option value="common" ${terrariumQualityFilter === 'common' ? 'selected' : ''}>일반</option>
                         <option value="rare" ${terrariumQualityFilter === 'rare' ? 'selected' : ''}>💎 희귀</option>
                         <option value="epic" ${terrariumQualityFilter === 'epic' ? 'selected' : ''}>⭐ 최상급</option>
+                        <option value="legendary" ${terrariumQualityFilter === 'legendary' ? 'selected' : ''}>👑 전설</option>
                     </select>
                 `;
             }
@@ -11196,8 +11197,8 @@
                     if (attrDiff !== 0) return attrDiff;
                     
                     // 2. 품질별 정렬 (높은 순)
-                    const qualityOrder = { epic: 0, rare: 1, common: 2 };
-                    const qualityDiff = (qualityOrder[dataA.quality] || 2) - (qualityOrder[dataB.quality] || 2);
+                    const qualityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
+                    const qualityDiff = (qualityOrder[dataA.quality] || 3) - (qualityOrder[dataB.quality] || 3);
                     if (qualityDiff !== 0) return qualityDiff;
                     
                     // 3. 이름별 정렬
@@ -11225,8 +11226,12 @@
                 
                 // 품질 필터
                 if (terrariumQualityFilter !== 'all') {
-                    if (isEvent) return false; // 이벤트 아이템은 품질 필터에서 제외
-                    if (decoData && decoData.quality !== terrariumQualityFilter) return false;
+                    if (isEvent) {
+                        // 이벤트 아이템은 전설급으로 취급
+                        if (terrariumQualityFilter !== 'legendary') return false;
+                    } else {
+                        if (decoData && decoData.quality !== terrariumQualityFilter) return false;
+                    }
                 }
                 
                 return true;
@@ -11243,7 +11248,7 @@
                         // 일반 장식물 체크
                         const decoData = DECORATION_TYPES[key];
                         if (decoData) {
-                            const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                            const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                             return `
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -11273,7 +11278,7 @@
                             return `
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                        <span style="font-size: 1.3rem;">👑🎄${eventItem.icon}</span>
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
                                             <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
