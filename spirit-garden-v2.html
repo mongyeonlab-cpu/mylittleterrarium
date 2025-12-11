@@ -3076,6 +3076,8 @@
                     pauseBtn.textContent = '▶️';
                     pauseBtn.classList.add('paused');
                     pauseBtn.title = '재개';
+                    // 일시정지 상태로 로드되면 pausedAt을 현재 시간으로 설정
+                    pausedAt = Date.now();
                 }
 
                 // 설치된 장식물로 환경 재계산
@@ -11145,8 +11147,17 @@
                 showNotification('⏸️ 게임이 일시정지되었습니다');
             } else {
                 if (pausedAt) {
+                    const pausedDuration = Date.now() - pausedAt;
                     // 일시정지했던 시간을 누적
-                    totalPausedTime += (Date.now() - pausedAt);
+                    totalPausedTime += pausedDuration;
+                    
+                    // 모든 정령의 lastInteraction 시간 보정 (일시정지 시간만큼 앞으로 당김)
+                    spirits.forEach(spirit => {
+                        if (spirit.lastInteraction) {
+                            spirit.lastInteraction += pausedDuration;
+                        }
+                    });
+                    
                     pausedAt = null;
                 }
                 if (pauseBtn) {
