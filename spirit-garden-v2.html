@@ -5510,8 +5510,8 @@
         
         // 연정 알 생성
         function createLoveEgg(parent1, parent2) {
-            // 슬롯 체크
-            if (spirits.length >= maxSpirits) {
+            // 슬롯 체크 (최대 6마리)
+            if (spirits.length >= 6) {
                 showNotification('❌ 정령 슬롯이 가득 찼습니다!');
                 return;
             }
