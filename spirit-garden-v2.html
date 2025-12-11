@@ -2934,10 +2934,21 @@
                 collection = data.collection || [];
                 encyclopedia = data.encyclopedia || {};
                 
-                // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거 (이벤트 정령은 유지)
+                // 도감 데이터 형식 통일 (객체 → 숫자)
+                Object.keys(encyclopedia).forEach(key => {
+                    if (typeof encyclopedia[key] === 'object' && encyclopedia[key] !== null) {
+                        encyclopedia[key] = encyclopedia[key].count || 1;
+                    }
+                });
+                
+                // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거 (이벤트/합성 정령은 유지)
                 collection = collection.filter(item => {
                     // 이벤트 정령은 항상 유지
                     if (item.type && item.type.startsWith('event_')) return true;
+                    // 합성 정령(fusion-)은 항상 유지
+                    if (item.type && (item.type.startsWith('fusion-') || FUSION_TYPES[item.type])) return true;
+                    // isFusion 플래그가 있으면 유지
+                    if (item.isFusion) return true;
                     // 일반 정령은 EVOLUTION_TYPES에 있는지 확인
                     return EVOLUTION_TYPES[item.type] !== undefined;
                 });
@@ -4819,7 +4830,7 @@
                     if (!spirit.darkTime) spirit.darkTime = 0;
                     let wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
                     
-                    spirit.evolutionData = {
+                    const evolutionData = {
                         type: spirit.fusionType,
                         attributeType: spirit.fusionType,
                         name: fusion.name,
@@ -4830,17 +4841,63 @@
                         fusionRarity: fusion.rarity
                     };
                     
-                    // 도감 등록
-                    if (!encyclopedia[spirit.fusionType]) {
-                        encyclopedia[spirit.fusionType] = { firstSeen: new Date().toISOString(), count: 1 };
-                        showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
+                    spirit.evolutionData = evolutionData;
+                    
+                    // 도감 등록 (숫자 형식으로 통일)
+                    if (!encyclopedia[spirit.fusionType] || typeof encyclopedia[spirit.fusionType] === 'object') {
+                        // 객체 형식이면 숫자로 변환, 없으면 초기화
+                        const prevCount = typeof encyclopedia[spirit.fusionType] === 'object' 
+                            ? (encyclopedia[spirit.fusionType].count || 0) 
+                            : (encyclopedia[spirit.fusionType] || 0);
+                        encyclopedia[spirit.fusionType] = prevCount + 1;
+                        if (prevCount === 0) {
+                            showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
+                        }
                     } else {
-                        encyclopedia[spirit.fusionType].count++;
+                        encyclopedia[spirit.fusionType]++;
                     }
                     
                     saveGame();
                     renderSpirits();
-                    showNotification(`🧬 ${fusion.name}이(가) 완성되었습니다! 교배의 힘이 발현되었어요!`);
+                    
+                    // 앨범 추가 및 정령 제거를 위한 확인창
+                    showConfirm(
+                        '합성 정령 완성',
+                        `🧬 ${fusion.name}이(가) 완성되었습니다!\n교배의 힘이 발현되었어요!`,
+                        () => {
+                            // 앨범에 추가
+                            collection.push({
+                                id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                type: evolutionData.type,
+                                attributeType: evolutionData.attributeType,
+                                name: evolutionData.name,
+                                icon: evolutionData.icon,
+                                desc: evolutionData.desc,
+                                parameters: { ...spirit.parameters },
+                                hiddenAttributes: { ...spirit.hiddenAttributes },
+                                originalName: spirit.name,
+                                wingType: evolutionData.wingType,
+                                lightTime: spirit.lightTime,
+                                darkTime: spirit.darkTime,
+                                completedAt: Date.now(),
+                                isFusion: true,
+                                fusionRarity: evolutionData.fusionRarity
+                            });
+                            
+                            // 코인 보상
+                            coins += 25;
+                            
+                            // 정령 제거
+                            spirits = spirits.filter(s => s.id !== spiritId);
+                            saveGame();
+                            updateCoinDisplay();
+                            renderSpirits();
+                            
+                            showNotification(`✨ ${fusion.name}이(가) 앨범에 등록되고 떠났습니다. (+25코인)`);
+                        },
+                        '떠나보내기',
+                        '조금 더 함께하기'
+                    );
                     return;
                 }
                 // 40% 실패 시 일반 육성 진화로 진행 (아래 코드 계속)
@@ -5705,10 +5762,10 @@
             
             if (isFusionType && prediction.key) {
                 if (!encyclopedia[prediction.key]) {
-                    encyclopedia[prediction.key] = { firstSeen: new Date().toISOString(), count: 1 };
+                    encyclopedia[prediction.key] = 1;
                     showNotification(`🎉 새로운 교배 정령 "${prediction.name}" 도감 등록!`);
                 } else {
-                    encyclopedia[prediction.key].count++;
+                    encyclopedia[prediction.key]++;
                 }
             }
             
@@ -7748,10 +7805,10 @@
             // 합성 도감 등록
             if (isFusionType && result.key) {
                 if (!encyclopedia[result.key]) {
-                    encyclopedia[result.key] = { firstSeen: new Date().toISOString(), count: 1 };
+                    encyclopedia[result.key] = 1;
                     showNotification(`🎉 새로운 합성 정령 "${result.name}" 도감 등록!`);
                 } else {
-                    encyclopedia[result.key].count++;
+                    encyclopedia[result.key]++;
                 }
             }
             
@@ -7773,13 +7830,15 @@
             if (!container) return;
             
             const entries = Object.entries(FUSION_TYPES).map(([key, data]) => {
-                const discovered = encyclopedia[key];
+                const rawValue = encyclopedia[key];
+                const discovered = rawValue ? true : false;
+                const count = typeof rawValue === 'object' ? (rawValue.count || 0) : (rawValue || 0);
                 return `
                     <div style="padding: 12px; background: ${discovered ? 'var(--bg)' : 'rgba(0,0,0,0.3)'}; border: 1px solid ${discovered ? getRarityColor(data.rarity) : 'var(--border)'}; border-radius: 8px; text-align: center;">
                         <div style="font-size: 2rem; ${discovered ? '' : 'filter: grayscale(1); opacity: 0.3;'}">${data.icon}</div>
                         <div style="font-weight: 700; font-size: 0.85rem; margin-top: 4px; ${discovered ? '' : 'color: #666;'}">${discovered ? data.name : '???'}</div>
                         <div style="font-size: 0.75rem; color: ${getRarityColor(data.rarity)};">${getRarityText(data.rarity)}</div>
-                        ${discovered ? `<div style="font-size: 0.7rem; color: #888; margin-top: 4px;">x${discovered.count}</div>` : ''}
+                        ${discovered ? `<div style="font-size: 0.7rem; color: #888; margin-top: 4px;">x${count}</div>` : ''}
                     </div>
                 `;
             });
@@ -8095,10 +8154,10 @@
             // 합성 도감 등록
             if (isFusionType && prediction.key) {
                 if (!encyclopedia[prediction.key]) {
-                    encyclopedia[prediction.key] = { firstSeen: new Date().toISOString(), count: 1 };
+                    encyclopedia[prediction.key] = 1;
                     showNotification(`🎉 새로운 교배 정령 "${prediction.name}" 도감 등록!`);
                 } else {
-                    encyclopedia[prediction.key].count++;
+                    encyclopedia[prediction.key]++;
                 }
             }
             
@@ -8254,6 +8313,14 @@
                 console.log('현재 도감:', encyclopedia);
                 console.log('현재 앨범:', collection);
                 
+                // 도감 카운트 가져오기 (숫자/객체 형식 모두 처리)
+                function getEncyclopediaCount(key) {
+                    const value = encyclopedia[key];
+                    if (!value) return 0;
+                    if (typeof value === 'object') return value.count || 0;
+                    return value;
+                }
+                
                 const grid = document.getElementById('encyclopediaGrid');
                 if (!grid) {
                     console.error('encyclopediaGrid 엘리먼트를 찾을 수 없습니다');
@@ -8330,7 +8397,7 @@
             </div>`;
             
             // 티타니아
-            const titaniaCount = encyclopedia['titania'] || 0;
+            const titaniaCount = getEncyclopediaCount('titania');
             const titaniaUnlocked = titaniaCount > 0;
             html += `
                 <div class="${titaniaUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
@@ -8342,7 +8409,7 @@
             `;
             
             // 오베론
-            const oberonCount = encyclopedia['oberon'] || 0;
+            const oberonCount = getEncyclopediaCount('oberon');
             const oberonUnlocked = oberonCount > 0;
             html += `
                 <div class="${oberonUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
@@ -8354,7 +8421,7 @@
             `;
             
             // 오블리비온
-            const oblivionCount = encyclopedia['fusion-oblivion'] || 0;
+            const oblivionCount = getEncyclopediaCount('fusion-oblivion');
             const oblivionUnlocked = oblivionCount > 0;
             html += `
                 <div class="${oblivionUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #ff00ff;">
@@ -8394,15 +8461,15 @@
                         
                         if (statInfo.key === 'nostat') {
                             // 수식어 없는 정령
-                            count = encyclopedia[`nostat-${attrType}`] || 0;
+                            count = getEncyclopediaCount(`nostat-${attrType}`);
                             isUnlocked = count > 0;
                             displayName = isUnlocked ? '(수식어 없음)' : '???????';
                             displayIcon = isUnlocked ? attributeData.icon : '?';
                         } else {
                             // 스탯 계열 정령
-                            const lowCount = encyclopedia[`${statInfo.key}-low-${attrType}`] || 0;
-                            const midCount = encyclopedia[`${statInfo.key}-mid-${attrType}`] || 0;
-                            const highCount = encyclopedia[`${statInfo.key}-high-${attrType}`] || 0;
+                            const lowCount = getEncyclopediaCount(`${statInfo.key}-low-${attrType}`);
+                            const midCount = getEncyclopediaCount(`${statInfo.key}-mid-${attrType}`);
+                            const highCount = getEncyclopediaCount(`${statInfo.key}-high-${attrType}`);
                             count = lowCount + midCount + highCount;
                             isUnlocked = count > 0;
                             
