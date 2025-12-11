@@ -1420,7 +1420,10 @@
                         전체 해제
                     </button>
                 </div>
-                <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;" id="installedCount">0 / 20</div>
+                <div style="font-size: 0.9rem; color: #888; margin-bottom: 20px;">
+                    <span id="installedCount">0 / 20</span>
+                    <span style="margin-left: 12px;">👑 전설: <span id="legendaryCount" style="color: #9c27b0; font-weight: 600;">0</span> / 5</span>
+                </div>
                 <div id="installedDecorList"></div>
             </div>
 
@@ -11317,6 +11320,19 @@
             if (installedCountEl) {
                 installedCountEl.textContent = `${installedDecorations.length} / 20`;
             }
+            
+            // 전설 등급 개수 업데이트
+            const legendaryCountEl = document.getElementById('legendaryCount');
+            if (legendaryCountEl) {
+                const legendaryCount = installedDecorations.filter(d => {
+                    const type = typeof d === 'string' ? d : d.type;
+                    const dData = DECORATION_TYPES[type];
+                    const eData = EVENT_ITEMS[type];
+                    return (dData?.quality === 'legendary') || (eData?.quality === 'legendary');
+                }).length;
+                legendaryCountEl.textContent = legendaryCount;
+                legendaryCountEl.style.color = legendaryCount >= 5 ? '#f44336' : '#9c27b0';
+            }
 
             // 설치된 장식물 목록
             const installedContainer = document.getElementById('installedDecorList');
@@ -11454,6 +11470,15 @@
             });
 
             const canInstall = installedDecorations.length < 20;
+            
+            // 전설 등급 현재 개수 계산
+            const legendaryCount = installedDecorations.filter(d => {
+                const type = typeof d === 'string' ? d : d.type;
+                const dData = DECORATION_TYPES[type];
+                const eData = EVENT_ITEMS[type];
+                return (dData?.quality === 'legendary') || (eData?.quality === 'legendary');
+            }).length;
+            const canInstallLegendary = legendaryCount < 5;
 
             // 속성별, 품질별, 이름별로 정렬 (순서 고정)
             let sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
@@ -11527,6 +11552,9 @@
                         const decoData = DECORATION_TYPES[key];
                         if (decoData) {
                             const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                            const isLegendary = decoData.quality === 'legendary';
+                            const canInstallThis = canInstall && (!isLegendary || canInstallLegendary);
+                            const buttonText = !canInstall ? '가득' : (isLegendary && !canInstallLegendary) ? '제한' : '설치';
                             return `
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -11536,14 +11564,14 @@
                                             <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
                                         </div>
                                     </div>
-                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
-                                        ${canInstall ? '설치' : '가득'}
+                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstallThis ? 'disabled' : ''}>
+                                        ${buttonText}
                                     </button>
                                 </div>
                             `;
                         }
                         
-                        // 이벤트 장식물 체크
+                        // 이벤트 장식물 체크 (전설급 취급)
                         const eventItem = EVENT_ITEMS[key];
                         if (eventItem && eventItem.type === 'decoration') {
                             // 간소화된 효과 텍스트
@@ -11553,6 +11581,9 @@
                             } else if (key === 'christmas_gift') {
                                 effectsText = '모든 속성 +3, 빛/암 +5';
                             }
+                            const isEventLegendary = eventItem.quality === 'legendary';
+                            const canInstallThis = canInstall && (!isEventLegendary || canInstallLegendary);
+                            const buttonText = !canInstall ? '가득' : (isEventLegendary && !canInstallLegendary) ? '제한' : '설치';
                             return `
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -11562,8 +11593,8 @@
                                             <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
                                         </div>
                                     </div>
-                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstall ? 'disabled' : ''}>
-                                        ${canInstall ? '설치' : '가득'}
+                                    <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstallThis ? 'disabled' : ''}>
+                                        ${buttonText}
                                     </button>
                                 </div>
                             `;
@@ -11598,8 +11629,25 @@
 
             const decoData = DECORATION_TYPES[decorationType];
             const eventItem = EVENT_ITEMS[decorationType];
+            const synthItem = SYNTH_ITEMS[decorationType];
             
-            if (!decoData && !eventItem) return;
+            if (!decoData && !eventItem && !synthItem) return;
+            
+            // 전설 등급 장식물 최대 5개 제한
+            const itemQuality = decoData?.quality || eventItem?.quality || null;
+            if (itemQuality === 'legendary') {
+                const legendaryCount = installedDecorations.filter(d => {
+                    const type = typeof d === 'string' ? d : d.type;
+                    const dData = DECORATION_TYPES[type];
+                    const eData = EVENT_ITEMS[type];
+                    return (dData?.quality === 'legendary') || (eData?.quality === 'legendary');
+                }).length;
+                
+                if (legendaryCount >= 5) {
+                    showNotification('👑 전설 등급 장식물은 최대 5개까지만 설치할 수 있습니다');
+                    return;
+                }
+            }
 
             // 같은 타입의 장식물이 있는지 확인 (위치 고정을 위해)
             const existingIndices = installedDecorations
@@ -11637,7 +11685,7 @@
                 }
             });
             
-            const itemData = decoData || eventItem;
+            const itemData = decoData || eventItem || synthItem;
             saveGame();
             renderTerrariumManagement();
             renderInventory();
