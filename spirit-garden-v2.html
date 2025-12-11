@@ -8584,7 +8584,7 @@
         }
         
         function getMainAttribute(spirit) {
-            const attrs = spirit.attributes || {};
+            const attrs = spirit.attributes || spirit.hiddenAttributes || {};
             let maxAttr = 'normal';
             let maxVal = 0;
             
@@ -8760,8 +8760,8 @@
             // 초기 속성 설정 (합성 타입이면 특별 속성)
             if (isFusionType) {
                 // 합성 전용 정령은 부모 속성 합
-                const attrs1 = fusionSlot1Spirit.attributes || {};
-                const attrs2 = fusionSlot2Spirit.attributes || {};
+                const attrs1 = fusionSlot1Spirit.attributes || fusionSlot1Spirit.hiddenAttributes || {};
+                const attrs2 = fusionSlot2Spirit.attributes || fusionSlot2Spirit.hiddenAttributes || {};
                 ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
                     newSpirit.attributes[attr] = Math.floor(((attrs1[attr] || 0) + (attrs2[attr] || 0)) / 2);
                 });
@@ -8846,7 +8846,7 @@
                 i: spirit.parameters?.intelligence || 0,
                 s: spirit.parameters?.strength || 0,
                 c: spirit.parameters?.charm || 0,
-                at: spirit.attributes || {},
+                at: spirit.attributes || spirit.hiddenAttributes || {},
                 ts: Date.now(),
                 // 이벤트 정령 정보
                 ev: spirit.isEventSpirit ? spirit.eventType : null
@@ -9051,7 +9051,7 @@
             };
             
             // 부모 속성 평균 계승
-            const myAttrs = mySpirit.attributes || {};
+            const myAttrs = mySpirit.attributes || mySpirit.hiddenAttributes || {};
             const friendAttrs = friendData.attributes || {};
             const newAttrs = {};
             ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
@@ -9262,7 +9262,7 @@
             };
             
             // 예상 상속 속성 계산
-            const myAttrs = mySpirit.attributes || {};
+            const myAttrs = mySpirit.attributes || mySpirit.hiddenAttributes || {};
             const friendAttrs = friendData.attributes || {};
             const inheritAttrs = [];
             ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
