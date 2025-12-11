@@ -2604,12 +2604,18 @@
             // 스탯 기반
             if (spirit.parameters.intelligence >= 80) {
                 keywords.push({ text: '현명한', color: keywordColor });
+            } else if (spirit.parameters.intelligence <= 10) {
+                keywords.push({ text: '사교성이 적은', color: '#e74c3c' }); // 빨간색 경고
             }
             if (spirit.parameters.strength >= 80) {
                 keywords.push({ text: '강인한', color: keywordColor });
+            } else if (spirit.parameters.strength <= 5) {
+                keywords.push({ text: '🤒 병에 걸리기 쉬운', color: '#e74c3c' }); // 빨간색 경고
             }
             if (spirit.parameters.charm >= 80) {
                 keywords.push({ text: '매혹적인', color: keywordColor });
+            } else if (spirit.parameters.charm >= 50) {
+                keywords.push({ text: '✨ 사교적인', color: '#9b59b6' }); // 보라색 보너스
             }
             
             // 성장 단계 기반
@@ -2667,6 +2673,17 @@
             const lover = getLover(spirit);
             if (lover) {
                 keywords.push({ text: `연정 : ${lover.name}`, color: '#e91e63' }); // 핑크색
+            }
+            
+            // 앙숙 관계 (호감도 0 미만)
+            if (spirit.relationships) {
+                const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted && s.id !== spirit.id);
+                activeSpirits.forEach(other => {
+                    const rel = spirit.relationships[other.id] || 0;
+                    if (rel < 0) {
+                        keywords.push({ text: `앙숙 : ${other.name}`, color: '#e74c3c' }); // 빨간색
+                    }
+                });
             }
             
             return keywords;
@@ -6210,8 +6227,53 @@
                     const currentRel1 = spirit1.relationships[spirit2.id] || 0;
                     const currentRel2 = spirit2.relationships[spirit1.id] || 0;
                     
+                    // 지력 10 이하면 싸움 확률 20%
+                    const spirit1LowInt = (spirit1.parameters?.intelligence || 0) <= 10;
+                    const spirit2LowInt = (spirit2.parameters?.intelligence || 0) <= 10;
+                    
+                    if ((spirit1LowInt || spirit2LowInt) && Math.random() < 0.2) {
+                        // 싸움 발생! 관계 감소
+                        const fightDamage = Math.floor(Math.random() * 5) + 1; // -1 ~ -5
+                        const newRel1 = Math.max(-100, currentRel1 - fightDamage);
+                        const newRel2 = Math.max(-100, currentRel2 - fightDamage);
+                        
+                        spirit1.relationships[spirit2.id] = newRel1;
+                        spirit2.relationships[spirit1.id] = newRel2;
+                        
+                        // 앙숙 이벤트 (둘 다 0 미만 도달 시)
+                        if (currentRel1 >= 0 && newRel1 < 0 && newRel2 < 0) {
+                            showNotification(`${spirit1.name}와(과) ${spirit2.name}이(가) 앙숙이 되었습니다!`);
+                            addLog(spirit1, `${spirit2.name}와(과) 앙숙이 되었습니다.`);
+                            addLog(spirit2, `${spirit1.name}와(과) 앙숙이 되었습니다.`);
+                        }
+                        
+                        // 싸움 알림 (가끔만)
+                        if (Math.random() < 0.3) {
+                            const troublemaker = spirit1LowInt ? spirit1 : spirit2;
+                            const other = spirit1LowInt ? spirit2 : spirit1;
+                            showNotification(`${troublemaker.name}이(가) ${other.name}와(과) 다퉜습니다!`);
+                            addLog(troublemaker, `${other.name}와(과) 다퉜습니다. (지력 부족)`);
+                            addLog(other, `${troublemaker.name}와(과) 다퉜습니다.`);
+                        }
+                        continue; // 싸우면 호감도 증가 스킵
+                    }
+                    
                     // 관계 변화량 (함께 있으면 자연스럽게 친해짐)
-                    const change = Math.floor(Math.random() * 4) + 1; // +1 ~ +4
+                    let change = Math.floor(Math.random() * 4) + 1; // +1 ~ +4
+                    
+                    // 매력 50 이상이면 호감도 증가량 보너스 (1.5배)
+                    const spirit1HighCharm = (spirit1.parameters?.charm || 0) >= 50;
+                    const spirit2HighCharm = (spirit2.parameters?.charm || 0) >= 50;
+                    
+                    if (spirit1HighCharm || spirit2HighCharm) {
+                        change = Math.floor(change * 1.5);
+                        // 매력 보너스 알림 (낮은 확률)
+                        if (Math.random() < 0.05) {
+                            const charmer = spirit1HighCharm ? spirit1 : spirit2;
+                            const other = spirit1HighCharm ? spirit2 : spirit1;
+                            addLog(charmer, `✨ ${other.name}에게 매력을 발산했습니다!`);
+                        }
+                    }
                     
                     // 관계 수치 업데이트 (범위: 0 ~ 100)
                     const newRel1 = Math.min(100, currentRel1 + change);
