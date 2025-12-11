@@ -4738,6 +4738,17 @@
                     }
                 });
                 
+                // 합성 먹이 아이템 추가
+                Object.keys(foodCounts).forEach(key => {
+                    if (SYNTH_ITEMS[key] && SYNTH_ITEMS[key].type === 'food') {
+                        foodHTML += `
+                            <div class="inventory-item" title="${SYNTH_ITEMS[key].name}" style="border: 1px solid #9b59b6;">
+                                ${SYNTH_ITEMS[key].icon} ×${foodCounts[key]}
+                            </div>
+                        `;
+                    }
+                });
+                
                 foodContainer.innerHTML = foodHTML || '<div class="inventory-item">없음</div>';
             }
 
@@ -4791,10 +4802,20 @@
                     // 일반 장식물 체크
                     const decoData = DECORATION_TYPES[key];
                     if (decoData) {
-                        const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                         return `
                             <div class="inventory-item" title="${decoData.name} (${decoData.attr} +${decoData.power})">
                                 ${qualityLabel}${decoData.icon} ×${decorCounts[key]}
+                            </div>
+                        `;
+                    }
+                    
+                    // 합성 장식물 체크
+                    const synthItem = SYNTH_ITEMS[key];
+                    if (synthItem && synthItem.type === 'decoration') {
+                        return `
+                            <div class="inventory-item" title="${synthItem.name} (${synthItem.attr} +${synthItem.power})" style="border: 1px solid #9b59b6;">
+                                ${synthItem.icon} ×${decorCounts[key]}
                             </div>
                         `;
                     }
@@ -9532,10 +9553,10 @@
                         ${item.wingType ? `<div style="font-size: 0.85rem; color: #888; margin-top: 4px;">${item.wingType === 'butterfly' ? '나비의 날개' : item.wingType === 'moth' ? '나방의 날개' : '나비와 나방의 날개'}</div>` : ''}
                         ${desc ? `<div style="font-size: 0.85rem; color: #888; margin-top: 8px; line-height: 1.4;">${desc}</div>` : ''}
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;">
-                            <div class="param">🧠 ${item.parameters.intelligence}</div>
+                            <div class="param">💕 ${item.parameters.affection || 0}</div>
                             <div class="param">💪 ${item.parameters.strength}</div>
-                            <div class="param">${item.parameters.charm}</div>
-                            <div class="param">${item.parameters.affection || 0}</div>
+                            <div class="param">🧠 ${item.parameters.intelligence}</div>
+                            <div class="param">💖 ${item.parameters.charm}</div>
                         </div>
                         <div style="font-size: 0.75rem; color: #999; margin-top: 12px; text-align: center;">📊 클릭하여 상세 정보 보기</div>
                     </div>
