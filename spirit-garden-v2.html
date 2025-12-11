@@ -1087,15 +1087,20 @@
                         앨범 백업 복구
                     </button>
                     
+                    <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
+                        도감에서 앨범 복구
+                    </button>
+                    
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        🔧 교배 정령 관리
+                        교배 정령 관리
                     </button>
                 </div>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
                     💡 데이터 내보내기를 통해 게임 진행상황을 백업할 수 있습니다.<br>
                     다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.<br>
-                    📚 앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.
+                    📚 앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.<br>
+                    📖 도감에서 앨범 복구: 도감에는 있지만 앨범에 없는 정령을 복구합니다.
                 </div>
             </div>
             
@@ -1478,6 +1483,7 @@
     <script>      let spirits = [];
         let collection = [];
         let encyclopedia = {}; // 도감: { evolutionKey: count }
+        let encyclopediaDetails = {}; // 도감 상세: { evolutionKey: [정령 상세 정보 배열] } - 복구용 숨김 데이터
         let darkModeLocked = false; // 다크 모드 고정 여부
         let inventory = {
             music: [],
@@ -2941,6 +2947,9 @@
                     }
                 });
                 
+                // 도감 상세 정보 로드 (복구용)
+                encyclopediaDetails = data.encyclopediaDetails || {};
+                
                 // 기존 도감 데이터 호환성 처리 - 존재하지 않는 진화 타입 제거 (이벤트/합성 정령은 유지)
                 collection = collection.filter(item => {
                     // 이벤트 정령은 항상 유지
@@ -3050,6 +3059,7 @@
                 spirits,
                 collection,
                 encyclopedia,
+                encyclopediaDetails,
                 inventory,
                 terrarium,
                 installedDecorations,
@@ -4502,6 +4512,9 @@
             saveGame();
             renderInventory();
             updateGatherButton();
+            
+            // 연구실 튜토리얼 체크
+            checkInventoryAndLabTutorial();
         }
         
         // 자동 채집 (칭호 없음일 때만 작동)
@@ -4856,6 +4869,27 @@
                     } else {
                         encyclopedia[spirit.fusionType]++;
                     }
+                    
+                    // 도감 상세 정보 저장 (복구용)
+                    if (!encyclopediaDetails[spirit.fusionType]) {
+                        encyclopediaDetails[spirit.fusionType] = [];
+                    }
+                    encyclopediaDetails[spirit.fusionType].push({
+                        originalName: spirit.name,
+                        parameters: { ...spirit.parameters },
+                        hiddenAttributes: { ...spirit.hiddenAttributes },
+                        wingType: wingType,
+                        lightTime: spirit.lightTime || 0,
+                        darkTime: spirit.darkTime || 0,
+                        completedAt: Date.now(),
+                        isFusion: true,
+                        fusionRarity: fusion.rarity,
+                        type: spirit.fusionType,
+                        attributeType: spirit.fusionType,
+                        name: fusion.name,
+                        icon: fusion.icon,
+                        desc: fusion.desc
+                    });
                     
                     saveGame();
                     renderSpirits();
@@ -5242,6 +5276,28 @@
                     encyclopedia[encyclopediaKey] = 0;
                 }
                 encyclopedia[encyclopediaKey]++;
+                
+                // 도감 상세 정보 저장 (복구용)
+                if (!encyclopediaDetails[encyclopediaKey]) {
+                    encyclopediaDetails[encyclopediaKey] = [];
+                }
+                encyclopediaDetails[encyclopediaKey].push({
+                    originalName: spirit.name,
+                    parameters: { ...spirit.parameters },
+                    hiddenAttributes: { ...spirit.hiddenAttributes },
+                    wingType: evolutionData.wingType,
+                    lightTime: spirit.lightTime || 0,
+                    darkTime: spirit.darkTime || 0,
+                    completedAt: Date.now(),
+                    isEventSpirit: spirit.isEventSpirit || false,
+                    eventType: spirit.eventType || null,
+                    // 진화 정보
+                    type: evolutionData.type,
+                    attributeType: evolutionData.attributeType,
+                    name: evolutionData.name,
+                    icon: evolutionData.icon,
+                    desc: evolutionData.desc
+                });
                 
                 console.log('도감 등록:', encyclopediaKey, '카운트:', encyclopedia[encyclopediaKey]);
                 
@@ -6964,6 +7020,9 @@
             renderBuyList();
             updateCoinDisplay();
             renderInventory();
+            
+            // 연구실 튜토리얼 체크
+            checkInventoryAndLabTutorial();
         }
         
         // 이벤트 아이템 구매
@@ -7008,6 +7067,9 @@
             renderBuyList();
             updateCoinDisplay();
             renderInventory();
+            
+            // 연구실 튜토리얼 체크
+            checkInventoryAndLabTutorial();
         }
 
         // 앨범 데이터로부터 도감 재구성
@@ -7068,6 +7130,331 @@
             const recoveredCount = rebuildEncyclopediaFromAlbum();
             renderEncyclopedia();
             showNotification(`✅ 도감을 복구했습니다! (${recoveredCount}종)`);
+        }
+        
+        // 도감 → 앨범 복구 (도감에 있는데 앨범에 없는 정령 복구)
+        async function recoverAlbumFromEncyclopedia() {
+            // 앨범에 있는 타입들 수집
+            const albumTypes = new Set();
+            collection.forEach(item => {
+                if (item.type) albumTypes.add(item.type);
+            });
+            
+            let recoveredCount = 0;
+            const recoveredNames = [];
+            
+            // 도감 순회
+            Object.entries(encyclopedia).forEach(([key, value]) => {
+                const count = typeof value === 'object' ? (value.count || 0) : (value || 0);
+                if (count <= 0) return;
+                
+                // 앨범에 해당 타입이 있는지 확인
+                const albumCount = collection.filter(item => {
+                    // 키 형식에 따라 매칭 방식 다름
+                    if (key.startsWith('nostat-')) {
+                        return item.type === 'nostat' && `nostat-${item.attributeType}` === key;
+                    } else if (key.startsWith('event_')) {
+                        return item.type === key;
+                    } else if (key === 'titania' || key === 'oberon') {
+                        return item.type === key;
+                    } else if (FUSION_TYPES[key]) {
+                        return item.type === key;
+                    } else {
+                        // 일반 정령: statType-level-attrType
+                        return `${item.type}-${item.attributeType}` === key;
+                    }
+                }).length;
+                
+                // 도감 카운트보다 앨범 카운트가 적으면 복구 필요
+                const missingCount = count - albumCount;
+                if (missingCount <= 0) return;
+                
+                // 상세 정보 배열 확인
+                const details = encyclopediaDetails[key] || [];
+                
+                // 복구할 정령 정보 생성
+                for (let i = 0; i < missingCount; i++) {
+                    // 상세 정보 인덱스: 앨범에 있는 수 + i
+                    const detailIndex = albumCount + i;
+                    const recoveredSpirit = createRecoveredSpirit(key, detailIndex < details.length ? detailIndex : null);
+                    if (recoveredSpirit) {
+                        collection.push(recoveredSpirit);
+                        recoveredCount++;
+                        if (!recoveredNames.includes(recoveredSpirit.name)) {
+                            recoveredNames.push(recoveredSpirit.name);
+                        }
+                    }
+                }
+            });
+            
+            if (recoveredCount > 0) {
+                saveGame();
+                renderCollection();
+            }
+            
+            return { count: recoveredCount, names: recoveredNames };
+        }
+        
+        // 복구용 정령 데이터 생성 (상세 정보가 있으면 사용, 없으면 기본값)
+        function createRecoveredSpirit(encyclopediaKey, detailIndex = null) {
+            // 상세 정보가 있으면 그걸 사용
+            if (encyclopediaDetails[encyclopediaKey] && detailIndex !== null) {
+                const detail = encyclopediaDetails[encyclopediaKey][detailIndex];
+                if (detail) {
+                    return {
+                        id: `recovered-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        type: detail.type || encyclopediaKey,
+                        attributeType: detail.attributeType || encyclopediaKey,
+                        name: detail.name || '복구된 정령',
+                        icon: detail.icon || '✨',
+                        desc: detail.desc || '',
+                        parameters: { ...detail.parameters },
+                        hiddenAttributes: { ...detail.hiddenAttributes },
+                        originalName: detail.originalName || '(복구됨)',
+                        wingType: detail.wingType,
+                        lightTime: detail.lightTime || 0,
+                        darkTime: detail.darkTime || 0,
+                        completedAt: detail.completedAt || Date.now(),
+                        isEventSpirit: detail.isEventSpirit || false,
+                        eventType: detail.eventType || null,
+                        isFusion: detail.isFusion || false,
+                        fusionRarity: detail.fusionRarity || null,
+                        isRecovered: true,
+                        recoveredFromDetails: true // 상세 정보에서 복구됨
+                    };
+                }
+            }
+            
+            // 상세 정보가 없으면 기본값으로 생성
+            const baseSpirit = {
+                id: `recovered-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                completedAt: Date.now(),
+                originalName: '(복구됨)',
+                isRecovered: true, // 복구된 정령 표시
+                parameters: { intelligence: 50, strength: 50, charm: 50, affection: 50 },
+                hiddenAttributes: { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 }
+            };
+            
+            // 전설 정령
+            if (encyclopediaKey === 'titania') {
+                return {
+                    ...baseSpirit,
+                    type: 'titania',
+                    attributeType: 'light',
+                    name: '티타니아',
+                    icon: '🦋✨',
+                    desc: '(복구된 정령)',
+                    wingType: 'butterfly',
+                    parameters: { intelligence: 100, strength: 100, charm: 100, affection: 100 }
+                };
+            }
+            if (encyclopediaKey === 'oberon') {
+                return {
+                    ...baseSpirit,
+                    type: 'oberon',
+                    attributeType: 'dark',
+                    name: '오베론',
+                    icon: '🦋🌙',
+                    desc: '(복구된 정령)',
+                    wingType: 'moth',
+                    parameters: { intelligence: 100, strength: 100, charm: 100, affection: 100 }
+                };
+            }
+            
+            // 합성/교배 정령
+            if (FUSION_TYPES[encyclopediaKey]) {
+                const fusion = FUSION_TYPES[encyclopediaKey];
+                return {
+                    ...baseSpirit,
+                    type: encyclopediaKey,
+                    attributeType: encyclopediaKey,
+                    name: fusion.name,
+                    icon: fusion.icon,
+                    desc: '(복구된 정령)',
+                    isFusion: true,
+                    fusionRarity: fusion.rarity
+                };
+            }
+            
+            // 이벤트 정령
+            if (encyclopediaKey.startsWith('event_')) {
+                const eventKey = encyclopediaKey.replace('event_', '').replace('_shiny', '');
+                const isShiny = encyclopediaKey.includes('_shiny');
+                const event = EVENT_TYPES[eventKey];
+                if (event) {
+                    const data = isShiny && event.shiny ? event.shiny : event;
+                    return {
+                        ...baseSpirit,
+                        type: encyclopediaKey,
+                        attributeType: event.attribute,
+                        name: data.name,
+                        icon: data.stages ? data.stages.adult : '🎄',
+                        desc: '(복구된 정령)',
+                        isEventSpirit: true,
+                        eventType: eventKey,
+                        isShiny: isShiny
+                    };
+                }
+                return null;
+            }
+            
+            // 수식어 없는 정령 (nostat-{attr})
+            if (encyclopediaKey.startsWith('nostat-')) {
+                const attrType = encyclopediaKey.replace('nostat-', '');
+                const attrData = ATTRIBUTE_NAMES[attrType];
+                if (attrData) {
+                    return {
+                        ...baseSpirit,
+                        type: 'nostat',
+                        attributeType: attrType,
+                        name: `${attrData.name} 정령`,
+                        icon: attrData.icon,
+                        desc: '(복구된 정령)',
+                        parameters: { intelligence: 10, strength: 10, charm: 10, affection: 50 }
+                    };
+                }
+                return null;
+            }
+            
+            // 일반 정령 (statType-level-attrType)
+            const parts = encyclopediaKey.split('-');
+            if (parts.length >= 2) {
+                let statType, level, attrType;
+                
+                if (parts.length === 3) {
+                    // statType-level-attrType
+                    [statType, level, attrType] = parts;
+                } else if (parts.length === 2) {
+                    // statType-attrType (레벨 없음)
+                    [statType, attrType] = parts;
+                    level = 'mid';
+                } else if (parts.length === 4) {
+                    // 복합 속성: statType-level-attr1-attr2
+                    statType = parts[0];
+                    level = parts[1];
+                    attrType = `${parts[2]}-${parts[3]}`;
+                }
+                
+                const evolutionKey = `${statType}-${level}`;
+                const evolution = EVOLUTION_TYPES[evolutionKey];
+                const attrData = ATTRIBUTE_NAMES[attrType];
+                
+                if (evolution && attrData) {
+                    // 레벨에 따른 추정 스탯
+                    let mainStat = 35;
+                    if (level === 'mid') mainStat = 65;
+                    if (level === 'high') mainStat = 90;
+                    
+                    const params = { intelligence: 30, strength: 30, charm: 30, affection: 50 };
+                    if (statType === 'intelligent') params.intelligence = mainStat;
+                    else if (statType === 'strong') params.strength = mainStat;
+                    else if (statType === 'beautiful') params.charm = mainStat;
+                    else if (statType === 'sage') {
+                        params.intelligence = 100;
+                        params.strength = 100;
+                        params.charm = 100;
+                    }
+                    
+                    return {
+                        ...baseSpirit,
+                        type: evolutionKey,
+                        attributeType: attrType,
+                        name: `${evolution.prefix} ${attrData.name} 정령`,
+                        icon: evolution.icon,
+                        desc: '(복구된 정령)',
+                        parameters: params
+                    };
+                }
+            }
+            
+            return null;
+        }
+        
+        // 앨범 복구 UI
+        async function showAlbumRecoveryDialog() {
+            // 먼저 복구 가능한 정령 수 계산
+            const albumTypes = {};
+            collection.forEach(item => {
+                const key = getEncyclopediaKeyFromAlbumItem(item);
+                if (key) {
+                    albumTypes[key] = (albumTypes[key] || 0) + 1;
+                }
+            });
+            
+            let missingCount = 0;
+            let withDetailsCount = 0; // 상세 정보가 있는 정령 수
+            
+            Object.entries(encyclopedia).forEach(([key, value]) => {
+                const count = typeof value === 'object' ? (value.count || 0) : (value || 0);
+                const albumCount = albumTypes[key] || 0;
+                if (count > albumCount) {
+                    const missing = count - albumCount;
+                    missingCount += missing;
+                    
+                    // 상세 정보가 있는지 확인
+                    const details = encyclopediaDetails[key] || [];
+                    for (let i = 0; i < missing; i++) {
+                        if (albumCount + i < details.length) {
+                            withDetailsCount++;
+                        }
+                    }
+                }
+            });
+            
+            if (missingCount === 0) {
+                showNotification('✅ 모든 정령이 앨범에 있습니다. 복구할 항목이 없어요!');
+                return;
+            }
+            
+            let message = `도감에는 있지만 앨범에 없는 정령이 ${missingCount}마리 발견되었습니다.\n\n`;
+            
+            if (withDetailsCount > 0) {
+                message += `📋 상세 정보 보존: ${withDetailsCount}마리\n(본명, 스탯 등 완벽 복구)\n\n`;
+            }
+            if (withDetailsCount < missingCount) {
+                message += `⚠️ 기본값 복구: ${missingCount - withDetailsCount}마리\n(상세 정보 없음)\n\n`;
+            }
+            
+            message += `복구하시겠습니까?`;
+            
+            const confirmed = await showConfirmAsync(
+                '앨범 복구',
+                message,
+                '복구하기',
+                '취소'
+            );
+            
+            if (confirmed) {
+                const result = await recoverAlbumFromEncyclopedia();
+                if (result.count > 0) {
+                    showNotification(`✅ ${result.count}마리 복구 완료!\n${result.names.slice(0, 3).join(', ')}${result.names.length > 3 ? ' 외 ' + (result.names.length - 3) + '종' : ''}`);
+                    renderCollection();
+                } else {
+                    showNotification('복구할 정령이 없습니다.');
+                }
+            }
+        }
+        
+        // 앨범 아이템에서 도감 키 추출
+        function getEncyclopediaKeyFromAlbumItem(item) {
+            if (!item.type) return null;
+            
+            if (item.type === 'titania' || item.type === 'oberon') {
+                return item.type;
+            } else if (item.type === 'nostat') {
+                return `nostat-${item.attributeType}`;
+            } else if (item.type.startsWith('event_')) {
+                return item.type;
+            } else if (FUSION_TYPES[item.type]) {
+                return item.type;
+            } else {
+                return `${item.type}-${item.attributeType}`;
+            }
+        }
+        
+        // Promise 기반 확인창 (showConfirm이 이미 Promise 반환)
+        function showConfirmAsync(title, message, confirmText = '확인', cancelText = '취소') {
+            return showConfirm(title, message);
         }
         
         // 앨범 백업 복구 기능
@@ -8762,9 +9149,9 @@
                 }
                 
                 return `
-                    <div class="collection-card" onclick="showAlbumDetail(${index})" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <div class="collection-card" onclick="showAlbumDetail(${index})" style="cursor: pointer; transition: transform 0.2s;${item.isRecovered ? (item.recoveredFromDetails ? ' border: 2px dashed #27ae60;' : ' border: 2px dashed #e67e22;') : ''}" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <div class="collection-icon">${item.icon}${wingEmoji}</div>
-                        <div class="collection-name">${item.name}</div>
+                        <div class="collection-name">${item.name}${item.isRecovered ? (item.recoveredFromDetails ? ' <span style="font-size: 0.7rem; color: #27ae60;">✓복구</span>' : ' <span style="font-size: 0.7rem; color: #e67e22;">복구</span>') : ''}</div>
                         <div style="font-size: 0.85rem; color: #666; margin-top: 4px;">본명: ${originalName}</div>
                         ${item.wingType ? `<div style="font-size: 0.85rem; color: #888; margin-top: 4px;">${item.wingType === 'butterfly' ? '나비의 날개' : item.wingType === 'moth' ? '나방의 날개' : '나비와 나방의 날개'}</div>` : ''}
                         ${desc ? `<div style="font-size: 0.85rem; color: #888; margin-top: 8px; line-height: 1.4;">${desc}</div>` : ''}
@@ -8816,6 +9203,8 @@
                     renderRecipeList();
                     updateLabUI();
                     checkRecipe();
+                    // 연구실 튜토리얼: 연구실 탭 열기 액션 체크
+                    checkLabTutorialAction('openLab');
                 } else if (tab === 'shop') {
                     document.querySelector('.tab:nth-child(4)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
@@ -9001,6 +9390,11 @@
         // 연구실 슬롯 모달 열기
         function openLabSlotModal(slotNum) {
             currentLabSlot = slotNum;
+            
+            // 연구실 튜토리얼: 슬롯 클릭 액션 체크
+            if (slotNum === 1) {
+                checkLabTutorialAction('clickSlot1');
+            }
             
             // 먹이와 장식물 목록 생성 (현재 인벤토리 기준)
             const foodCounts = {};
@@ -9201,8 +9595,19 @@
             
             if (currentLabSlot === 1) {
                 labSlot1 = { type, category, count: selectedCount };
+                // 연구실 튜토리얼: 재료1 선택 액션 체크
+                checkLabTutorialAction('selectIngredient1');
+                // 슬롯2 자동 강조 (튜토리얼 진행 중이면)
+                if (labTutorialActive && window.tutorialWaitingFor === null) {
+                    setTimeout(() => {
+                        window.tutorialWaitingFor = 'selectIngredient2';
+                        highlightLabTutorialTarget('selectIngredient2');
+                    }, 100);
+                }
             } else {
                 labSlot2 = { type, category, count: selectedCount };
+                // 연구실 튜토리얼: 재료2 선택 액션 체크
+                checkLabTutorialAction('selectIngredient2');
             }
             
             closeLabModal();
@@ -9430,6 +9835,9 @@
             saveGame();
             
             showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${recipe.result.count} 합성 성공!`);
+            
+            // 연구실 튜토리얼: 합성 액션 체크
+            checkLabTutorialAction('synthesize');
         }
         
         // 레시피 목록 렌더링
@@ -9949,6 +10357,7 @@
             localStorage.removeItem('spiritGardenV2');
             localStorage.removeItem('spiritGarden_openingSeen'); // 오프닝도 다시 보이게
             localStorage.removeItem('spiritGarden_tutorialSeen'); // 튜토리얼도 다시 보이게
+            localStorage.removeItem('spiritGarden_labTutorialSeen'); // 연구실 튜토리얼도 다시 보이게
             
             // UI 업데이트
             renderSpirits();
@@ -11919,7 +12328,7 @@
             if (tutorialSeen) return;
             
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
-            if (tutorial2Active || sickTutorialActive || imbalanceTutorialActive) return;
+            if (tutorial2Active || sickTutorialActive || imbalanceTutorialActive || labTutorialActive) return;
             
             // 튜토리얼용 기본 아이템 지급
             if (!inventory.food) inventory.food = [];
@@ -12208,7 +12617,7 @@
         
         function startTutorial2() {
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
-            if (tutorialActive || sickTutorialActive || imbalanceTutorialActive) return;
+            if (tutorialActive || sickTutorialActive || imbalanceTutorialActive || labTutorialActive) return;
             
             tutorial2Step = 0;
             tutorial2Active = true;
@@ -12409,7 +12818,7 @@
             if (localStorage.getItem('spiritGarden_sickTutorialSeen')) return;
             
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
-            if (tutorialActive || tutorial2Active || imbalanceTutorialActive) return;
+            if (tutorialActive || tutorial2Active || imbalanceTutorialActive || labTutorialActive) return;
             
             // 육성 탭으로 이동
             switchTab('garden');
@@ -12652,7 +13061,7 @@
             if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
             
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
-            if (tutorialActive || tutorial2Active || sickTutorialActive) return;
+            if (tutorialActive || tutorial2Active || sickTutorialActive || labTutorialActive) return;
             
             // 육성 탭으로 이동
             switchTab('garden');
@@ -12748,6 +13157,259 @@
             }
         }
         
+        // ===== 연구실 튜토리얼 (소지품 100개 이상) =====
+        let labTutorialStep = 0;
+        let labTutorialActive = false;
+        
+        const LAB_TUTORIAL_STEPS = [
+            {
+                type: 'dialog',
+                text: '이제 슬슬 인벤토리에 있는 먹이랑 장식품때문에 골치가 아프지?'
+            },
+            {
+                type: 'action',
+                action: 'openLab',
+                text: '그 녀석들을 처리할 수 있는 방법을 알려줄게. 연구실 탭을 눌러봐.'
+            },
+            {
+                type: 'dialog',
+                text: '여기에선 먹이와 장식품을 합성해서 새로운 먹이와 장식품을 얻을 수 있어.'
+            },
+            {
+                type: 'dialog',
+                text: '효과도 원재료와 다르니까 잘 이용해봐.'
+            },
+            {
+                type: 'action',
+                action: 'clickSlot1',
+                text: '재료1을 눌러봐.'
+            },
+            {
+                type: 'action',
+                action: 'selectIngredient1',
+                text: '먹이 중에 5개 이상 있는 재료를 선택해.'
+            },
+            {
+                type: 'action',
+                action: 'selectIngredient2',
+                text: '그리고 재료2에도 똑같이 먹이를 넣어봐.'
+            },
+            {
+                type: 'action',
+                action: 'synthesize',
+                text: '잘했어. 이제 합성하기 버튼을 눌러.'
+            },
+            {
+                type: 'dialog',
+                text: '짠, 완성! 이제 하는 방법을 알겠지?'
+            },
+            {
+                type: 'dialog',
+                text: '뭐? 레시피는 없냐고? 당연히 있지.'
+            },
+            {
+                type: 'dialog',
+                text: '안줄거냐고? 응 안줄건데.'
+            },
+            {
+                type: 'dialog',
+                text: '......'
+            },
+            {
+                type: 'dialog',
+                text: '그럼 연구도 힘내라~'
+            }
+        ];
+        
+        function startLabTutorial() {
+            const tutorialSeen = localStorage.getItem('spiritGarden_labTutorialSeen');
+            if (tutorialSeen) return;
+            
+            // 이미 연구실 튜토리얼이 진행 중이면 시작하지 않음
+            if (labTutorialActive) return;
+            
+            // 다른 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorialActive || tutorial2Active || sickTutorialActive || imbalanceTutorialActive) return;
+            
+            labTutorialStep = 0;
+            labTutorialActive = true;
+            showLabTutorialStep();
+        }
+        
+        function showLabTutorialStep() {
+            if (labTutorialStep >= LAB_TUTORIAL_STEPS.length) {
+                endLabTutorial();
+                return;
+            }
+            
+            const step = LAB_TUTORIAL_STEPS[labTutorialStep];
+            
+            if (step.type === 'dialog') {
+                showLabTutorialDialog(step.text);
+            } else if (step.type === 'action') {
+                showLabTutorialAction(step.text, step.action);
+            }
+        }
+        
+        function showLabTutorialDialog(text) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #555;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
+                    </div>
+                    <button onclick="skipLabTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button onclick="nextLabTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                </div>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+        }
+        
+        function showLabTutorialAction(text, action) {
+            const modal = document.createElement('div');
+            modal.id = 'tutorialModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 500px;
+                background: var(--card);
+                border: 2px solid #555;
+                border-radius: 16px;
+                padding: 15px;
+                z-index: 100000;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            `;
+            
+            modal.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">🧙</span>
+                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
+                    </div>
+                    <button onclick="skipLabTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
+                </div>
+                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
+            `;
+            
+            const existing = document.getElementById('tutorialModal');
+            if (existing) existing.remove();
+            
+            document.body.appendChild(modal);
+            
+            window.tutorialWaitingFor = action;
+            highlightLabTutorialTarget(action);
+        }
+        
+        function highlightLabTutorialTarget(action) {
+            clearTutorialHighlight();
+            
+            let targetSelector = null;
+            switch(action) {
+                case 'openLab':
+                    targetSelector = 'button[onclick*="switchTab(\'lab\')"]';
+                    break;
+                case 'clickSlot1':
+                    targetSelector = '#labSlot1';
+                    break;
+                case 'selectIngredient1':
+                    targetSelector = '.lab-item-btn';
+                    break;
+                case 'selectIngredient2':
+                    targetSelector = '#labSlot2';
+                    break;
+                case 'synthesize':
+                    targetSelector = '#synthesizeBtn';
+                    break;
+            }
+            
+            if (targetSelector) {
+                const target = document.querySelector(targetSelector);
+                if (target) {
+                    target.classList.add('tutorial-highlight');
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+        
+        function checkLabTutorialAction(action) {
+            if (!labTutorialActive) return;
+            if (window.tutorialWaitingFor === action) {
+                window.tutorialWaitingFor = null;
+                clearTutorialHighlight();
+                nextLabTutorialStep();
+            }
+        }
+        
+        function nextLabTutorialStep() {
+            labTutorialStep++;
+            showLabTutorialStep();
+        }
+        
+        function skipLabTutorial() {
+            endLabTutorial();
+        }
+        
+        function endLabTutorial() {
+            labTutorialActive = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_labTutorialSeen', 'true');
+        }
+        
+        // 소지품 개수 체크 및 연구실 튜토리얼 시작
+        function checkInventoryAndLabTutorial() {
+            if (localStorage.getItem('spiritGarden_labTutorialSeen')) return;
+            
+            // 이미 연구실 튜토리얼이 진행 중이면 체크하지 않음
+            if (labTutorialActive) return;
+            
+            // 총 소지품 개수 계산
+            const foodCount = (inventory.food || []).length;
+            const decoCount = (inventory.decorations || []).length;
+            const totalCount = foodCount + decoCount;
+            
+            if (totalCount >= 100) {
+                setTimeout(() => {
+                    startLabTutorial();
+                }, 500);
+            }
+        }
+        
         function checkAndShowOpening() {
             const seen = localStorage.getItem('spiritGarden_openingSeen');
             if (!seen) {
@@ -12778,6 +13440,11 @@
             updateInventoryCollapseUI(); // 소지품 접힘 상태 적용
             startAutoGather(); // 자동 채집 시작
             checkAndShowOpening(); // 오프닝 체크
+            
+            // 연구실 튜토리얼 체크 (약간의 딜레이로 다른 튜토리얼과 충돌 방지)
+            setTimeout(() => {
+                checkInventoryAndLabTutorial();
+            }, 3000);
             
             console.log('🎉 게임 초기화 완료!');
         } catch (error) {
