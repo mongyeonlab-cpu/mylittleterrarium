@@ -11220,11 +11220,24 @@
             pausedAt = null;
             totalPausedTime = 0;
             
+            // 추가 변수 초기화
+            discoveredRecipes = [];
+            labSlot1 = null;
+            labSlot2 = null;
+            lockedItems = { food: [], decorations: [] };
+            activatedEvents = [];
+            lowSatisfactionStartTime = {};
+            hasVisitedShop = false;
+            darkModeLocked = false;
+            
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
             localStorage.removeItem('spiritGarden_openingSeen'); // 오프닝도 다시 보이게
             localStorage.removeItem('spiritGarden_tutorialSeen'); // 튜토리얼도 다시 보이게
+            localStorage.removeItem('spiritGarden_tutorial2Seen'); // 튜토리얼2도 다시 보이게
             localStorage.removeItem('spiritGarden_labTutorialSeen'); // 연구실 튜토리얼도 다시 보이게
+            localStorage.removeItem('spiritGarden_sickTutorialSeen'); // 질병 튜토리얼도 다시 보이게
+            localStorage.removeItem('spiritGarden_imbalanceTutorialSeen'); // 불균형 튜토리얼도 다시 보이게
             
             // UI 업데이트
             renderSpirits();
@@ -11234,6 +11247,7 @@
             applyLightMode();
             renderEncyclopedia();
             renderCollection();
+            renderRecipeList(); // 연구실 레시피 목록도 초기화
             
             const titleSelect = document.getElementById('titleSelect');
             if (titleSelect) {
