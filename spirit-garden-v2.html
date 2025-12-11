@@ -1361,8 +1361,8 @@
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">테라리움 환경</h2>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;">
-                        <span style="font-weight: 600; color: #666;">전체 품질:</span>
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;" title="장식물 품질의 합계 (장식물을 추가할수록 올라감)">
+                        <span style="font-weight: 600; color: #666;">품질 합계:</span>
                         <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
                     </div>
                 </div>
@@ -3374,26 +3374,29 @@
             return qualityScores[quality] || 1;
         }
         
-        // 테라리움 전체 품질 계산
+        // 테라리움 품질 합계 계산
         function calculateTerrariumQuality() {
             if (installedDecorations.length === 0) return 0;
             
             let totalQuality = 0;
+            
             installedDecorations.forEach(deco => {
                 // 문자열 또는 객체 모두 지원
                 const key = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[key];
                 const eventItem = EVENT_ITEMS[key];
+                const synthItem = SYNTH_ITEMS[key];
                 
                 if (decoData) {
                     totalQuality += getQualityScore(decoData.quality);
                 } else if (eventItem && eventItem.quality) {
                     totalQuality += getQualityScore(eventItem.quality);
+                } else if (synthItem) {
+                    totalQuality += 6; // 합성 장식물은 최상급(5)과 전설(7) 사이
                 }
             });
             
-            // 평균 품질 반환 (소수점 1자리)
-            return Math.round((totalQuality / installedDecorations.length) * 10) / 10;
+            return totalQuality;
         }
         
         // 정령별 불만 상태 지속 시간 체크 및 업데이트
@@ -3455,38 +3458,38 @@
             // 장식물이 없으면 낮음
             if (installedDecorations.length === 0) return 'low';
             
-            // 테라리움 전체 품질
-            const avgQuality = calculateTerrariumQuality();
+            // 테라리움 품질 합계
+            const totalQuality = calculateTerrariumQuality();
             
-            // 성장 단계별 품질 요구치
-            // 알/애벌레1: 기본 (2.0 / 3.0)
-            // 애벌레2: 중간 (2.5 / 3.5)
-            // 애벌레3: 높음 (3.0 / 4.0)
-            // 번데기: 최고 (3.5 / 4.5)
+            // 성장 단계별 품질 합계 요구치
+            // 품질 점수: 일반=1, 희귀=3, 최상급=5, 합성=6, 전설=7
+            // 알/애벌레1: 일반 3개(3) ~ 희귀 3개(9) 수준
+            // 애벌레2: 희귀 3개(9) ~ 최상급 3개(15) 수준
+            // 애벌레3: 최상급 3개(15) ~ 전설 3개(21) 수준
+            // 번데기: 전설 3개(21) ~ 전설 5개(35) 수준
             let qualityThresholdMid, qualityThresholdHigh;
             
             if (stage === 'egg' || stage === 'larva1') {
-                qualityThresholdMid = 2.0;
-                qualityThresholdHigh = 3.0;
+                qualityThresholdMid = 3;   // 일반 3개
+                qualityThresholdHigh = 9;  // 희귀 3개
             } else if (stage === 'larva2') {
-                qualityThresholdMid = 2.5;
-                qualityThresholdHigh = 3.5;
+                qualityThresholdMid = 9;   // 희귀 3개
+                qualityThresholdHigh = 15; // 최상급 3개
             } else if (stage === 'larva3') {
-                qualityThresholdMid = 3.0;
-                qualityThresholdHigh = 4.0;
+                qualityThresholdMid = 15;  // 최상급 3개
+                qualityThresholdHigh = 21; // 전설 3개
             } else { // pupa
-                qualityThresholdMid = 3.5;
-                qualityThresholdHigh = 4.5;
+                qualityThresholdMid = 21;  // 전설 3개
+                qualityThresholdHigh = 35; // 전설 5개
             }
             
-            // 알 ~ 애벌레1: 품질만 확인
+            // 알 ~ 애벌레1: 품질 합계만 확인
             if (stage === 'egg' || stage === 'larva1') {
-                // 품질 평균이 요구치를 초과하면 만족
-                if (avgQuality >= qualityThresholdHigh) return 'high';
-                else if (avgQuality >= qualityThresholdMid) return 'mid';
+                if (totalQuality >= qualityThresholdHigh) return 'high';
+                else if (totalQuality >= qualityThresholdMid) return 'mid';
                 else return 'low';
             }
-            // 애벌레2, 애벌레3, 번데기: 품질 + 속성 유사도 (난이도 완화)
+            // 애벌레2, 애벌레3, 번데기: 품질 합계 + 속성 유사도
             else {
                 // 정령의 현재 속성 계산
                 const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
@@ -3505,30 +3508,27 @@
                     }
                 }
                 
-                // 속성이 10 미만이면 속성이 명확하지 않음
+                // 속성이 10 미만이면 속성이 명확하지 않음 → 품질만으로 판단
                 if (maxValue < 10) {
-                    // 품질만으로 판단
-                    if (avgQuality >= qualityThresholdHigh + 0.5) return 'high';
-                    else if (avgQuality >= qualityThresholdMid) return 'mid';
+                    if (totalQuality >= qualityThresholdHigh) return 'high';
+                    else if (totalQuality >= qualityThresholdMid) return 'mid';
                     else return 'low';
                 }
                 
-                // 테라리움의 주 속성과 정령의 주 속성 비교
-                const terrariumMaxAttr = Object.entries(terrarium)
-                    .sort((a, b) => b[1] - a[1])[0][0];
-                
-                // 속성 일치 확인 (완화: 정령 속성이 테라리움 상위 2개 안에 있으면 OK)
+                // 테라리움의 상위 2개 속성
                 const topTerrariumAttrs = Object.entries(terrarium)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 2)
                     .map(([attr]) => attr);
                 
                 if (topTerrariumAttrs.includes(maxAttr)) {
-                    // 속성 일치 + 품질 적정 = 만족
-                    return avgQuality >= qualityThresholdMid + 0.5 ? 'high' : 'mid';
+                    // 속성 일치 시 요구치 완화
+                    if (totalQuality >= qualityThresholdMid) return 'high';
+                    else if (totalQuality >= qualityThresholdMid * 0.7) return 'mid';
+                    else return 'low';
                 } else {
-                    // 속성 불일치
-                    if (avgQuality >= qualityThresholdHigh + 0.5) return 'mid';
+                    // 속성 불일치 시 요구치 상향
+                    if (totalQuality >= qualityThresholdHigh) return 'mid';
                     else return 'low';
                 }
             }
@@ -8615,8 +8615,9 @@
             const attr2 = getMainAttribute(spirit2);
             const stat1 = getStatType(spirit1);
             const stat2 = getStatType(spirit2);
-            const evoType1 = spirit1.evolutionType || null;
-            const evoType2 = spirit2.evolutionType || null;
+            // type > evolutionType > evolutionData.type
+            const evoType1 = spirit1.type || spirit1.evolutionType || spirit1.evolutionData?.type || null;
+            const evoType2 = spirit2.type || spirit2.evolutionType || spirit2.evolutionData?.type || null;
             
             // 0. 특수 진화 타입 기반 합성 체크 (sage, balanced, multi 등)
             if (evoType1 || evoType2) {
@@ -8719,11 +8720,14 @@
             
             // 부모 정령 제거 (앨범에 추가)
             [fusionSlot1Spirit, fusionSlot2Spirit].forEach(parent => {
+                // 타입 결정: type > evolutionType > evolutionData.type > 'normal'
+                const parentType = parent.type || parent.evolutionType || parent.evolutionData?.type || 'normal';
+                
                 // 앨범에 추가
                 collection.push({
                     id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 ID
                     name: parent.name,
-                    type: parent.evolutionType || 'normal',
+                    type: parentType,
                     attribute: parent.attribute,
                     parameters: { ...parent.parameters },
                     attributes: { ...parent.attributes },
@@ -8830,12 +8834,15 @@
         }
         
         function encodeSpiritData(spirit) {
+            // 타입 결정: type > evolutionType > evolutionData.type > 'normal'
+            const spiritType = spirit.type || spirit.evolutionType || spirit.evolutionData?.type || 'normal';
+            
             const data = {
                 id: spirit.id || null, // 고유 ID 추가
                 n: spirit.name,
                 o: spirit.originalName || spirit.name, // 본명 추가
                 a: spirit.attribute,
-                t: spirit.evolutionType || 'normal',
+                t: spiritType,
                 i: spirit.parameters?.intelligence || 0,
                 s: spirit.parameters?.strength || 0,
                 c: spirit.parameters?.charm || 0,
@@ -8844,6 +8851,8 @@
                 // 이벤트 정령 정보
                 ev: spirit.isEventSpirit ? spirit.eventType : null
             };
+            
+            console.log('교배 코드 생성:', { spiritType, spirit: spirit.name }); // 디버깅용
             
             try {
                 const json = JSON.stringify(data);
@@ -9144,8 +9153,12 @@
         
         function predictBreedResult(mySpirit, friendData) {
             // 티타니아 + 오베론 교배 체크 (오블리비온)
-            const myType = mySpirit.type || mySpirit.evolutionType;
+            // 현재 완성 정령: evolutionData.type에 저장
+            // 앨범 정령: type에 저장
+            const myType = mySpirit.type || mySpirit.evolutionType || mySpirit.evolutionData?.type;
             const friendType = friendData.evolutionType || friendData.type;
+            
+            console.log('교배 타입 체크:', { myType, friendType }); // 디버깅용
             
             if ((myType === 'titania' && friendType === 'oberon') ||
                 (myType === 'oberon' && friendType === 'titania')) {
@@ -11279,19 +11292,23 @@
                 if (valueSpan) valueSpan.textContent = value;
             });
             
-            // 전체 품질 업데이트
+            // 품질 합계 업데이트
             const qualityEl = document.getElementById('terrariumQuality');
             if (qualityEl) {
-                const avgQuality = calculateTerrariumQuality();
-                qualityEl.textContent = avgQuality.toFixed(1);
+                const totalQuality = calculateTerrariumQuality();
+                
+                qualityEl.textContent = totalQuality.toFixed(0);
                 
                 // 품질에 따른 색상 변경
-                if (avgQuality > 4) {
-                    qualityEl.style.color = '#4caf50'; // 초록 (높음)
-                } else if (avgQuality > 3) {
-                    qualityEl.style.color = '#ff9800'; // 주황 (보통)
+                // 품질 점수: 일반=1, 희귀=3, 최상급=5, 합성=6, 전설=7
+                if (totalQuality >= 35) {
+                    qualityEl.style.color = '#9c27b0'; // 보라 (전설 5개)
+                } else if (totalQuality >= 21) {
+                    qualityEl.style.color = '#4caf50'; // 초록 (전설 3개)
+                } else if (totalQuality >= 15) {
+                    qualityEl.style.color = '#ff9800'; // 주황 (최상급 3개)
                 } else {
-                    qualityEl.style.color = '#f44336'; // 빨강 (낮음)
+                    qualityEl.style.color = '#f44336'; // 빨강
                 }
             }
 
