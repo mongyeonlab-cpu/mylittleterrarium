@@ -2628,12 +2628,16 @@
                 keywords.push({ text: '환경에 적응한', color: keywordColor });
             }
             
-            // 빛/어둠 시간 기반
-            if (spirit.lightTime >= 10) {
-                keywords.push({ text: '태양을 동경하는', color: keywordColor });
-            }
-            if (spirit.darkTime >= 10) {
-                keywords.push({ text: '달을 숭배하는', color: keywordColor });
+            // 빛/어둠 시간 기반 (더 많은 쪽만 표시)
+            const lightTime = spirit.lightTime || 0;
+            const darkTime = spirit.darkTime || 0;
+            if (lightTime >= 10 || darkTime >= 10) {
+                if (lightTime > darkTime) {
+                    keywords.push({ text: '태양을 동경하는', color: keywordColor });
+                } else if (darkTime > lightTime) {
+                    keywords.push({ text: '달을 숭배하는', color: keywordColor });
+                }
+                // 같으면 아무것도 표시 안 함
             }
             
             // 먹이 횟수 (feedCount 카운트)
