@@ -2701,6 +2701,13 @@
             'fusion-titan': { name: '포르티스', icon: '💪🏛️', desc: '강력한 힘을 가진 정령들이 합쳐진 강인의 정령.', recipe: ['strong', 'strong'], rarity: 'epic' },
             'fusion-siren': { name: '카리스마', icon: '💖🎵', desc: '매혹적인 정령들이 합쳐진 매력의 정령.', recipe: ['beautiful', 'beautiful'], rarity: 'epic' },
             
+            // 현자 조합
+            'fusion-archmage': { name: '아크메이지', icon: '🧙‍♂️👑', desc: '두 현자의 지혜가 합쳐져 탄생한 대마법사 정령.', recipe: ['sage', 'sage'], rarity: 'legendary' },
+            'fusion-harmony-sage': { name: '하모니아', icon: '🧙⚖️', desc: '현자와 조화의 정령이 합쳐진 완벽한 균형의 정령.', recipe: ['sage', 'balanced'], rarity: 'legendary' },
+            'fusion-chaos-sage': { name: '카오스메이지', icon: '🧙🌪️', desc: '현자와 혼돈의 정령이 합쳐진 무한 가능성의 정령.', recipe: ['sage', 'multi'], rarity: 'legendary' },
+            'fusion-chaos-king': { name: '엔트로피아', icon: '🌪️👑', desc: '두 혼돈의 정령이 합쳐져 탄생한 무질서의 왕.', recipe: ['multi', 'multi'], rarity: 'legendary' },
+            'fusion-balance-chaos': { name: '듀얼리티', icon: '⚖️🌪️', desc: '조화와 혼돈이 합쳐져 탄생한 이원성의 정령.', recipe: ['balanced', 'multi'], rarity: 'legendary' },
+            
             // 전설 정령 교배
             'fusion-oblivion': { name: '오블리비온', icon: '🦋🌌', desc: '정령의 군주들 사이에서 태어난 망각의 정령.', recipe: ['titania', 'oberon'], rarity: 'mythic' }
         };
@@ -8356,6 +8363,22 @@
             const attr2 = getMainAttribute(spirit2);
             const stat1 = getStatType(spirit1);
             const stat2 = getStatType(spirit2);
+            const evoType1 = spirit1.evolutionType || null;
+            const evoType2 = spirit2.evolutionType || null;
+            
+            // 0. 특수 진화 타입 기반 합성 체크 (sage, balanced, multi 등)
+            if (evoType1 || evoType2) {
+                const type1 = evoType1 || attr1;
+                const type2 = evoType2 || attr2;
+                
+                for (const [key, fusion] of Object.entries(FUSION_TYPES)) {
+                    const recipe = fusion.recipe;
+                    if ((recipe[0] === type1 && recipe[1] === type2) ||
+                        (recipe[0] === type2 && recipe[1] === type1)) {
+                        return { ...fusion, key };
+                    }
+                }
+            }
             
             // 1. 스탯 기반 합성 체크
             if (stat1 && stat2 && stat1 === stat2) {
