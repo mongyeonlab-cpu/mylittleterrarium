@@ -6000,30 +6000,30 @@
             // 이미 아프면 체크 안 함
             if (spirit.isSick) return;
             
-            let shouldCheck = false;
+            let probability = 0;
             let reason = '';
             
-            // 조건 1: 체력 20 이하
-            if (spirit.parameters.strength <= 20) {
-                shouldCheck = true;
+            // 조건 1: 체력 5 이하 → 10% 확률
+            if (spirit.parameters.strength <= 5) {
+                probability = 0.1;
                 reason = '체력이 약해 병에 걸렸습니다';
             }
             
-            // 조건 2: 속성 불균형 (최고 속성 50 이상 & 최저 속성 10 이하)
-            if (!shouldCheck) {
+            // 조건 2: 속성 불균형 (최고 속성 50 이상 & 최저 속성 10 이하) → 10% 확률
+            if (probability === 0) {
                 const attrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                 const attrValues = Object.values(attrs);
                 const maxAttr = Math.max(...attrValues);
                 const minAttr = Math.min(...attrValues);
                 
                 if (maxAttr >= 50 && minAttr <= 10) {
-                    shouldCheck = true;
+                    probability = 0.1;
                     reason = '속성 불균형으로 인해 병에 걸렸습니다';
                 }
             }
             
-            // 조건 3: 30분 이상 상호작용 없음
-            if (!shouldCheck) {
+            // 조건 3: 30분 이상 상호작용 없음 → 20% 확률
+            if (probability === 0) {
                 const now = Date.now();
                 const lastFeed = spirit.lastFed || spirit.birthTime;
                 const lastMusic = spirit.lastMusic || spirit.birthTime;
@@ -6033,13 +6033,13 @@
                 const minutesSinceInteraction = (now - lastInteraction) / 1000 / 60;
                 
                 if (minutesSinceInteraction >= 30) {
-                    shouldCheck = true;
+                    probability = 0.2;
                     reason = '오랫동안 돌봄을 받지 못해 병에 걸렸습니다';
                 }
             }
             
-            // 조건 충족 시 20% 확률로 질병 발생
-            if (shouldCheck && Math.random() < 0.2) {
+            // 조건별 확률로 질병 발생
+            if (probability > 0 && Math.random() < probability) {
                 spirit.isSick = true;
                 spirit.sickTime = Date.now();
                 spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
