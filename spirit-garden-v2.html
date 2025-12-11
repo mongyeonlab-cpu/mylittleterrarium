@@ -3042,7 +3042,10 @@
                 // 잘못된 음악 키 제거 (quest, lullaby 등 → classic, jazz 등)
                 if (inventory.music) {
                     const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
-                    inventory.music = inventory.music.filter(m => validMusicKeys.includes(m));
+                    // 이벤트 음악도 유효한 키에 추가
+                    const eventMusicKeys = Object.keys(EVENT_ITEMS).filter(key => EVENT_ITEMS[key].type === 'music');
+                    const allValidMusicKeys = [...validMusicKeys, ...eventMusicKeys];
+                    inventory.music = inventory.music.filter(m => allValidMusicKeys.includes(m));
                 }
                 
                 // 기존 장식물 키를 새 형식으로 변환 (fire → fire_common1 등)
