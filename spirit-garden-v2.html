@@ -9196,7 +9196,7 @@
                         </h3>
                     </div>`;
                     
-                    // 가로로 나열 (수식어 없음 + 3개 스탯 계열)
+                    // 가로로 나열 (수식어 없음 + 3개 스탯 계열 + 현자)
                     statTypes.forEach(statInfo => {
                         let count = 0;
                         let displayName = '???????';
@@ -9210,6 +9210,16 @@
                             isUnlocked = count > 0;
                             displayName = isUnlocked ? '(수식어 없음)' : '???????';
                             displayIcon = isUnlocked ? attributeData.icon : '?';
+                        } else if (statInfo.key === 'sage') {
+                            // 현자 계열 (레벨 없이 sage-속성 형태)
+                            count = getEncyclopediaCount(`sage-${attrType}`);
+                            isUnlocked = count > 0;
+                            
+                            if (isUnlocked) {
+                                const sageData = EVOLUTION_TYPES['sage'];
+                                displayName = sageData.prefix;
+                                displayIcon = `${sageData.icon}${attributeData.icon}`;
+                            }
                         } else {
                             // 스탯 계열 정령
                             const lowCount = getEncyclopediaCount(`${statInfo.key}-low-${attrType}`);
@@ -9242,6 +9252,10 @@
                             if (statInfo.key === 'nostat') {
                                 fullName = attributeData.name;
                                 hintKey = `nostat-${attrType}`;
+                            } else if (statInfo.key === 'sage') {
+                                const sageData = EVOLUTION_TYPES['sage'];
+                                fullName = `${sageData.prefix} ${attributeData.name}`;
+                                hintKey = `sage-${attrType}`;
                             } else {
                                 const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
                                 fullName = `${statPrefix} ${attributeData.name}`;
@@ -9257,6 +9271,8 @@
                             // 잠금 상태일 때도 힌트 표시
                             if (statInfo.key === 'nostat') {
                                 hint = ENCYCLOPEDIA_HINTS[`nostat-${attrType}`] || '???';
+                            } else if (statInfo.key === 'sage') {
+                                hint = ENCYCLOPEDIA_HINTS[`sage-${attrType}`] || '모든 것을 깨달은 현자 정령.';
                             } else {
                                 // 임의의 레벨로 힌트 표시 (mid 우선)
                                 hint = ENCYCLOPEDIA_HINTS[`${statInfo.key}-mid-${attrType}`] || 
@@ -10496,7 +10512,9 @@
             updateLabUI();
             checkRecipe();
             renderInventory();
-            renderRecipeList();
+            // 현재 필터 유지
+            const currentFilter = document.getElementById('recipeFilterSelect')?.value || 'all';
+            renderRecipeList(currentFilter);
             saveGame();
             
             const resultItem = SYNTH_ITEMS[recipe.result.type];
