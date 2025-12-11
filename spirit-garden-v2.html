@@ -2605,17 +2605,17 @@
             if (spirit.parameters.intelligence >= 80) {
                 keywords.push({ text: '현명한', color: keywordColor });
             } else if (spirit.parameters.intelligence <= 10) {
-                keywords.push({ text: '사교성이 적은', color: '#e74c3c' }); // 빨간색 경고
+                keywords.push({ text: '사교성이 적은', color: keywordColor });
             }
             if (spirit.parameters.strength >= 80) {
                 keywords.push({ text: '강인한', color: keywordColor });
             } else if (spirit.parameters.strength <= 5) {
-                keywords.push({ text: '🤒 병에 걸리기 쉬운', color: '#e74c3c' }); // 빨간색 경고
+                keywords.push({ text: '몸이 약한', color: keywordColor });
             }
             if (spirit.parameters.charm >= 80) {
                 keywords.push({ text: '매혹적인', color: keywordColor });
             } else if (spirit.parameters.charm >= 50) {
-                keywords.push({ text: '✨ 사교적인', color: '#9b59b6' }); // 보라색 보너스
+                keywords.push({ text: '매력적인', color: keywordColor });
             }
             
             // 성장 단계 기반
@@ -11140,7 +11140,7 @@
                             </button>
                         </div>
                         <p style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 12px;">
-                            📊 정령: ${spirits.length}마리 | 앨범: ${collection.length}마리 | 💰 ${coins}
+                            📊 정령: ${spirits.length}마리 | 앨범: ${collection.length}마리 | 레시피: ${discoveredRecipes.length}개 | 💰 ${coins}
                         </p>
                         <button onclick="closeExportCodeModal()" style="width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
                             닫기
@@ -11249,7 +11249,7 @@
                 
                 const confirmed = await showConfirm(
                     '데이터 불러오기',
-                    `백업 데이터를 불러오시겠습니까?\n\n백업 일시: ${new Date(gameData.exportDate).toLocaleString()}\n정령 수: ${gameData.spirits.length}\n앨범: ${gameData.collection.length}\n💰 ${gameData.coins}\n\n현재 데이터는 덮어씌워집니다.`
+                    `백업 데이터를 불러오시겠습니까?\n\n백업 일시: ${new Date(gameData.exportDate).toLocaleString()}\n정령 수: ${gameData.spirits.length}\n앨범: ${gameData.collection.length}\n발견 레시피: ${(gameData.discoveredRecipes || []).length}개\n💰 ${gameData.coins}\n\n현재 데이터는 덮어씌워집니다.`
                 );
                 
                 if (!confirmed) return;
@@ -11362,6 +11362,7 @@
             updateCoinDisplay();
             applyLightMode();
             updateSettingsInfo();
+            renderRecipeList(); // 레시피 목록도 갱신
             
             showNotification('💡 정령들의 배고픔 상태가 초기화되었습니다!');
         }
