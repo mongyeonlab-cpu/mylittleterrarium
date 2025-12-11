@@ -13347,22 +13347,24 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="skipTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                        </button>
-                    </div>
-                </div>
-                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="display: flex; justify-content: flex-end; align-items: center;">
-                        <button onclick="nextTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #555;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextTutorialStep()" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -13393,22 +13395,24 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="skipTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                        </button>
-                    </div>
-                </div>
-                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
-                        👇 아래 버튼을 눌러보세요!
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 8px; word-break: keep-all;">${text}</div>
+                            <div style="padding: 6px 10px; background: #f39c1222; border-radius: 6px; font-size: 0.8rem; color: #f39c12;">
+                                👇 아래 버튼을 눌러보세요!
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -13605,22 +13609,24 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="skipTutorial2()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                        </button>
-                    </div>
-                </div>
-                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="display: flex; justify-content: flex-end; align-items: center;">
-                        <button onclick="nextTutorial2Step()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #555;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipTutorial2()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextTutorial2Step()" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -13650,22 +13656,24 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '12px'};">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="skipTutorial2()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                        <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">
-                            ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
-                        </button>
-                    </div>
-                </div>
-                <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
-                    <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                    <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
-                        👇 해당 버튼을 눌러보세요!
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipTutorial2()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="tutorialContent" style="display: ${tutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 8px; word-break: keep-all;">${text}</div>
+                            <div style="padding: 6px 10px; background: #f39c1222; border-radius: 6px; font-size: 0.8rem; color: #f39c12;">
+                                👇 해당 버튼을 눌러보세요!
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -13708,6 +13716,7 @@
         // ===== 질병 튜토리얼 (첫 질병 발생 시) =====
         let sickTutorialStep = 0;
         let sickTutorialActive = false;
+        let sickTutorialCollapsed = false;
         
         const SICK_TUTORIAL_STEPS = [
             {
@@ -13811,15 +13820,26 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipSickTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleSickTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${sickTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="sickTutorialContent" style="display: ${sickTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextSickTutorialStep()" style="padding: 8px 20px; background: #f39c12; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
                 </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                <button onclick="nextSickTutorialStep()" style="width: 100%; padding: 12px; background: #f39c12; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
             `;
             
             const existing = document.getElementById('tutorialModal');
@@ -13847,15 +13867,26 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 1.5rem;">👤</span>
-                        <span style="font-size: 0.9rem; color: #888; font-weight: 600;">상점 주인</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/NxGyLzK.png" alt="상점 주인" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #888;">상점 주인</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipSickTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleSickTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${sickTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="sickTutorialContent" style="display: ${sickTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextSickTutorialStep()" style="padding: 8px 20px; background: #888; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
                 </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                <button onclick="nextSickTutorialStep()" style="width: 100%; padding: 12px; background: #888; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
             `;
             
             const existing = document.getElementById('tutorialModal');
@@ -13883,16 +13914,25 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipSickTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleSickTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${sickTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="sickTutorialContent" style="display: ${sickTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 8px; word-break: keep-all;">${text}</div>
+                            <div style="padding: 6px 10px; background: #f39c1222; border-radius: 6px; font-size: 0.8rem; color: #f39c12;">
+                                👇 해당 버튼을 눌러보세요!
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="skipSickTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 10px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                <div style="padding: 8px 12px; background: #f39c1222; border-radius: 8px; font-size: 0.85rem; color: #f39c12;">
-                    👇 해당 버튼을 눌러보세요!
                 </div>
             `;
             
@@ -13939,6 +13979,11 @@
             showSickTutorialStep();
         }
         
+        function toggleSickTutorialCollapse() {
+            sickTutorialCollapsed = !sickTutorialCollapsed;
+            showSickTutorialStep();
+        }
+        
         function skipSickTutorial() {
             endSickTutorial();
         }
@@ -13971,6 +14016,7 @@
         // ===== 속성 불균형 튜토리얼 (첫 불균형 발생 시) =====
         let imbalanceTutorialStep = 0;
         let imbalanceTutorialActive = false;
+        let imbalanceTutorialCollapsed = false;
         
         const IMBALANCE_TUTORIAL_STEPS = [
             {
@@ -14047,15 +14093,26 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #f39c12; font-weight: 600;">선배 정령지기</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${imbalanceTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipImbalanceTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleImbalanceTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${imbalanceTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="imbalanceTutorialContent" style="display: ${imbalanceTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextImbalanceTutorialStep()" style="padding: 8px 20px; background: #f39c12; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="skipImbalanceTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
                 </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                <button onclick="nextImbalanceTutorialStep()" style="width: 100%; padding: 12px; background: #f39c12; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">다음</button>
             `;
             
             const existing = document.getElementById('tutorialModal');
@@ -14066,6 +14123,11 @@
         
         function nextImbalanceTutorialStep() {
             imbalanceTutorialStep++;
+            showImbalanceTutorialStep();
+        }
+        
+        function toggleImbalanceTutorialCollapse() {
+            imbalanceTutorialCollapsed = !imbalanceTutorialCollapsed;
             showImbalanceTutorialStep();
         }
         
@@ -14107,6 +14169,7 @@
         // ===== 연구실 튜토리얼 (소지품 100개 이상) =====
         let labTutorialStep = 0;
         let labTutorialActive = false;
+        let labTutorialCollapsed = false;
         
         const LAB_TUTORIAL_STEPS = [
             {
@@ -14217,16 +14280,25 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${labTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #555;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipLabTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleLabTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${labTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="labTutorialContent" style="display: ${labTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); margin-bottom: 12px; word-break: keep-all;">${text}</div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button onclick="nextLabTutorialStep()" style="padding: 8px 20px; background: #333; color: white; border: none; border-radius: 6px; font-size: 0.9rem; cursor: pointer; font-weight: 600;">다음</button>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="skipLabTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
-                </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); margin-bottom: 15px; padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
-                <div style="display: flex; justify-content: flex-end;">
-                    <button onclick="nextLabTutorialStep()" style="padding: 10px 25px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">다음</button>
                 </div>
             `;
             
@@ -14255,14 +14327,23 @@
             `;
             
             modal.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 40px; height: 40px; object-fit: cover;">
-                        <span style="font-size: 0.9rem; color: #555; font-weight: 600;">선배 정령지기</span>
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${labTutorialCollapsed ? '0' : '10px'};">
+                            <span style="font-size: 1rem; font-weight: 600; color: #555;">선배 정령지기</span>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="skipLabTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
+                                <button onclick="toggleLabTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                    ${labTutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
+                                </button>
+                            </div>
+                        </div>
+                        <div id="labTutorialContent" style="display: ${labTutorialCollapsed ? 'none' : 'block'};">
+                            <div style="font-size: 0.95rem; line-height: 1.6; color: var(--text); word-break: keep-all;">${text}</div>
+                        </div>
                     </div>
-                    <button onclick="skipLabTutorial()" style="padding: 5px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-muted);">건너뛰기</button>
                 </div>
-                <div style="font-size: 1rem; line-height: 1.6; color: var(--text); padding: 10px; background: var(--bg); border-radius: 8px; word-break: keep-all;">${text}</div>
             `;
             
             const existing = document.getElementById('tutorialModal');
@@ -14316,6 +14397,11 @@
         
         function nextLabTutorialStep() {
             labTutorialStep++;
+            showLabTutorialStep();
+        }
+        
+        function toggleLabTutorialCollapse() {
+            labTutorialCollapsed = !labTutorialCollapsed;
             showLabTutorialStep();
         }
         
