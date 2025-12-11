@@ -3081,10 +3081,16 @@
                     recalculateTerrariumEnvironment();
                 }
                 
-                // 기존 정령들의 만족도 초기화 (하위 호환성)
+                // 기존 정령들의 만족도 초기화 및 배고픔 타이머 리셋 (하위 호환성)
+                const now = Date.now();
                 spirits.forEach(spirit => {
                     if (!spirit.satisfaction) {
                         spirit.satisfaction = 'mid';
+                    }
+                    // 불러오기 시 배고픔 타이머 리셋 (오프라인 동안 죽지 않도록)
+                    // 단, 이미 죽은 정령은 리셋하지 않음
+                    if (!spirit.isDead && !spirit.isCompleted) {
+                        spirit.lastFed = now;
                     }
                 });
 
@@ -10704,6 +10710,28 @@
             isPaused = gameData.isPaused || false;
             darkModeLocked = gameData.darkModeLocked || false;
             lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
+            discoveredRecipes = gameData.discoveredRecipes || [];
+            labSlot1 = gameData.labSlot1 || null;
+            labSlot2 = gameData.labSlot2 || null;
+            lockedItems = gameData.lockedItems || { food: [], decorations: [] };
+            encyclopediaDetails = gameData.encyclopediaDetails || {};
+            
+            // 설치된 장식물로 환경 재계산
+            if (installedDecorations.length > 0) {
+                recalculateTerrariumEnvironment();
+            }
+            
+            // 기존 정령들의 만족도 초기화 및 배고픔 타이머 리셋
+            const now = Date.now();
+            spirits.forEach(spirit => {
+                if (!spirit.satisfaction) {
+                    spirit.satisfaction = 'mid';
+                }
+                // 불러오기 시 배고픔 타이머 리셋 (오프라인 동안 죽지 않도록)
+                if (!spirit.isDead && !spirit.isCompleted) {
+                    spirit.lastFed = now;
+                }
+            });
             
             saveGame();
             
@@ -10713,6 +10741,8 @@
             updateCoinDisplay();
             applyLightMode();
             updateSettingsInfo();
+            
+            showNotification('💡 정령들의 배고픔 상태가 초기화되었습니다!');
         }
 
         function recalculateTerrariumEnvironment() {
