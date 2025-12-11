@@ -2645,6 +2645,18 @@
                 keywords.push({ text: '미식가', color: keywordColor });
             }
             
+            // 단짝 관계
+            const bestFriend = getBestFriend(spirit);
+            if (bestFriend) {
+                keywords.push({ text: `단짝 : ${bestFriend.name}`, color: '#e91e63' }); // 핑크색
+            }
+            
+            // 연정 관계
+            const lover = getLover(spirit);
+            if (lover) {
+                keywords.push({ text: `연정 : ${lover.name}`, color: '#e91e63' }); // 핑크색
+            }
+            
             return keywords;
         }
 
@@ -3214,7 +3226,9 @@
                 lightTime: 0,  // 빛 모드 누적 시간 (초)
                 darkTime: 0,   // 어둠 모드 누적 시간 (초)
                 musicListened: 0,  // 음악 청취 횟수
-                feedCount: 0       // 먹이 횟수
+                feedCount: 0,      // 먹이 횟수
+                relationships: {},  // 다른 정령과의 관계 { spiritId: 수치(0~100) }
+                bond: null  // 영구 관계 { type: 'bestfriend' | 'lover', partnerId: 'id' }
             };
 
             spirits.push(spirit);
@@ -3583,7 +3597,7 @@
         }
 
         // 커스텀 확인 창 표시
-        function showConfirm(title, message, onConfirm) {
+        function showConfirm(title, message, onConfirm, confirmText = '확인', cancelText = '취소', onCancel = null) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('confirmModal');
                 const titleEl = document.getElementById('confirmTitle');
@@ -3594,6 +3608,10 @@
                 titleEl.textContent = title;
                 messageEl.textContent = message;
                 
+                // 버튼 텍스트 설정
+                okBtn.textContent = confirmText;
+                cancelBtn.textContent = cancelText;
+                
                 // 동적 z-index 적용
                 modal.style.zIndex = getNextZIndex();
                 modal.classList.add('active');
@@ -3601,6 +3619,8 @@
                 // 이전 이벤트 리스너 제거
                 const newOkBtn = okBtn.cloneNode(true);
                 const newCancelBtn = cancelBtn.cloneNode(true);
+                newOkBtn.textContent = confirmText;
+                newCancelBtn.textContent = cancelText;
                 okBtn.parentNode.replaceChild(newOkBtn, okBtn);
                 cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
                 
@@ -3614,6 +3634,7 @@
                 // 취소 버튼
                 document.getElementById('confirmCancelBtn').onclick = () => {
                     modal.classList.remove('active');
+                    if (onCancel) onCancel();
                     resolve(false);
                 };
             });
@@ -5334,6 +5355,7 @@
                     // 앨범에 추가
                 collection.push({
                     id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 ID
+                    originalSpiritId: spiritId, // 원본 정령 ID (파트너 매칭용)
                     type: evolutionData.type,
                     attributeType: evolutionData.attributeType,
                     name: evolutionData.name,
@@ -5348,7 +5370,9 @@
                     completedAt: Date.now(),
                     // 이벤트 정령 정보 저장
                     isEventSpirit: spirit.isEventSpirit || false,
-                    eventType: spirit.eventType || null
+                    eventType: spirit.eventType || null,
+                    // 관계 정보 저장
+                    bond: spirit.bond || null
                 });
                 
                 // 도감에 등록 (진화 타입별 카운트)
@@ -5422,6 +5446,9 @@
                     renderSpirits();
                     showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
                     
+                    // 연정 알 이벤트 체크
+                    checkLoveEggEvent(spirit);
+                    
                     // 첫 번째 정령 완성 시 두 번째 튜토리얼 시작
                     if (collection.length === 1 && !localStorage.getItem('spiritGarden_tutorial2Seen')) {
                         setTimeout(() => {
@@ -5430,6 +5457,116 @@
                     }
                 }
             );
+        }
+        
+        // 연정 알 이벤트 체크
+        function checkLoveEggEvent(completedSpirit) {
+            // 연정 bond가 있는지 확인
+            if (!completedSpirit.bond || completedSpirit.bond.type !== 'lover') return;
+            
+            const partnerId = completedSpirit.bond.partnerId;
+            
+            // 파트너가 앨범에 있는지 확인 (originalSpiritId로 검색)
+            const partnerInAlbum = collection.find(item => item.originalSpiritId === partnerId);
+            
+            if (!partnerInAlbum) {
+                // 아직 파트너가 앨범에 없음 - 파트너가 완성되면 그때 체크됨
+                return;
+            }
+            
+            // 이미 알을 받았는지 체크 (중복 방지)
+            if (partnerInAlbum.loveEggReceived) return;
+            
+            // 30% 확률로 알 이벤트 발생
+            if (Math.random() > 0.3) return;
+            
+            // 방금 추가된 정령 정보 (앨범에서 가장 최근 것)
+            const justAdded = collection[collection.length - 1];
+            
+            // 중복 방지 플래그 설정
+            partnerInAlbum.loveEggReceived = true;
+            justAdded.loveEggReceived = true;
+            saveGame();
+            
+            setTimeout(() => {
+                showConfirm(
+                    '💕 연정의 결실',
+                    `${partnerInAlbum.originalName}와(과) ${justAdded.originalName}의 사랑이 결실을 맺었습니다!\n\n🥚 둘 사이에서 알이 나타났어요.\n\n알을 받으시겠습니까?`,
+                    () => {
+                        // 알 생성
+                        createLoveEgg(partnerInAlbum, justAdded);
+                    },
+                    '받을게요 💕',
+                    '괜찮아요',
+                    () => {
+                        showNotification('알이 사라졌습니다...');
+                    }
+                );
+            }, 1500);
+        }
+        
+        // 연정 알 생성
+        function createLoveEgg(parent1, parent2) {
+            // 슬롯 체크
+            if (spirits.length >= maxSpirits) {
+                showNotification('❌ 정령 슬롯이 가득 찼습니다!');
+                return;
+            }
+            
+            // 부모 속성 평균 계산
+            const parent1Attrs = parent1.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            const parent2Attrs = parent2.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            
+            const inheritedAttrs = {};
+            for (let attr in parent1Attrs) {
+                // 부모 속성 평균의 20% 상속
+                inheritedAttrs[attr] = Math.floor((parent1Attrs[attr] + parent2Attrs[attr]) / 2 * 0.2);
+            }
+            
+            // 부모 스탯 평균 계산
+            const inheritedParams = {
+                intelligence: Math.floor((parent1.parameters.intelligence + parent2.parameters.intelligence) / 2 * 0.1),
+                strength: Math.floor((parent1.parameters.strength + parent2.parameters.strength) / 2 * 0.1),
+                charm: Math.floor((parent1.parameters.charm + parent2.parameters.charm) / 2 * 0.1),
+                affection: 10 // 사랑의 결실이므로 애정도 보너스
+            };
+            
+            // 이름 생성
+            const namePrefix = ['사랑', '축복', '행운', '기적', '희망'];
+            const randomPrefix = namePrefix[Math.floor(Math.random() * namePrefix.length)];
+            const randomName = `${randomPrefix}의 아이`;
+            
+            const spirit = {
+                id: `spirit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                name: randomName,
+                stage: 'egg',
+                growth: 0,
+                parameters: inheritedParams,
+                hiddenAttributes: inheritedAttrs,
+                satisfaction: 'high', // 사랑받는 아이
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                lastInteraction: Date.now(),
+                status: '사랑의 결실로 태어난 알이에요 💕',
+                birthTime: Date.now(),
+                logs: [`💕 ${parent1.originalName}와(과) ${parent2.originalName}의 사랑으로 태어났습니다.`],
+                lightTime: 0,
+                darkTime: 0,
+                musicListened: 0,
+                feedCount: 0,
+                relationships: {},
+                bond: null,
+                isLoveChild: true, // 연정 알 표시
+                parents: [parent1.originalName, parent2.originalName]
+            };
+            
+            spirits.push(spirit);
+            saveGame();
+            renderSpirits();
+            
+            showNotification(`💕 ${randomName}이(가) 태어났습니다! 부모의 능력을 조금 물려받았어요.`);
         }
 
         function showAlbumDetail(index) {
@@ -5944,9 +6081,17 @@
 
                 // 성장도 +1
                 const previousGrowth = spirit.growth;
-                spirit.growth += 1;
+                let growthAmount = 1;
+                
+                // 관계 보너스 (연정 15%, 단짝 10% 추가 성장 확률)
+                const relationshipBonus = getBestFriendGrowthBonus(spirit);
+                if (relationshipBonus > 0 && Math.random() < relationshipBonus) {
+                    growthAmount += 1; // 추가 성장
+                }
+                
+                spirit.growth += growthAmount;
 
-                console.log(`Spirit ${spirit.name}: growth ${previousGrowth} → ${spirit.growth}`);
+                console.log(`Spirit ${spirit.name}: growth ${previousGrowth} → ${spirit.growth}${growthAmount > 1 ? ' (관계 보너스!)' : ''}`);
 
                 // 성충 체크 (100 이상이면 무조건 완료)
                 if (spirit.growth >= STAGE_REQUIREMENTS.adult) {
@@ -5994,9 +6139,116 @@
                     checkForDisease(spirit);
                 }
             });
+            
+            // 정령 관계 업데이트 (5분마다)
+            updateSpiritRelationships();
 
             saveGame();
             updateAllSpiritCards();
+        }
+        
+        // 정령 관계 업데이트 (5분마다 호출)
+        function updateSpiritRelationships() {
+            // 살아있고 완성되지 않은 정령들만
+            const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            
+            if (activeSpirits.length < 2) return;
+            
+            // 각 정령 쌍에 대해 관계 업데이트
+            for (let i = 0; i < activeSpirits.length; i++) {
+                for (let j = i + 1; j < activeSpirits.length; j++) {
+                    const spirit1 = activeSpirits[i];
+                    const spirit2 = activeSpirits[j];
+                    
+                    // relationships 초기화
+                    if (!spirit1.relationships) spirit1.relationships = {};
+                    if (!spirit2.relationships) spirit2.relationships = {};
+                    
+                    // 현재 관계 수치 가져오기
+                    const currentRel1 = spirit1.relationships[spirit2.id] || 0;
+                    const currentRel2 = spirit2.relationships[spirit1.id] || 0;
+                    
+                    // 관계 변화량 (함께 있으면 자연스럽게 친해짐)
+                    const change = Math.floor(Math.random() * 4) + 1; // +1 ~ +4
+                    
+                    // 관계 수치 업데이트 (범위: 0 ~ 100)
+                    const newRel1 = Math.min(100, currentRel1 + change);
+                    const newRel2 = Math.min(100, currentRel2 + change);
+                    
+                    spirit1.relationships[spirit2.id] = newRel1;
+                    spirit2.relationships[spirit1.id] = newRel2;
+                    
+                    // 이미 bond가 있으면 이벤트 스킵
+                    const hasBond1 = spirit1.bond && spirit1.bond.partnerId;
+                    const hasBond2 = spirit2.bond && spirit2.bond.partnerId;
+                    
+                    // 단짝 이벤트 (둘 다 80 이상 도달 시, bond 없을 때만)
+                    if (!hasBond1 && !hasBond2 && currentRel1 < 80 && newRel1 >= 80 && newRel2 >= 80) {
+                        // 이미 연정인 경우 알림 안 함
+                        if (newRel1 < 95 && newRel2 < 95) {
+                            // 영구 관계 기록
+                            spirit1.bond = { type: 'bestfriend', partnerId: spirit2.id };
+                            spirit2.bond = { type: 'bestfriend', partnerId: spirit1.id };
+                            
+                            showNotification(`💕 ${spirit1.name}와(과) ${spirit2.name}이(가) 단짝이 되었습니다!`);
+                            addLog(spirit1, `💕 ${spirit2.name}와(과) 단짝이 되었습니다!`);
+                            addLog(spirit2, `💕 ${spirit1.name}와(과) 단짝이 되었습니다!`);
+                        }
+                    }
+                    
+                    // 연정 이벤트 (둘 다 95 이상 도달 시)
+                    // 기존 단짝에서 연정으로 승급 가능
+                    const areBestFriends = spirit1.bond?.type === 'bestfriend' && spirit1.bond?.partnerId === spirit2.id;
+                    if (currentRel1 < 95 && newRel1 >= 95 && newRel2 >= 95) {
+                        if (areBestFriends || (!hasBond1 && !hasBond2)) {
+                            // 영구 관계 기록 (연정으로 승급)
+                            spirit1.bond = { type: 'lover', partnerId: spirit2.id };
+                            spirit2.bond = { type: 'lover', partnerId: spirit1.id };
+                            
+                            showNotification(`💗 ${spirit1.name}와(과) ${spirit2.name} 사이에 연정이 싹텄습니다!`);
+                            addLog(spirit1, `💗 ${spirit2.name}에게 연정을 느끼고 있습니다...`);
+                            addLog(spirit2, `💗 ${spirit1.name}에게 연정을 느끼고 있습니다...`);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 연정 관계인 정령 찾기 (bond 기반)
+        function getLover(spirit) {
+            // bond가 있고 타입이 lover인 경우
+            if (spirit.bond && spirit.bond.type === 'lover' && spirit.bond.partnerId) {
+                const lover = spirits.find(s => s.id === spirit.bond.partnerId && !s.isDead && !s.isCompleted);
+                return lover || null;
+            }
+            return null;
+        }
+        
+        // 단짝 관계인 정령 찾기 (bond 기반)
+        function getBestFriend(spirit) {
+            // bond가 있고 타입이 bestfriend인 경우
+            if (spirit.bond && spirit.bond.type === 'bestfriend' && spirit.bond.partnerId) {
+                const bestFriend = spirits.find(s => s.id === spirit.bond.partnerId && !s.isDead && !s.isCompleted);
+                return bestFriend || null;
+            }
+            return null;
+        }
+        
+        // 관계 보너스 체크 (성장 시 호출)
+        function getBestFriendGrowthBonus(spirit) {
+            // 연정이 있으면 15% 보너스
+            const lover = getLover(spirit);
+            if (lover) {
+                return 0.15;
+            }
+            
+            // 단짝이 있으면 10% 보너스
+            const bestFriend = getBestFriend(spirit);
+            if (bestFriend) {
+                return 0.1;
+            }
+            
+            return 0;
         }
         
         // 질병 체크 함수
@@ -14258,13 +14510,23 @@
             localStorage.setItem('spiritGarden_imbalanceTutorialSeen', 'true');
         }
         
-        // 속성 불균형 체크 함수
+        // 속성 불균형 체크 함수 (최종 속성 기준)
         function checkImbalanceAndTutorial(spirit) {
             if (!spirit || !spirit.hiddenAttributes) return;
             if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
             
-            const attrs = spirit.hiddenAttributes;
-            const attrValues = Object.values(attrs);
+            // 먹이 속성
+            const foodAttrs = spirit.hiddenAttributes;
+            // 테라리움 속성
+            const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+            
+            // 최종 속성 계산 (먹이 70% + 테라리움 30%)
+            const finalAttrs = {};
+            for (let attr in foodAttrs) {
+                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + ((terrariumAttrs[attr] || 0) * 0.3);
+            }
+            
+            const attrValues = Object.values(finalAttrs);
             const maxAttr = Math.max(...attrValues);
             const minAttr = Math.min(...attrValues);
             
