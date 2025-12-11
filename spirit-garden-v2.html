@@ -1088,11 +1088,11 @@
                     </button>
                     
                     <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        도감에서 앨범 복구
+                        📖 도감에서 앨범 복구
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        교배 정령 관리
+                        🔧 교배 정령 관리
                     </button>
                 </div>
                 
@@ -1211,7 +1211,9 @@
                 <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0; color: var(--fire);">💸 판매하기</h3>
-                        <select id="sellFilterSelect" onchange="changeSellFilter()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button id="lockModeBtn" onclick="toggleLockMode()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;" title="잠금 모드 전환">🔓</button>
+                            <select id="sellFilterSelect" onchange="changeSellFilter()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;">
                             <option value="all">전체</option>
                             <option value="fire">🔥 불</option>
                             <option value="water">💧 물</option>
@@ -1223,6 +1225,7 @@
                             <option value="strength">💪 체력</option>
                             <option value="charm">💖 매력</option>
                         </select>
+                        </div>
                     </div>
                     <div id="sellList"></div>
                 </div>
@@ -1511,6 +1514,8 @@
         let currentShopCategory = 'all'; // 현재 상점 카테고리 (all, food, decoration, music)
         let sellFilter = 'all'; // 판매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let buyFilter = 'all'; // 구매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
+        let lockedItems = { food: [], decorations: [] }; // 판매 잠금된 아이템 목록
+        let isLockMode = false; // 잠금 모드 상태
         let terrariumInvFilter = 'all'; // 테라리움 인벤토리 필터 (all, fire, water, wind, earth, light, dark, event)
         let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic)
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
@@ -3022,6 +3027,7 @@
                 discoveredRecipes = data.discoveredRecipes || [];
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
+                lockedItems = data.lockedItems || { food: [], decorations: [] };
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -3075,7 +3081,8 @@
                 hasVisitedShop,
                 discoveredRecipes,
                 labSlot1,
-                labSlot2
+                labSlot2,
+                lockedItems
             }));
         }
 
@@ -6508,17 +6515,33 @@
                         const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
                         const effectText = isRare ? `${ENV_ICONS[type]} 속성 +6, 성장 +3` : `${ENV_ICONS[type]} 속성 +3, 성장 +2`;
                         const rarityLabel = isRare ? ' <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span>' : '';
+                        const isLocked = lockedItems.food.includes(type);
+                        
+                        // 잠금 모드에 따른 버튼 결정
+                        let actionButton;
+                        if (isLockMode) {
+                            // 잠금 모드: 잠금/해제 버튼
+                            actionButton = isLocked 
+                                ? `<button onclick="toggleItemLock('food', '${type}')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
+                                : `<button onclick="toggleItemLock('food', '${type}')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
+                        } else {
+                            // 판매 모드: 판매 버튼 (잠긴 아이템은 비활성화)
+                            actionButton = isLocked
+                                ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
+                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                        }
+                        
                         items.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}${rarityLabel}</div>
+                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}${rarityLabel}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
                                         <div style="font-size: 0.85rem; color: #666;">${effectText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
                                     </div>
                                 </div>
-                                <button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                                ${actionButton}
                             </div>
                         `);
                     });
@@ -6577,7 +6600,7 @@
                         
                         const sellPrice = Math.floor(decoData.price * 0.5); // 판매가는 구매가의 50%
                         const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
-                        const qualityText = decoData.quality === 'legendary' ? '<span style="color: #ff6b35;">전설</span>' : decoData.quality === 'epic' ? '<span style="color: #9b59b6;">에픽</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">레어</span>' : '<span style="color: #888;">일반</span>';
+                        const qualityText = decoData.quality === 'legendary' ? '<span style="color: #ff6b35;">전설</span>' : decoData.quality === 'epic' ? '<span style="color: #9b59b6;">최상급</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">희귀</span>' : '<span style="color: #888;">일반</span>';
                         
                         // 속성 표시 (복합 속성 처리)
                         let attrDisplay = '';
@@ -6590,17 +6613,33 @@
                             attrDisplay = `${ENV_ICONS[decoData.attr]} ${attrName} 속성 +${decoData.power}`;
                         }
                         
+                        const isLocked = lockedItems.decorations.includes(key);
+                        
+                        // 잠금 모드에 따른 버튼 결정
+                        let actionButton;
+                        if (isLockMode) {
+                            // 잠금 모드: 잠금/해제 버튼
+                            actionButton = isLocked 
+                                ? `<button onclick="toggleItemLock('decoration', '${key}')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
+                                : `<button onclick="toggleItemLock('decoration', '${key}')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
+                        } else {
+                            // 판매 모드: 판매 버튼 (잠긴 아이템은 비활성화)
+                            actionButton = isLocked
+                                ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
+                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                        }
+                        
                         items.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${decoData.name} ×${count}</div>
+                                        <div style="font-weight: 700;">${decoData.name} ×${count}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
                                         <div style="font-size: 0.85rem; color: #666;">${attrDisplay} | ${qualityText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
                                     </div>
                                 </div>
-                                <button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                                ${actionButton}
                             </div>
                         `);
                     });
@@ -6655,7 +6694,36 @@
             if (items.length === 0) {
                 container.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">판매할 물품이 없습니다</p>';
             } else {
-                container.innerHTML = items.join('');
+                // 잠금 모드일 때는 안내 표시, 아닐 때는 일괄 판매 드롭다운
+                let headerHtml = '';
+                if (isLockMode) {
+                    headerHtml = `
+                        <div style="margin-bottom: 15px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+                            <div style="font-weight: 600; color: #856404; font-size: 0.9rem;">🔒 잠금 모드</div>
+                            <div style="font-size: 0.85rem; color: #856404; margin-top: 4px;">아이템을 클릭하면 판매가 잠금/해제됩니다.</div>
+                        </div>
+                    `;
+                } else {
+                    headerHtml = `
+                        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <select id="bulkSellSelect" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; flex: 1;">
+                                <option value="">📦 일괄 판매 선택...</option>
+                                <optgroup label="🍎 먹이">
+                                    <option value="food_common">일반 먹이 전체</option>
+                                    <option value="food_rare">희귀 먹이 전체</option>
+                                </optgroup>
+                                <optgroup label="🎨 장식물">
+                                    <option value="deco_common">일반 장식물 전체</option>
+                                    <option value="deco_rare">희귀 이하 전체</option>
+                                    <option value="deco_epic">최상급 이하 전체</option>
+                                </optgroup>
+                            </select>
+                            <button onclick="executeBulkSell()" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap;">판매</button>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">※ 잠금된 아이템은 제외됩니다</div>
+                    `;
+                }
+                container.innerHTML = headerHtml + items.join('');
             }
         }
 
@@ -6915,7 +6983,241 @@
             container.innerHTML = items.length > 0 ? items.join('') : '<p style="color: #888; text-align: center; padding: 20px;">구매 가능한 물품이 없습니다</p>';
         }
 
+        // 잠금 모드 토글
+        function toggleLockMode() {
+            isLockMode = !isLockMode;
+            const btn = document.getElementById('lockModeBtn');
+            if (btn) {
+                if (isLockMode) {
+                    btn.textContent = '🔒';
+                    btn.style.background = '#e74c3c';
+                    btn.style.color = 'white';
+                    btn.style.borderColor = '#e74c3c';
+                    btn.title = '판매 모드로 전환';
+                    showNotification('🔒 잠금 모드: 아이템을 클릭하면 잠금됩니다');
+                } else {
+                    btn.textContent = '🔓';
+                    btn.style.background = 'var(--card)';
+                    btn.style.color = 'var(--text)';
+                    btn.style.borderColor = 'var(--border)';
+                    btn.title = '잠금 모드로 전환';
+                    showNotification('🔓 판매 모드: 아이템을 클릭하면 판매됩니다');
+                }
+            }
+            renderSellList();
+        }
+
+        // 아이템 판매 잠금 토글
+        function toggleItemLock(category, type) {
+            const lockCategory = category === 'food' ? 'food' : 'decorations';
+            const index = lockedItems[lockCategory].indexOf(type);
+            
+            if (index === -1) {
+                // 잠금 추가
+                lockedItems[lockCategory].push(type);
+                showNotification(`🔒 ${getItemDisplayName(category, type)} 판매 잠금`);
+            } else {
+                // 잠금 해제
+                lockedItems[lockCategory].splice(index, 1);
+                showNotification(`🔓 ${getItemDisplayName(category, type)} 잠금 해제`);
+            }
+            
+            saveGame();
+            renderSellList();
+        }
+        
+        // 아이템 표시 이름 가져오기
+        function getItemDisplayName(category, type) {
+            if (category === 'food') {
+                return FOOD_NAMES[type] || type;
+            } else if (category === 'decoration') {
+                const deco = DECORATION_TYPES[type];
+                return deco ? deco.name : type;
+            }
+            return type;
+        }
+        
+        // 일괄 판매 확인 모달 표시
+        function showBulkSellConfirm(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.id = 'bulkSellConfirmModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.7);
+                z-index: 100000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: var(--card); border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 15px;">📦</div>
+                    <div style="font-size: 1rem; margin-bottom: 20px; color: var(--text);">${message}</div>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="bulkSellCancelBtn" style="padding: 10px 24px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 1rem;">취소</button>
+                        <button id="bulkSellConfirmBtn" style="padding: 10px 24px; background: var(--fire); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;">판매</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('bulkSellCancelBtn').onclick = () => {
+                modal.remove();
+            };
+            
+            document.getElementById('bulkSellConfirmBtn').onclick = () => {
+                modal.remove();
+                if (onConfirm) onConfirm();
+            };
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        
+        // 일괄 판매 실행 (드롭다운에서 선택 후)
+        function executeBulkSell() {
+            const select = document.getElementById('bulkSellSelect');
+            
+            if (!select || !select.value) {
+                showNotification('판매할 항목을 선택해주세요');
+                return;
+            }
+            
+            const value = select.value;
+            
+            if (value === 'food_common') {
+                bulkSellFood('common');
+            } else if (value === 'food_rare') {
+                bulkSellFood('rare');
+            } else if (value === 'deco_common') {
+                bulkSellByQuality('common');
+            } else if (value === 'deco_rare') {
+                bulkSellByQuality('rare');
+            } else if (value === 'deco_epic') {
+                bulkSellByQuality('epic');
+            }
+            
+            // 드롭다운 초기화
+            if (select) select.value = '';
+        }
+        
+        // 장식물 품질별 일괄 판매
+        function bulkSellByQuality(maxQuality) {
+            const qualityOrder = ['common', 'rare', 'epic', 'legendary'];
+            const maxIndex = qualityOrder.indexOf(maxQuality);
+            
+            if (maxIndex === -1) return;
+            
+            // 판매할 장식물 찾기 (잠금 제외)
+            const toSell = [];
+            inventory.decorations.forEach((type, idx) => {
+                const deco = DECORATION_TYPES[type];
+                if (!deco) return;
+                
+                // 잠금된 아이템은 제외
+                if (lockedItems.decorations.includes(type)) return;
+                
+                const qualityIdx = qualityOrder.indexOf(deco.quality);
+                if (qualityIdx !== -1 && qualityIdx <= maxIndex) {
+                    toSell.push({ type, idx, price: Math.floor(deco.price * 0.5), name: deco.name });
+                }
+            });
+            
+            if (toSell.length === 0) {
+                showNotification('판매할 장식물이 없습니다 (잠금 제외)');
+                return;
+            }
+            
+            const totalPrice = toSell.reduce((sum, item) => sum + item.price, 0);
+            const qualityText = maxQuality === 'common' ? '일반' : maxQuality === 'rare' ? '희귀 이하' : '최상급 이하';
+            
+            showBulkSellConfirm(`${qualityText} 장식물 ${toSell.length}개를 ${totalPrice}💰에 판매하시겠습니까?`, () => {
+                // 역순으로 삭제 (인덱스 변경 방지)
+                const typesToRemove = toSell.map(item => item.type);
+                typesToRemove.forEach(type => {
+                    const idx = inventory.decorations.indexOf(type);
+                    if (idx !== -1) inventory.decorations.splice(idx, 1);
+                });
+                
+                coins += totalPrice;
+                showNotification(`📦 ${toSell.length}개 장식물 판매 완료! +${totalPrice}💰`);
+                setShopkeeperDialogue('...대량 거래 감사합니다.');
+                
+                saveGame();
+                renderSellList();
+                renderBuyList();
+                updateCoinDisplay();
+                renderInventory();
+            });
+        }
+        
+        // 먹이 일괄 판매
+        function bulkSellFood(type) {
+            let targetTypes = [];
+            let price = 0;
+            let label = '';
+            
+            if (type === 'common') {
+                targetTypes = ['fire', 'water', 'wind', 'earth'];
+                price = SHOP_PRICES.sell.food_common;
+                label = '일반';
+            } else if (type === 'rare') {
+                targetTypes = ['light', 'dark'];
+                price = SHOP_PRICES.sell.food_rare;
+                label = '희귀';
+            }
+            
+            const toSell = [];
+            inventory.food.forEach((foodType, idx) => {
+                if (targetTypes.includes(foodType) && !lockedItems.food.includes(foodType)) {
+                    toSell.push({ type: foodType, price: price });
+                }
+            });
+            
+            if (toSell.length === 0) {
+                showNotification(`판매할 ${label} 먹이가 없습니다 (잠금 제외)`);
+                return;
+            }
+            
+            const totalPrice = toSell.reduce((sum, item) => sum + item.price, 0);
+            
+            // 커스텀 확인 모달 표시
+            showBulkSellConfirm(`${label} 먹이 ${toSell.length}개를 ${totalPrice}💰에 판매하시겠습니까?`, () => {
+                toSell.forEach(item => {
+                    const idx = inventory.food.indexOf(item.type);
+                    if (idx !== -1) inventory.food.splice(idx, 1);
+                });
+                
+                coins += totalPrice;
+                showNotification(`📦 ${toSell.length}개 먹이 판매 완료! +${totalPrice}💰`);
+                setShopkeeperDialogue('...대량 거래 감사합니다.');
+                
+                saveGame();
+                renderSellList();
+                renderBuyList();
+                updateCoinDisplay();
+                renderInventory();
+            });
+        }
+        
         function sellItem(category, type) {
+            // 잠금 체크
+            if (category === 'food' && lockedItems.food.includes(type)) {
+                showNotification('🔒 이 아이템은 판매 잠금 상태입니다');
+                return;
+            }
+            if (category === 'decoration' && lockedItems.decorations.includes(type)) {
+                showNotification('🔒 이 아이템은 판매 잠금 상태입니다');
+                return;
+            }
+            
             // 이벤트 아이템 체크
             const eventItem = EVENT_ITEMS[type];
             if (eventItem) {
@@ -8100,8 +8402,8 @@
             switch(rarity) {
                 case 'mythic': return '🌌 신화';
                 case 'legendary': return '⭐ 전설';
-                case 'epic': return '💜 에픽';
-                case 'rare': return '💙 레어';
+                case 'epic': return '💜 최상급';
+                case 'rare': return '💙 희귀';
                 case 'event': return '🎄 이벤트';
                 default: return '일반';
             }
@@ -8967,7 +9269,7 @@
             // 레어리티별 그룹화
             const fusionGroups = {
                 'rare': { title: '💎 희귀', entries: [] },
-                'epic': { title: '⭐ 에픽', entries: [] },
+                'epic': { title: '⭐ 최상급', entries: [] },
                 'legendary': { title: '👑 전설', entries: [] }
             };
             
@@ -9568,17 +9870,8 @@
                 return;
             }
             
-            // 가능한 개수 중 보유량에 맞는 최대 개수 선택
+            // 최소 필요 개수만 선택 (UI 표시와 일치하도록)
             let selectedCount = minNeededCount;
-            Object.values(RECIPES).forEach(recipe => {
-                recipe.ingredients.forEach(ing => {
-                    if (ing.type === type && ing.category === category) {
-                        if (ing.count <= count && ing.count > selectedCount) {
-                            selectedCount = ing.count;
-                        }
-                    }
-                });
-            });
             
             // 인벤토리에서 실제로 재료 차감
             if (category === 'food') {
@@ -10468,7 +10761,7 @@
                             // 일반 장식물 체크
                             const decoData = DECORATION_TYPES[key];
                             if (decoData) {
-                                const qualityLabel = decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                                const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                                 return `
                                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -10539,7 +10832,7 @@
                         <option value="all" ${terrariumQualityFilter === 'all' ? 'selected' : ''}>품질</option>
                         <option value="common" ${terrariumQualityFilter === 'common' ? 'selected' : ''}>일반</option>
                         <option value="rare" ${terrariumQualityFilter === 'rare' ? 'selected' : ''}>💎 희귀</option>
-                        <option value="epic" ${terrariumQualityFilter === 'epic' ? 'selected' : ''}>⭐ 에픽</option>
+                        <option value="epic" ${terrariumQualityFilter === 'epic' ? 'selected' : ''}>⭐ 최상급</option>
                     </select>
                 `;
             }
@@ -11519,80 +11812,166 @@
             // UI 초기화
             updateMinigameUI();
             
-            // 입력 필드 포커스
+            // 입력 필드 초기화
             const input = document.getElementById('minigameInput');
             input.value = '';
+            input.disabled = true; // 카운트다운 동안 비활성화
             
-            // 모바일: 약간 딜레이 후 포커스 (키보드 올라오게)
-            setTimeout(() => {
-                input.focus();
-            }, 100);
-            
-            // 입력 이벤트 리스너 (한글 조합 완료 후 처리)
-            let isComposing = false;
-            
-            input.addEventListener('compositionstart', () => {
-                isComposing = true;
-            });
-            
-            input.addEventListener('compositionend', (e) => {
-                isComposing = false;
-            });
-            
-            // 스페이스바나 엔터로 단어 확정
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (!isComposing) {
-                        confirmMinigameInput();
+            // 카운트다운 시작
+            showMinigameCountdown(() => {
+                // 카운트다운 완료 후 게임 시작
+                input.disabled = false;
+                
+                // 모바일: 약간 딜레이 후 포커스 (키보드 올라오게)
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+                
+                // 입력 이벤트 리스너 (한글 조합 완료 후 처리)
+                let isComposing = false;
+                
+                input.addEventListener('compositionstart', () => {
+                    isComposing = true;
+                });
+                
+                input.addEventListener('compositionend', (e) => {
+                    isComposing = false;
+                });
+                
+                // 스페이스바나 엔터로 단어 확정
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (!isComposing) {
+                            confirmMinigameInput();
+                        }
                     }
-                }
+                });
+                
+                // 게임 시작
+                const settings = MINIGAME_SETTINGS[minigameDifficulty];
+                
+                // 모바일에서는 최대 단어 수 줄이기
+                const maxWords = isMobile() ? Math.min(settings.maxWords, 3) : settings.maxWords;
+                
+                // 단어 생성 인터벌 (모바일에서는 더 느리게)
+                const spawnRate = isMobile() ? settings.spawnRate * 1.3 : settings.spawnRate;
+                
+                minigameSpawnInterval = setInterval(() => {
+                    if (!minigamePaused && minigameWords.length < maxWords) {
+                        spawnMinigameWord();
+                    }
+                }, spawnRate);
+                
+                // 게임 루프 (단어 이동)
+                minigameInterval = setInterval(() => {
+                    if (!minigamePaused) {
+                        updateMinigameWords();
+                    }
+                }, 50);
+                
+                // 타이머 시작 (1분 제한)
+                minigameTimeLeft = 60;
+                document.getElementById('minigameTimer').textContent = minigameTimeLeft;
+                minigameTimerInterval = setInterval(() => {
+                    if (!minigamePaused) {
+                        minigameTimeLeft--;
+                        document.getElementById('minigameTimer').textContent = minigameTimeLeft;
+                        
+                        // 10초 이하면 빨간색으로 표시
+                        if (minigameTimeLeft <= 10) {
+                            document.getElementById('minigameTimer').style.color = '#e74c3c';
+                        }
+                        
+                        // 시간 종료
+                        if (minigameTimeLeft <= 0) {
+                            endMinigame();
+                        }
+                    }
+                }, 1000);
+                
+                // 첫 단어 바로 생성
+                spawnMinigameWord();
             });
+        }
+        
+        // 미니게임 카운트다운
+        function showMinigameCountdown(onComplete) {
+            const gameArea = document.getElementById('minigameArea');
             
-            // 게임 시작
-            const settings = MINIGAME_SETTINGS[minigameDifficulty];
+            // 카운트다운 오버레이 생성
+            const overlay = document.createElement('div');
+            overlay.id = 'minigameCountdown';
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
             
-            // 모바일에서는 최대 단어 수 줄이기
-            const maxWords = isMobile() ? Math.min(settings.maxWords, 3) : settings.maxWords;
+            const countText = document.createElement('div');
+            countText.style.cssText = `
+                font-size: 5rem;
+                font-weight: bold;
+                color: white;
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+                animation: countPulse 0.5s ease-out;
+            `;
             
-            // 단어 생성 인터벌 (모바일에서는 더 느리게)
-            const spawnRate = isMobile() ? settings.spawnRate * 1.3 : settings.spawnRate;
+            // 애니메이션 스타일 추가
+            if (!document.getElementById('countdownStyle')) {
+                const style = document.createElement('style');
+                style.id = 'countdownStyle';
+                style.textContent = `
+                    @keyframes countPulse {
+                        0% { transform: scale(1.5); opacity: 0; }
+                        50% { transform: scale(1.1); opacity: 1; }
+                        100% { transform: scale(1); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
             
-            minigameSpawnInterval = setInterval(() => {
-                if (!minigamePaused && minigameWords.length < maxWords) {
-                    spawnMinigameWord();
-                }
-            }, spawnRate);
+            overlay.appendChild(countText);
+            gameArea.style.position = 'relative';
+            gameArea.appendChild(overlay);
             
-            // 게임 루프 (단어 이동)
-            minigameInterval = setInterval(() => {
-                if (!minigamePaused) {
-                    updateMinigameWords();
-                }
-            }, 50);
+            const counts = ['3', '2', '1', '🎮 START!'];
+            let index = 0;
             
-            // 타이머 시작 (1분 제한)
-            minigameTimeLeft = 60;
-            document.getElementById('minigameTimer').textContent = minigameTimeLeft;
-            minigameTimerInterval = setInterval(() => {
-                if (!minigamePaused) {
-                    minigameTimeLeft--;
-                    document.getElementById('minigameTimer').textContent = minigameTimeLeft;
+            function showNext() {
+                if (index < counts.length) {
+                    countText.textContent = counts[index];
+                    countText.style.animation = 'none';
+                    countText.offsetHeight; // 리플로우 트리거
+                    countText.style.animation = 'countPulse 0.5s ease-out';
                     
-                    // 10초 이하면 빨간색으로 표시
-                    if (minigameTimeLeft <= 10) {
-                        document.getElementById('minigameTimer').style.color = '#e74c3c';
+                    if (counts[index] === '🎮 START!') {
+                        countText.style.fontSize = '3rem';
+                        countText.style.color = '#2ecc71';
                     }
                     
-                    // 시간 종료
-                    if (minigameTimeLeft <= 0) {
-                        endMinigame();
+                    index++;
+                    
+                    if (index < counts.length) {
+                        setTimeout(showNext, 800);
+                    } else {
+                        // START! 표시 후 잠시 대기 후 제거
+                        setTimeout(() => {
+                            overlay.remove();
+                            if (onComplete) onComplete();
+                        }, 500);
                     }
                 }
-            }, 1000);
+            }
             
-            // 첫 단어 바로 생성
-            spawnMinigameWord();
+            showNext();
         }
         
         function spawnMinigameWord() {
