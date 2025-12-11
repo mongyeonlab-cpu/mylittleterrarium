@@ -1946,7 +1946,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/I0iPm2M.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/DeIz4L6.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2792,7 +2792,7 @@
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
                 validUntil: '2026-01-31',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/vniIe3G.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2809,7 +2809,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/bAxRgQ0.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -3108,6 +3108,34 @@
                 discoveredRecipes = data.discoveredRecipes || [];
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
+                
+                // 기존 세이브 호환성: 슬롯에 남아있는 재료를 인벤토리로 복구하고 슬롯 비우기
+                // (이전 버전에서는 슬롯에 올리면 인벤토리에서 차감됐기 때문)
+                if (labSlot1) {
+                    if (labSlot1.category === 'food') {
+                        for (let i = 0; i < labSlot1.count; i++) {
+                            inventory.food.push(labSlot1.type);
+                        }
+                    } else if (labSlot1.category === 'decoration') {
+                        for (let i = 0; i < labSlot1.count; i++) {
+                            inventory.decorations.push(labSlot1.type);
+                        }
+                    }
+                    labSlot1 = null;
+                }
+                if (labSlot2) {
+                    if (labSlot2.category === 'food') {
+                        for (let i = 0; i < labSlot2.count; i++) {
+                            inventory.food.push(labSlot2.type);
+                        }
+                    } else if (labSlot2.category === 'decoration') {
+                        for (let i = 0; i < labSlot2.count; i++) {
+                            inventory.decorations.push(labSlot2.type);
+                        }
+                    }
+                    labSlot2 = null;
+                }
+                
                 lockedItems = data.lockedItems || { food: [], decorations: [] };
 
                 // 칭호 UI 반영
@@ -3169,8 +3197,7 @@
                 lowSatisfactionStartTime,
                 hasVisitedShop,
                 discoveredRecipes,
-                labSlot1,
-                labSlot2,
+                // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
                 lockedItems
             }));
         }
@@ -10276,12 +10303,28 @@
         
         // 인벤토리에서 아이템 개수 세기
         function countInventoryItem(type, category) {
+            let count = 0;
             if (category === 'food') {
-                return inventory.food.filter(f => f === type).length;
+                count = inventory.food.filter(f => f === type).length;
             } else if (category === 'decoration') {
-                return inventory.decorations.filter(d => d === type).length;
+                count = inventory.decorations.filter(d => d === type).length;
             }
-            return 0;
+            return count;
+        }
+        
+        // 가용량 체크 (슬롯에 올린 것 제외)
+        function getAvailableCount(type, category) {
+            let count = countInventoryItem(type, category);
+            
+            // 슬롯에 같은 재료가 올라가 있으면 빼기
+            if (labSlot1 && labSlot1.type === type && labSlot1.category === category) {
+                count -= labSlot1.count;
+            }
+            if (labSlot2 && labSlot2.type === type && labSlot2.category === category) {
+                count -= labSlot2.count;
+            }
+            
+            return Math.max(0, count);
         }
         
         // 연구실 슬롯 모달 열기
@@ -10303,6 +10346,18 @@
             inventory.decorations.forEach(d => {
                 decoCounts[d] = (decoCounts[d] || 0) + 1;
             });
+            
+            // 다른 슬롯에 올린 재료는 가용량에서 제외 (현재 슬롯은 덮어쓰기 될 것이므로 포함)
+            const otherSlot = currentLabSlot === 1 ? labSlot2 : labSlot1;
+            if (otherSlot) {
+                if (otherSlot.category === 'food') {
+                    foodCounts[otherSlot.type] = (foodCounts[otherSlot.type] || 0) - otherSlot.count;
+                    if (foodCounts[otherSlot.type] < 0) foodCounts[otherSlot.type] = 0;
+                } else if (otherSlot.category === 'decoration') {
+                    decoCounts[otherSlot.type] = (decoCounts[otherSlot.type] || 0) - otherSlot.count;
+                    if (decoCounts[otherSlot.type] < 0) decoCounts[otherSlot.type] = 0;
+                }
+            }
             
             // 레시피에서 필요한 개수 가져오기 (한 슬롯당)
             // 같은 재료끼리 합성하는 레시피가 있으면 그 개수 우선
@@ -10464,8 +10519,8 @@
         
         // 연구실 슬롯에 아이템 선택
         function selectLabItem(type, category) {
-            const count = countInventoryItem(type, category);
-            if (count <= 0) {
+            const totalCount = countInventoryItem(type, category);
+            if (totalCount <= 0) {
                 showNotification('해당 아이템이 없습니다');
                 closeLabModal();
                 return;
@@ -10474,6 +10529,12 @@
             // 다른 슬롯에 이미 같은 재료가 있는지 확인
             const otherSlot = currentLabSlot === 1 ? labSlot2 : labSlot1;
             const isSameMaterial = otherSlot && otherSlot.type === type && otherSlot.category === category;
+            
+            // 가용량 계산 (다른 슬롯에 올린 것 제외)
+            let availableCount = totalCount;
+            if (otherSlot && otherSlot.type === type && otherSlot.category === category) {
+                availableCount -= otherSlot.count;
+            }
             
             // 레시피에서 필요한 개수 찾기
             let neededCount = 999;
@@ -10509,10 +10570,10 @@
             
             if (neededCount === 999) neededCount = 1;
             
-            // 재료 부족 체크
-            if (count < neededCount) {
+            // 재료 부족 체크 (가용량 기준)
+            if (availableCount < neededCount) {
                 const itemName = getItemName(type, category);
-                showNotification(`⚠️ ${itemName} 부족! (보유: ${count}개, 필요: ${neededCount}개)`);
+                showNotification(`⚠️ ${itemName} 부족! (사용 가능: ${availableCount}개, 필요: ${neededCount}개)`);
                 closeLabModal();
                 return;
             }
@@ -10522,67 +10583,19 @@
             
             // 같은 재료를 슬롯2에 넣을 때, 슬롯1의 개수가 다르면 조정
             if (isSameMaterial && currentLabSlot === 2 && otherSlot.count !== neededCount) {
-                // 슬롯1 재료를 인벤토리로 반환
-                if (otherSlot.category === 'food') {
-                    for (let i = 0; i < otherSlot.count; i++) {
-                        inventory.food.push(otherSlot.type);
-                    }
-                } else if (otherSlot.category === 'decoration') {
-                    for (let i = 0; i < otherSlot.count; i++) {
-                        inventory.decorations.push(otherSlot.type);
-                    }
-                }
-                
-                // 슬롯1에 새로운 개수로 다시 설정
-                const totalCount = countInventoryItem(type, category);
+                // 총 재료가 충분한지 체크 (양쪽 슬롯 합계)
                 if (totalCount < neededCount * 2) {
-                    // 재료가 총 개수가 부족하면 롤백하고 취소
-                    if (otherSlot.category === 'food') {
-                        for (let i = 0; i < otherSlot.count; i++) {
-                            const idx = inventory.food.indexOf(otherSlot.type);
-                            if (idx !== -1) inventory.food.splice(idx, 1);
-                        }
-                    } else if (otherSlot.category === 'decoration') {
-                        for (let i = 0; i < otherSlot.count; i++) {
-                            const idx = inventory.decorations.indexOf(otherSlot.type);
-                            if (idx !== -1) inventory.decorations.splice(idx, 1);
-                        }
-                    }
                     const itemName = getItemName(type, category);
-                    showNotification(`⚠️ ${itemName} 부족! (보유: ${count + otherSlot.count}개, 필요: ${neededCount * 2}개)`);
+                    showNotification(`⚠️ ${itemName} 부족! (보유: ${totalCount}개, 필요: ${neededCount * 2}개)`);
                     closeLabModal();
                     return;
                 }
                 
-                // 슬롯1 재료 차감
-                if (otherSlot.category === 'food') {
-                    for (let i = 0; i < neededCount; i++) {
-                        const idx = inventory.food.indexOf(type);
-                        if (idx !== -1) inventory.food.splice(idx, 1);
-                    }
-                } else if (otherSlot.category === 'decoration') {
-                    for (let i = 0; i < neededCount; i++) {
-                        const idx = inventory.decorations.indexOf(type);
-                        if (idx !== -1) inventory.decorations.splice(idx, 1);
-                    }
-                }
-                
+                // 슬롯1 개수만 조정 (인벤토리 조작 없음)
                 labSlot1 = { type, category, count: neededCount };
             }
             
-            // 인벤토리에서 실제로 재료 차감
-            if (category === 'food') {
-                for (let i = 0; i < selectedCount; i++) {
-                    const idx = inventory.food.indexOf(type);
-                    if (idx !== -1) inventory.food.splice(idx, 1);
-                }
-            } else if (category === 'decoration') {
-                for (let i = 0; i < selectedCount; i++) {
-                    const idx = inventory.decorations.indexOf(type);
-                    if (idx !== -1) inventory.decorations.splice(idx, 1);
-                }
-            }
-            
+            // 슬롯에 정보만 기록 (인벤토리 차감은 합성 시점에)
             if (currentLabSlot === 1) {
                 labSlot1 = { type, category, count: selectedCount };
                 // 연구실 튜토리얼: 재료1 선택 액션 체크
@@ -10619,21 +10632,8 @@
                         }
                     });
                     
-                    // 슬롯1 개수가 레시피와 다르면 조정
+                    // 슬롯1 개수가 레시피와 다르면 조정 (인벤토리 조작 없이)
                     if (correctSlot1Count !== null && labSlot1.count !== correctSlot1Count) {
-                        const diff = labSlot1.count - correctSlot1Count;
-                        if (diff > 0) {
-                            // 초과분 인벤토리로 반환
-                            if (labSlot1.category === 'food') {
-                                for (let i = 0; i < diff; i++) {
-                                    inventory.food.push(labSlot1.type);
-                                }
-                            } else if (labSlot1.category === 'decoration') {
-                                for (let i = 0; i < diff; i++) {
-                                    inventory.decorations.push(labSlot1.type);
-                                }
-                            }
-                        }
                         labSlot1.count = correctSlot1Count;
                     }
                 }
@@ -10646,23 +10646,8 @@
             saveGame();
         }
         
-        // 슬롯 비우기 (재료 인벤토리로 복귀)
+        // 슬롯 비우기 (인벤토리 변경 없음 - 합성 전까지 차감 안 함)
         function clearLabSlot(slotNum) {
-            const slot = slotNum === 1 ? labSlot1 : labSlot2;
-            
-            // 슬롯에 재료가 있으면 인벤토리로 복귀
-            if (slot) {
-                if (slot.category === 'food') {
-                    for (let i = 0; i < slot.count; i++) {
-                        inventory.food.push(slot.type);
-                    }
-                } else if (slot.category === 'decoration') {
-                    for (let i = 0; i < slot.count; i++) {
-                        inventory.decorations.push(slot.type);
-                    }
-                }
-            }
-            
             if (slotNum === 1) {
                 labSlot1 = null;
             } else {
@@ -10789,13 +10774,24 @@
                 if (match1 || match2) {
                     // 레시피 발견!
                     const resultItem = SYNTH_ITEMS[recipe.result.type];
+                    const isDiscovered = discoveredRecipes.includes(recipeId);
                     
                     if (resultSlot) {
-                        resultSlot.innerHTML = `
-                            <div style="font-size: 1.3rem; margin-bottom: 1px;">${resultItem.icon}</div>
-                            <div style="font-size: 0.6rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${resultItem.name}</div>
-                            <div style="font-size: 0.65rem; color: #9b59b6;">×${recipe.result.count}</div>
-                        `;
+                        if (isDiscovered) {
+                            // 발견한 레시피 - 결과물 표시
+                            resultSlot.innerHTML = `
+                                <div style="font-size: 1.3rem; margin-bottom: 1px;">${resultItem.icon}</div>
+                                <div style="font-size: 0.6rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${resultItem.name}</div>
+                                <div style="font-size: 0.65rem; color: #9b59b6;">×${recipe.result.count}</div>
+                            `;
+                        } else {
+                            // 미발견 레시피 - '?' 표시
+                            resultSlot.innerHTML = `
+                                <div style="font-size: 1.3rem; margin-bottom: 1px;">❓</div>
+                                <div style="font-size: 0.6rem; color: #9b59b6;">새 레시피!</div>
+                                <div style="font-size: 0.65rem; color: #888;">×?</div>
+                            `;
+                        }
                         resultSlot.style.borderColor = '#9b59b6';
                     }
                     if (synthesizeBtn) {
@@ -10803,7 +10799,11 @@
                         synthesizeBtn.style.opacity = '1';
                     }
                     if (labMessage) {
-                        labMessage.innerHTML = `<span style="color: #9b59b6;">✨ 합성 가능!</span>`;
+                        if (isDiscovered) {
+                            labMessage.innerHTML = `<span style="color: #9b59b6;">✨ 합성 가능!</span>`;
+                        } else {
+                            labMessage.innerHTML = `<span style="color: #9b59b6;">✨ 새로운 레시피 발견?!</span>`;
+                        }
                     }
                     return recipeId;
                 }
@@ -10837,7 +10837,36 @@
             
             const recipe = RECIPES[recipeId];
             
-            // 결과물 추가 (재료는 이미 슬롯에 넣을 때 인벤토리에서 차감됨)
+            // 재료 차감 (합성 시점에 인벤토리에서 제거)
+            if (labSlot1) {
+                if (labSlot1.category === 'food') {
+                    for (let i = 0; i < labSlot1.count; i++) {
+                        const idx = inventory.food.indexOf(labSlot1.type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (labSlot1.category === 'decoration') {
+                    for (let i = 0; i < labSlot1.count; i++) {
+                        const idx = inventory.decorations.indexOf(labSlot1.type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+            }
+            
+            if (labSlot2) {
+                if (labSlot2.category === 'food') {
+                    for (let i = 0; i < labSlot2.count; i++) {
+                        const idx = inventory.food.indexOf(labSlot2.type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (labSlot2.category === 'decoration') {
+                    for (let i = 0; i < labSlot2.count; i++) {
+                        const idx = inventory.decorations.indexOf(labSlot2.type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+            }
+            
+            // 결과물 추가
             const resultItem = SYNTH_ITEMS[recipe.result.type];
             for (let i = 0; i < recipe.result.count; i++) {
                 if (resultItem.type === 'food') {
@@ -10852,7 +10881,7 @@
                 discoveredRecipes.push(recipeId);
             }
             
-            // 슬롯 초기화 (재료 반환 없이)
+            // 슬롯 초기화
             labSlot1 = null;
             labSlot2 = null;
             
@@ -10976,59 +11005,8 @@
                 return;
             }
             
-            // 기존 슬롯 비우기 (재료 반환)
-            if (labSlot1) {
-                if (labSlot1.category === 'food') {
-                    for (let i = 0; i < labSlot1.count; i++) {
-                        inventory.food.push(labSlot1.type);
-                    }
-                } else if (labSlot1.category === 'decoration') {
-                    for (let i = 0; i < labSlot1.count; i++) {
-                        inventory.decorations.push(labSlot1.type);
-                    }
-                }
-                labSlot1 = null;
-            }
-            
-            if (labSlot2) {
-                if (labSlot2.category === 'food') {
-                    for (let i = 0; i < labSlot2.count; i++) {
-                        inventory.food.push(labSlot2.type);
-                    }
-                } else if (labSlot2.category === 'decoration') {
-                    for (let i = 0; i < labSlot2.count; i++) {
-                        inventory.decorations.push(labSlot2.type);
-                    }
-                }
-                labSlot2 = null;
-            }
-            
-            // 슬롯1에 재료1 배치
-            if (ing1.category === 'food') {
-                for (let i = 0; i < ing1.count; i++) {
-                    const idx = inventory.food.indexOf(ing1.type);
-                    if (idx !== -1) inventory.food.splice(idx, 1);
-                }
-            } else if (ing1.category === 'decoration') {
-                for (let i = 0; i < ing1.count; i++) {
-                    const idx = inventory.decorations.indexOf(ing1.type);
-                    if (idx !== -1) inventory.decorations.splice(idx, 1);
-                }
-            }
+            // 슬롯에 정보만 기록 (인벤토리 차감은 합성 시점에)
             labSlot1 = { type: ing1.type, category: ing1.category, count: ing1.count };
-            
-            // 슬롯2에 재료2 배치
-            if (ing2.category === 'food') {
-                for (let i = 0; i < ing2.count; i++) {
-                    const idx = inventory.food.indexOf(ing2.type);
-                    if (idx !== -1) inventory.food.splice(idx, 1);
-                }
-            } else if (ing2.category === 'decoration') {
-                for (let i = 0; i < ing2.count; i++) {
-                    const idx = inventory.decorations.indexOf(ing2.type);
-                    if (idx !== -1) inventory.decorations.splice(idx, 1);
-                }
-            }
             labSlot2 = { type: ing2.type, category: ing2.category, count: ing2.count };
             
             // UI 업데이트
@@ -11052,11 +11030,12 @@
         // 게임 데이터 내보내기
         function exportGameData() {
             const gameData = {
-                version: '2.1.0',
+                version: '2.2.0',
                 exportDate: new Date().toISOString(),
                 spirits: spirits,
                 collection: collection,
                 encyclopedia: encyclopedia,
+                encyclopediaDetails: encyclopediaDetails,
                 inventory: inventory,
                 coins: coins,
                 terrarium: terrarium,
@@ -11064,7 +11043,13 @@
                 lightMode: lightMode,
                 isPaused: isPaused,
                 darkModeLocked: darkModeLocked,
-                lowSatisfactionStartTime: lowSatisfactionStartTime
+                lowSatisfactionStartTime: lowSatisfactionStartTime,
+                discoveredRecipes: discoveredRecipes,
+                lockedItems: lockedItems,
+                activatedEvents: activatedEvents,
+                hasVisitedShop: hasVisitedShop,
+                currentTitle: currentTitle
+                // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
             };
             
             try {
@@ -11252,10 +11237,43 @@
             darkModeLocked = gameData.darkModeLocked || false;
             lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
             discoveredRecipes = gameData.discoveredRecipes || [];
-            labSlot1 = gameData.labSlot1 || null;
-            labSlot2 = gameData.labSlot2 || null;
             lockedItems = gameData.lockedItems || { food: [], decorations: [] };
             encyclopediaDetails = gameData.encyclopediaDetails || {};
+            activatedEvents = gameData.activatedEvents || [];
+            hasVisitedShop = gameData.hasVisitedShop || false;
+            currentTitle = gameData.currentTitle || 'none';
+            
+            // 기존 데이터 호환성: 슬롯에 남아있는 재료를 인벤토리로 복구하고 슬롯 비우기
+            // (이전 버전에서는 슬롯에 올리면 인벤토리에서 차감됐기 때문)
+            const oldLabSlot1 = gameData.labSlot1 || null;
+            const oldLabSlot2 = gameData.labSlot2 || null;
+            
+            if (oldLabSlot1) {
+                if (oldLabSlot1.category === 'food') {
+                    for (let i = 0; i < oldLabSlot1.count; i++) {
+                        inventory.food.push(oldLabSlot1.type);
+                    }
+                } else if (oldLabSlot1.category === 'decoration') {
+                    for (let i = 0; i < oldLabSlot1.count; i++) {
+                        inventory.decorations.push(oldLabSlot1.type);
+                    }
+                }
+            }
+            if (oldLabSlot2) {
+                if (oldLabSlot2.category === 'food') {
+                    for (let i = 0; i < oldLabSlot2.count; i++) {
+                        inventory.food.push(oldLabSlot2.type);
+                    }
+                } else if (oldLabSlot2.category === 'decoration') {
+                    for (let i = 0; i < oldLabSlot2.count; i++) {
+                        inventory.decorations.push(oldLabSlot2.type);
+                    }
+                }
+            }
+            
+            // 슬롯 비우기 (새 시스템에서는 항상 비어있음)
+            labSlot1 = null;
+            labSlot2 = null;
             
             // 설치된 장식물로 환경 재계산
             if (installedDecorations.length > 0) {
