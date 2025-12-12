@@ -1100,19 +1100,19 @@
                     </button>
                     
                     <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        📖 도감에서 앨범 복구
+                        도감에서 앨범 복구
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        🔧 교배 정령 관리
+                        교배 정령 관리
                     </button>
                 </div>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
                     💡 데이터 내보내기를 통해 게임 진행상황을 백업할 수 있습니다.<br>
                     다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.<br>
-                    📚 앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.<br>
-                    📖 도감에서 앨범 복구: 도감에는 있지만 앨범에 없는 정령을 복구합니다.
+                    앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.<br>
+                    도감에서 앨범 복구: 도감에는 있지만 앨범에 없는 정령을 복구합니다.
                 </div>
             </div>
             
@@ -1946,7 +1946,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/DeIz4L6.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/4cJEWyi.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2137,15 +2137,8 @@
             dual_fire_water: { name: '증기의 오르골', icon: '♨️', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['fire', 'water'] },
             dual_earth_wind: { name: '사막의 모래시계', icon: '⏳', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['earth', 'wind'] },
             dual_light_dark: { name: '황혼의 거울', icon: '🪞', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['light', 'dark'] },
-            all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 },
-            
-            // 합성 장식물
-            flame_lamp: { name: '화염 램프', icon: '🏮', attr: 'fire', power: 3, quality: 'rare', price: 0 },
-            aqua_fountain: { name: '아쿠아 분수', icon: '⛲', attr: 'water', power: 3, quality: 'rare', price: 0 },
-            wind_chime: { name: '바람의 종', icon: '🔔', attr: 'wind', power: 3, quality: 'rare', price: 0 },
-            earth_statue: { name: '대지의 석상', icon: '🗿', attr: 'earth', power: 3, quality: 'rare', price: 0 },
-            light_orb: { name: '빛의 오브', icon: '💡', attr: 'light', power: 3, quality: 'rare', price: 0 },
-            shadow_crystal: { name: '그림자 결정', icon: '🔳', attr: 'dark', power: 3, quality: 'rare', price: 0 }
+            all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 }
+            // 합성 장식물은 SYNTH_ITEMS에서만 관리
         };
 
         const FOOD_NAMES = {
@@ -2809,7 +2802,7 @@
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
                 validUntil: '2026-01-31',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/YYpwCmZ.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2826,7 +2819,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/zAxCH1K.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -3058,6 +3051,8 @@
                     if (item.type && (item.type.startsWith('fusion-') || FUSION_TYPES[item.type])) return true;
                     // isFusion 플래그가 있으면 유지
                     if (item.isFusion) return true;
+                    // 티타니아/오베론은 항상 유지
+                    if (item.type === 'titania' || item.type === 'oberon') return true;
                     // 일반 정령은 EVOLUTION_TYPES에 있는지 확인
                     return EVOLUTION_TYPES[item.type] !== undefined;
                 });
@@ -11382,7 +11377,7 @@
             installedDecorations.forEach(deco => {
                 // 문자열 또는 객체 모두 지원
                 const decoKey = typeof deco === 'string' ? deco : deco.type;
-                const decoData = DECORATION_TYPES[decoKey];
+                const decoData = DECORATION_TYPES[decoKey] || SYNTH_ITEMS[decoKey];
                 const eventItem = EVENT_ITEMS[decoKey];
                 
                 // 일반 장식물 처리
@@ -11694,7 +11689,7 @@
             if (legendaryCountEl) {
                 const legendaryCount = installedDecorations.filter(d => {
                     const type = typeof d === 'string' ? d : d.type;
-                    const dData = DECORATION_TYPES[type];
+                    const dData = DECORATION_TYPES[type] || SYNTH_ITEMS[type];
                     const eData = EVENT_ITEMS[type];
                     return (dData?.quality === 'legendary') || (eData?.quality === 'legendary');
                 }).length;
@@ -11716,8 +11711,8 @@
 
                 // 속성별, 이름별로 정렬 (순서 고정)
                 const sortedEntries = Object.entries(installedCounts).sort((a, b) => {
-                    const dataA = DECORATION_TYPES[a[0]] || EVENT_ITEMS[a[0]];
-                    const dataB = DECORATION_TYPES[b[0]] || EVENT_ITEMS[b[0]];
+                    const dataA = DECORATION_TYPES[a[0]] || SYNTH_ITEMS[a[0]] || EVENT_ITEMS[a[0]];
+                    const dataB = DECORATION_TYPES[b[0]] || SYNTH_ITEMS[b[0]] || EVENT_ITEMS[b[0]];
                     if (!dataA || !dataB) return 0;
                     
                     // 이벤트 아이템은 맨 위로
@@ -11747,16 +11742,17 @@
                 installedContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         ${sortedEntries.map(([key, count]) => {
-                            // 일반 장식물 체크
-                            const decoData = DECORATION_TYPES[key];
+                            // 일반/합성 장식물 체크
+                            const decoData = DECORATION_TYPES[key] || SYNTH_ITEMS[key];
                             if (decoData) {
                                 const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                                const isSynth = SYNTH_ITEMS[key] && !DECORATION_TYPES[key];
                                 return `
-                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isSynth ? '#9b59b6' : 'var(--border)'}; border-radius: 4px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
+                                            <span style="font-size: 1.3rem;">${isSynth ? '🔬' : qualityLabel}${decoData.icon}</span>
                                             <div>
-                                                <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                                <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}${isSynth ? ' <span style="font-size: 0.7rem; color: #9b59b6;">합성</span>' : ''}</div>
                                                 <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
                                             </div>
                                         </div>
@@ -11842,7 +11838,7 @@
             // 전설 등급 현재 개수 계산
             const legendaryCount = installedDecorations.filter(d => {
                 const type = typeof d === 'string' ? d : d.type;
-                const dData = DECORATION_TYPES[type];
+                const dData = DECORATION_TYPES[type] || SYNTH_ITEMS[type];
                 const eData = EVENT_ITEMS[type];
                 return (dData?.quality === 'legendary') || (eData?.quality === 'legendary');
             }).length;
@@ -11850,8 +11846,8 @@
 
             // 속성별, 품질별, 이름별로 정렬 (순서 고정)
             let sortedDecorEntries = Object.entries(decorCounts).sort((a, b) => {
-                const dataA = DECORATION_TYPES[a[0]] || EVENT_ITEMS[a[0]];
-                const dataB = DECORATION_TYPES[b[0]] || EVENT_ITEMS[b[0]];
+                const dataA = DECORATION_TYPES[a[0]] || SYNTH_ITEMS[a[0]] || EVENT_ITEMS[a[0]];
+                const dataB = DECORATION_TYPES[b[0]] || SYNTH_ITEMS[b[0]] || EVENT_ITEMS[b[0]];
                 if (!dataA || !dataB) return 0;
                 
                 // 이벤트 아이템은 맨 위로
@@ -11881,7 +11877,7 @@
             
             // 필터 적용
             sortedDecorEntries = sortedDecorEntries.filter(([key, count]) => {
-                const decoData = DECORATION_TYPES[key];
+                const decoData = DECORATION_TYPES[key] || SYNTH_ITEMS[key];
                 const eventItem = EVENT_ITEMS[key];
                 const isEvent = !!eventItem;
                 
@@ -11916,19 +11912,20 @@
             listContainer.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${sortedDecorEntries.map(([key, count]) => {
-                        // 일반 장식물 체크
-                        const decoData = DECORATION_TYPES[key];
+                        // 일반/합성 장식물 체크
+                        const decoData = DECORATION_TYPES[key] || SYNTH_ITEMS[key];
                         if (decoData) {
                             const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                             const isLegendary = decoData.quality === 'legendary';
                             const canInstallThis = canInstall && (!isLegendary || canInstallLegendary);
                             const buttonText = !canInstall ? '가득' : (isLegendary && !canInstallLegendary) ? '제한' : '설치';
+                            const isSynth = SYNTH_ITEMS[key] && !DECORATION_TYPES[key];
                             return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isSynth ? '#9b59b6' : 'var(--border)'}; border-radius: 4px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">${qualityLabel}${decoData.icon}</span>
+                                        <span style="font-size: 1.3rem;">${isSynth ? '🔬' : qualityLabel}${decoData.icon}</span>
                                         <div>
-                                            <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}</div>
+                                            <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}${isSynth ? ' <span style="font-size: 0.7rem; color: #9b59b6;">합성</span>' : ''}</div>
                                             <div style="font-size: 0.75rem; color: #888;">${decoData.attr} +${decoData.power}</div>
                                         </div>
                                     </div>
