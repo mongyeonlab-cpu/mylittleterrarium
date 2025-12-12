@@ -1100,19 +1100,19 @@
                     </button>
                     
                     <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        도감에서 앨범 복구
+                        📖 도감에서 앨범 복구
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        교배 정령 관리
+                        🔧 교배 정령 관리
                     </button>
                 </div>
                 
                 <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
                     💡 데이터 내보내기를 통해 게임 진행상황을 백업할 수 있습니다.<br>
                     다른 기기나 브라우저에서 불러오기를 통해 복원할 수 있습니다.<br>
-                    앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.<br>
-                    도감에서 앨범 복구: 도감에는 있지만 앨범에 없는 정령을 복구합니다.
+                    📚 앨범 백업 복구: 정령 완성 시 자동 저장된 백업에서 앨범을 복구합니다.<br>
+                    📖 도감에서 앨범 복구: 도감에는 있지만 앨범에 없는 정령을 복구합니다.
                 </div>
             </div>
             
@@ -1946,7 +1946,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/4cJEWyi.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/DeIz4L6.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2802,7 +2802,7 @@
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
                 validUntil: '2026-01-31',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/YYpwCmZ.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2819,7 +2819,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/zAxCH1K.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -8069,10 +8069,20 @@
         
         // 도감 → 앨범 복구 (도감에 있는데 앨범에 없는 정령 복구)
         async function recoverAlbumFromEncyclopedia() {
-            // 앨범에 있는 타입들 수집
-            const albumTypes = new Set();
+            // 앨범에 있는 타입들 수집 (타입별 카운트)
+            const albumCounts = {};
             collection.forEach(item => {
-                if (item.type) albumTypes.add(item.type);
+                if (!item.type) return;
+                
+                let key;
+                if (item.type === 'nostat') {
+                    key = `nostat-${item.attributeType}`;
+                } else if (item.type.startsWith('event_') || item.type === 'titania' || item.type === 'oberon' || FUSION_TYPES[item.type]) {
+                    key = item.type;
+                } else {
+                    key = `${item.type}-${item.attributeType}`;
+                }
+                albumCounts[key] = (albumCounts[key] || 0) + 1;
             });
             
             let recoveredCount = 0;
@@ -8080,32 +8090,21 @@
             
             // 도감 순회
             Object.entries(encyclopedia).forEach(([key, value]) => {
-                const count = typeof value === 'object' ? (value.count || 0) : (value || 0);
-                if (count <= 0) return;
+                const encyclopediaCount = typeof value === 'object' ? (value.count || 0) : (value || 0);
+                if (encyclopediaCount <= 0) return;
                 
-                // 앨범에 해당 타입이 있는지 확인
-                const albumCount = collection.filter(item => {
-                    // 키 형식에 따라 매칭 방식 다름
-                    if (key.startsWith('nostat-')) {
-                        return item.type === 'nostat' && `nostat-${item.attributeType}` === key;
-                    } else if (key.startsWith('event_')) {
-                        return item.type === key;
-                    } else if (key === 'titania' || key === 'oberon') {
-                        return item.type === key;
-                    } else if (FUSION_TYPES[key]) {
-                        return item.type === key;
-                    } else {
-                        // 일반 정령: statType-level-attrType
-                        return `${item.type}-${item.attributeType}` === key;
-                    }
-                }).length;
-                
-                // 도감 카운트보다 앨범 카운트가 적으면 복구 필요
-                const missingCount = count - albumCount;
-                if (missingCount <= 0) return;
+                const albumCount = albumCounts[key] || 0;
                 
                 // 상세 정보 배열 확인
                 const details = encyclopediaDetails[key] || [];
+                
+                // 상세 정보 개수를 기준으로 복구 (도감 카운트가 아닌 실제 저장된 상세 정보)
+                // 상세 정보가 없으면 최대 1개만 복구 (중복 방지)
+                const availableDetails = details.length > 0 ? details.length : Math.min(1, encyclopediaCount);
+                
+                // 앨범에 없는 것만 복구
+                const missingCount = Math.max(0, availableDetails - albumCount);
+                if (missingCount <= 0) return;
                 
                 // 복구할 정령 정보 생성
                 for (let i = 0; i < missingCount; i++) {
@@ -8318,19 +8317,28 @@
             
             let missingCount = 0;
             let withDetailsCount = 0; // 상세 정보가 있는 정령 수
+            let noDetailsCount = 0; // 상세 정보가 없는 정령 수
             
             Object.entries(encyclopedia).forEach(([key, value]) => {
-                const count = typeof value === 'object' ? (value.count || 0) : (value || 0);
+                const encyclopediaCount = typeof value === 'object' ? (value.count || 0) : (value || 0);
+                if (encyclopediaCount <= 0) return;
+                
                 const albumCount = albumTypes[key] || 0;
-                if (count > albumCount) {
-                    const missing = count - albumCount;
+                const details = encyclopediaDetails[key] || [];
+                
+                // 상세 정보 개수를 기준으로 복구 가능 수 계산
+                const availableDetails = details.length > 0 ? details.length : Math.min(1, encyclopediaCount);
+                const missing = Math.max(0, availableDetails - albumCount);
+                
+                if (missing > 0) {
                     missingCount += missing;
                     
-                    // 상세 정보가 있는지 확인
-                    const details = encyclopediaDetails[key] || [];
                     for (let i = 0; i < missing; i++) {
-                        if (albumCount + i < details.length) {
+                        const detailIndex = albumCount + i;
+                        if (detailIndex < details.length) {
                             withDetailsCount++;
+                        } else {
+                            noDetailsCount++;
                         }
                     }
                 }
@@ -8346,8 +8354,8 @@
             if (withDetailsCount > 0) {
                 message += `📋 상세 정보 보존: ${withDetailsCount}마리\n(본명, 스탯 등 완벽 복구)\n\n`;
             }
-            if (withDetailsCount < missingCount) {
-                message += `⚠️ 기본값 복구: ${missingCount - withDetailsCount}마리\n(상세 정보 없음)\n\n`;
+            if (noDetailsCount > 0) {
+                message += `⚠️ 기본값 복구: ${noDetailsCount}마리\n(이전 버전에서 진화한 정령 - 스탯이 기본값으로 설정됨)\n\n`;
             }
             
             message += `복구하시겠습니까?`;
