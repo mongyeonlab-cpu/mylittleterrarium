@@ -3078,6 +3078,14 @@
             if (saved) {
                 const data = JSON.parse(saved);
                 spirits = data.spirits || [];
+                
+                // 문자열 id를 숫자 id로 변환 (연모 알 호환성)
+                spirits.forEach(spirit => {
+                    if (typeof spirit.id === 'string') {
+                        spirit.id = Date.now() + Math.floor(Math.random() * 10000);
+                    }
+                });
+                
                 collection = data.collection || [];
                 encyclopedia = data.encyclopedia || {};
                 
@@ -3169,32 +3177,9 @@
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
                 
-                // 기존 세이브 호환성: 슬롯에 남아있는 재료를 인벤토리로 복구하고 슬롯 비우기
-                // (이전 버전에서는 슬롯에 올리면 인벤토리에서 차감됐기 때문)
-                if (labSlot1) {
-                    if (labSlot1.category === 'food') {
-                        for (let i = 0; i < labSlot1.count; i++) {
-                            inventory.food.push(labSlot1.type);
-                        }
-                    } else if (labSlot1.category === 'decoration') {
-                        for (let i = 0; i < labSlot1.count; i++) {
-                            inventory.decorations.push(labSlot1.type);
-                        }
-                    }
-                    labSlot1 = null;
-                }
-                if (labSlot2) {
-                    if (labSlot2.category === 'food') {
-                        for (let i = 0; i < labSlot2.count; i++) {
-                            inventory.food.push(labSlot2.type);
-                        }
-                    } else if (labSlot2.category === 'decoration') {
-                        for (let i = 0; i < labSlot2.count; i++) {
-                            inventory.decorations.push(labSlot2.type);
-                        }
-                    }
-                    labSlot2 = null;
-                }
+                // 로드 시 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
+                labSlot1 = null;
+                labSlot2 = null;
                 
                 lockedItems = data.lockedItems || { food: [], decorations: [], music: [] };
                 if (!lockedItems.music) lockedItems.music = []; // 기존 세이브 호환
@@ -4115,7 +4100,7 @@
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
-            showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]}를 주었습니다`);
+            showNotification(`${ENV_ICONS[foodType]} ${FOOD_NAMES[foodType]} 을(를) 주었습니다`);
             
             // 튜토리얼 체크
             checkTutorialAction('feed');
@@ -5675,21 +5660,20 @@
                 return;
             }
             
-            // 부모 속성 평균 계산
+            // 부모 속성의 25%씩 = 총 50% 상속
             const parent1Attrs = parent1.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const parent2Attrs = parent2.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
             const inheritedAttrs = {};
             for (let attr in parent1Attrs) {
-                // 부모 속성 평균의 20% 상속
-                inheritedAttrs[attr] = Math.floor((parent1Attrs[attr] + parent2Attrs[attr]) / 2 * 0.2);
+                inheritedAttrs[attr] = Math.floor((parent1Attrs[attr] + parent2Attrs[attr]) / 4);
             }
             
-            // 부모 스탯 평균 계산
+            // 부모 스탯의 25%씩 = 총 50% 상속
             const inheritedParams = {
-                intelligence: Math.floor((parent1.parameters.intelligence + parent2.parameters.intelligence) / 2 * 0.1),
-                strength: Math.floor((parent1.parameters.strength + parent2.parameters.strength) / 2 * 0.1),
-                charm: Math.floor((parent1.parameters.charm + parent2.parameters.charm) / 2 * 0.1),
+                intelligence: Math.floor((parent1.parameters.intelligence + parent2.parameters.intelligence) / 4),
+                strength: Math.floor((parent1.parameters.strength + parent2.parameters.strength) / 4),
+                charm: Math.floor((parent1.parameters.charm + parent2.parameters.charm) / 4),
                 affection: 10 // 사랑의 결실이므로 애정도 보너스
             };
             
@@ -5699,7 +5683,7 @@
             const randomName = `${randomPrefix}의 아이`;
             
             const spirit = {
-                id: `spirit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                id: Date.now(),
                 name: randomName,
                 stage: 'egg',
                 growth: 0,
@@ -6102,11 +6086,11 @@
             
             if (!confirmed) return;
             
-            // 교배 결과 계산
+            // 교배 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
             const newParams = {
-                intelligence: Math.floor(((item.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 2),
-                strength: Math.floor(((item.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 2),
-                charm: Math.floor(((item.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 2),
+                intelligence: Math.floor(((item.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 4),
+                strength: Math.floor(((item.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 4),
+                charm: Math.floor(((item.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 4),
                 affection: 0
             };
             
@@ -6114,7 +6098,8 @@
             const friendAttrs = friendData.attributes || {};
             const newAttrs = {};
             ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
-                const avg = Math.floor(((myAttrs[attr] || 0) + (friendAttrs[attr] || 0)) / 2);
+                // 부모 속성의 25%씩 = 총 50% 상속
+                const avg = Math.floor(((myAttrs[attr] || 0) + (friendAttrs[attr] || 0)) / 4);
                 if (avg > 0) newAttrs[attr] = avg;
             });
             
@@ -9703,20 +9688,20 @@
             
             if (!confirm) return;
             
-            // 교배 결과 계산 (부모 스탯 평균의 50% 계승)
+            // 교배 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
             const newParams = {
-                intelligence: Math.floor(((mySpirit.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 2),
-                strength: Math.floor(((mySpirit.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 2),
-                charm: Math.floor(((mySpirit.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 2),
+                intelligence: Math.floor(((mySpirit.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 4),
+                strength: Math.floor(((mySpirit.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 4),
+                charm: Math.floor(((mySpirit.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 4),
                 affection: 0
             };
             
-            // 부모 속성 평균 계승
+            // 부모 속성의 25%씩 = 총 50% 상속
             const myAttrs = mySpirit.attributes || mySpirit.hiddenAttributes || {};
             const friendAttrs = friendData.attributes || {};
             const newAttrs = {};
             ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
-                const avg = Math.floor(((myAttrs[attr] || 0) + (friendAttrs[attr] || 0)) / 2);
+                const avg = Math.floor(((myAttrs[attr] || 0) + (friendAttrs[attr] || 0)) / 4);
                 if (avg > 0) newAttrs[attr] = avg;
             });
             
@@ -11054,21 +11039,7 @@
         
         // 슬롯 직접 비우기 (모달 없이)
         function clearLabSlotDirect(slotNum) {
-            const slot = slotNum === 1 ? labSlot1 : labSlot2;
-            
-            // 슬롯에 재료가 있으면 인벤토리로 복귀
-            if (slot) {
-                if (slot.category === 'food') {
-                    for (let i = 0; i < slot.count; i++) {
-                        inventory.food.push(slot.type);
-                    }
-                } else if (slot.category === 'decoration') {
-                    for (let i = 0; i < slot.count; i++) {
-                        inventory.decorations.push(slot.type);
-                    }
-                }
-            }
-            
+            // 슬롯만 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
             if (slotNum === 1) {
                 labSlot1 = null;
             } else {
@@ -11575,6 +11546,14 @@
         
         function applyGameData(gameData) {
             spirits = gameData.spirits || [];
+            
+            // 문자열 id를 숫자 id로 변환 (연모 알 호환성)
+            spirits.forEach(spirit => {
+                if (typeof spirit.id === 'string') {
+                    spirit.id = Date.now() + Math.floor(Math.random() * 10000);
+                }
+            });
+            
             collection = gameData.collection || [];
             encyclopedia = gameData.encyclopedia || {};
             inventory = gameData.inventory || { food: [], music: [], decorations: [], medicine: [] };
@@ -11592,35 +11571,7 @@
             hasVisitedShop = gameData.hasVisitedShop || false;
             currentTitle = gameData.currentTitle || 'none';
             
-            // 기존 데이터 호환성: 슬롯에 남아있는 재료를 인벤토리로 복구하고 슬롯 비우기
-            // (이전 버전에서는 슬롯에 올리면 인벤토리에서 차감됐기 때문)
-            const oldLabSlot1 = gameData.labSlot1 || null;
-            const oldLabSlot2 = gameData.labSlot2 || null;
-            
-            if (oldLabSlot1) {
-                if (oldLabSlot1.category === 'food') {
-                    for (let i = 0; i < oldLabSlot1.count; i++) {
-                        inventory.food.push(oldLabSlot1.type);
-                    }
-                } else if (oldLabSlot1.category === 'decoration') {
-                    for (let i = 0; i < oldLabSlot1.count; i++) {
-                        inventory.decorations.push(oldLabSlot1.type);
-                    }
-                }
-            }
-            if (oldLabSlot2) {
-                if (oldLabSlot2.category === 'food') {
-                    for (let i = 0; i < oldLabSlot2.count; i++) {
-                        inventory.food.push(oldLabSlot2.type);
-                    }
-                } else if (oldLabSlot2.category === 'decoration') {
-                    for (let i = 0; i < oldLabSlot2.count; i++) {
-                        inventory.decorations.push(oldLabSlot2.type);
-                    }
-                }
-            }
-            
-            // 슬롯 비우기 (새 시스템에서는 항상 비어있음)
+            // 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
             labSlot1 = null;
             labSlot2 = null;
             
