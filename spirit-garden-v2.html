@@ -1100,11 +1100,11 @@
                     </button>
                     
                     <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        도감에서 앨범 복구
+                        📖 도감에서 앨범 복구
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        교배 정령 관리
+                        🔧 교배 정령 관리
                     </button>
                 </div>
                 
@@ -1533,7 +1533,7 @@
         let currentShopCategory = 'all'; // 현재 상점 카테고리 (all, food, decoration, music)
         let sellFilter = 'all'; // 판매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let buyFilter = 'all'; // 구매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
-        let lockedItems = { food: [], decorations: [] }; // 판매 잠금된 아이템 목록
+        let lockedItems = { food: [], decorations: [], music: [] }; // 판매 잠금된 아이템 목록
         let isLockMode = false; // 잠금 모드 상태
         let terrariumInvFilter = 'all'; // 테라리움 인벤토리 필터 (all, fire, water, wind, earth, light, dark, event)
         let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic, legendary)
@@ -1948,7 +1948,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/4cJEWyi.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/DeIz4L6.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2848,9 +2848,9 @@
                 icon: '🎄',
                 attribute: 'event_christmas',
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
-                validUntil: '2026-01-10',
+                validUntil: '2026-01-31',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/YYpwCmZ.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2867,7 +2867,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/zAxCH1K.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -3196,7 +3196,8 @@
                     labSlot2 = null;
                 }
                 
-                lockedItems = data.lockedItems || { food: [], decorations: [] };
+                lockedItems = data.lockedItems || { food: [], decorations: [], music: [] };
+                if (!lockedItems.music) lockedItems.music = []; // 기존 세이브 호환
 
                 // 칭호 UI 반영
                 const titleSelect = document.getElementById('titleSelect');
@@ -5112,109 +5113,106 @@
                 }
             }
             
-            // 교배 정령 전용 진화 (40% 확률)
+            // 교배 정령 전용 진화 (100% 확률)
             if (spirit.isBred && spirit.fusionType && FUSION_TYPES[spirit.fusionType]) {
-                if (Math.random() < 0.4) {
-                    const fusion = FUSION_TYPES[spirit.fusionType];
-                    spirit.isCompleted = true;
-                    
-                    // 날개 타입 결정
-                    if (!spirit.lightTime) spirit.lightTime = 0;
-                    if (!spirit.darkTime) spirit.darkTime = 0;
-                    let wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
-                    
-                    const evolutionData = {
-                        type: spirit.fusionType,
-                        attributeType: spirit.fusionType,
-                        name: fusion.name,
-                        icon: fusion.icon,
-                        desc: fusion.desc,
-                        wingType: wingType,
-                        isFusion: true,
-                        fusionRarity: fusion.rarity
-                    };
-                    
-                    spirit.evolutionData = evolutionData;
-                    
-                    // 도감 등록 (숫자 형식으로 통일)
-                    if (!encyclopedia[spirit.fusionType] || typeof encyclopedia[spirit.fusionType] === 'object') {
-                        // 객체 형식이면 숫자로 변환, 없으면 초기화
-                        const prevCount = typeof encyclopedia[spirit.fusionType] === 'object' 
-                            ? (encyclopedia[spirit.fusionType].count || 0) 
-                            : (encyclopedia[spirit.fusionType] || 0);
-                        encyclopedia[spirit.fusionType] = prevCount + 1;
-                        if (prevCount === 0) {
-                            showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
-                        }
-                    } else {
-                        encyclopedia[spirit.fusionType]++;
+                const fusion = FUSION_TYPES[spirit.fusionType];
+                spirit.isCompleted = true;
+                
+                // 날개 타입 결정
+                if (!spirit.lightTime) spirit.lightTime = 0;
+                if (!spirit.darkTime) spirit.darkTime = 0;
+                let wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
+                
+                const evolutionData = {
+                    type: spirit.fusionType,
+                    attributeType: spirit.fusionType,
+                    name: fusion.name,
+                    icon: fusion.icon,
+                    desc: fusion.desc,
+                    wingType: wingType,
+                    isFusion: true,
+                    fusionRarity: fusion.rarity
+                };
+                
+                spirit.evolutionData = evolutionData;
+                
+                // 도감 등록 (숫자 형식으로 통일)
+                if (!encyclopedia[spirit.fusionType] || typeof encyclopedia[spirit.fusionType] === 'object') {
+                    // 객체 형식이면 숫자로 변환, 없으면 초기화
+                    const prevCount = typeof encyclopedia[spirit.fusionType] === 'object' 
+                        ? (encyclopedia[spirit.fusionType].count || 0) 
+                        : (encyclopedia[spirit.fusionType] || 0);
+                    encyclopedia[spirit.fusionType] = prevCount + 1;
+                    if (prevCount === 0) {
+                        showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
                     }
-                    
-                    // 도감 상세 정보 저장 (복구용)
-                    if (!encyclopediaDetails[spirit.fusionType]) {
-                        encyclopediaDetails[spirit.fusionType] = [];
-                    }
-                    encyclopediaDetails[spirit.fusionType].push({
-                        originalName: spirit.name,
-                        parameters: { ...spirit.parameters },
-                        hiddenAttributes: { ...spirit.hiddenAttributes },
-                        wingType: wingType,
-                        lightTime: spirit.lightTime || 0,
-                        darkTime: spirit.darkTime || 0,
-                        completedAt: Date.now(),
-                        isFusion: true,
-                        fusionRarity: fusion.rarity,
-                        type: spirit.fusionType,
-                        attributeType: spirit.fusionType,
-                        name: fusion.name,
-                        icon: fusion.icon,
-                        desc: fusion.desc
-                    });
-                    
-                    saveGame();
-                    renderSpirits();
-                    
-                    // 앨범 추가 및 정령 제거를 위한 확인창
-                    showConfirm(
-                        '합성 정령 완성',
-                        `🧬 ${fusion.name}이(가) 완성되었습니다!\n교배의 힘이 발현되었어요!`,
-                        () => {
-                            // 앨범에 추가
-                            collection.push({
-                                id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                type: evolutionData.type,
-                                attributeType: evolutionData.attributeType,
-                                name: evolutionData.name,
-                                icon: evolutionData.icon,
-                                desc: evolutionData.desc,
-                                parameters: { ...spirit.parameters },
-                                hiddenAttributes: { ...spirit.hiddenAttributes },
-                                originalName: spirit.name,
-                                wingType: evolutionData.wingType,
-                                lightTime: spirit.lightTime,
-                                darkTime: spirit.darkTime,
-                                completedAt: Date.now(),
-                                isFusion: true,
-                                fusionRarity: evolutionData.fusionRarity
-                            });
-                            
-                            // 코인 보상
-                            coins += 25;
-                            
-                            // 정령 제거
-                            spirits = spirits.filter(s => s.id !== spiritId);
-                            saveGame();
-                            updateCoinDisplay();
-                            renderSpirits();
-                            
-                            showNotification(`✨ ${fusion.name}이(가) 앨범에 등록되고 떠났습니다. (+25코인)`);
-                        },
-                        '떠나보내기',
-                        '조금 더 함께하기'
-                    );
-                    return;
+                } else {
+                    encyclopedia[spirit.fusionType]++;
                 }
-                // 40% 실패 시 일반 육성 진화로 진행 (아래 코드 계속)
+                
+                // 도감 상세 정보 저장 (복구용)
+                if (!encyclopediaDetails[spirit.fusionType]) {
+                    encyclopediaDetails[spirit.fusionType] = [];
+                }
+                encyclopediaDetails[spirit.fusionType].push({
+                    originalName: spirit.name,
+                    parameters: { ...spirit.parameters },
+                    hiddenAttributes: { ...spirit.hiddenAttributes },
+                    wingType: wingType,
+                    lightTime: spirit.lightTime || 0,
+                    darkTime: spirit.darkTime || 0,
+                    completedAt: Date.now(),
+                    isFusion: true,
+                    fusionRarity: fusion.rarity,
+                    type: spirit.fusionType,
+                    attributeType: spirit.fusionType,
+                    name: fusion.name,
+                    icon: fusion.icon,
+                    desc: fusion.desc
+                });
+                
+                saveGame();
+                renderSpirits();
+                
+                // 앨범 추가 및 정령 제거를 위한 확인창
+                showConfirm(
+                    '합성 정령 완성',
+                    `🧬 ${fusion.name}이(가) 완성되었습니다!\n교배의 힘이 발현되었어요!`,
+                    () => {
+                        // 앨범에 추가
+                        collection.push({
+                            id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                            type: evolutionData.type,
+                            attributeType: evolutionData.attributeType,
+                            name: evolutionData.name,
+                            icon: evolutionData.icon,
+                            desc: evolutionData.desc,
+                            parameters: { ...spirit.parameters },
+                            hiddenAttributes: { ...spirit.hiddenAttributes },
+                            originalName: spirit.name,
+                            wingType: evolutionData.wingType,
+                            lightTime: spirit.lightTime,
+                            darkTime: spirit.darkTime,
+                            completedAt: Date.now(),
+                            isFusion: true,
+                            fusionRarity: evolutionData.fusionRarity
+                        });
+                        
+                        // 코인 보상
+                        coins += 25;
+                        
+                        // 정령 제거
+                        spirits = spirits.filter(s => s.id !== spiritId);
+                        saveGame();
+                        updateCoinDisplay();
+                        renderSpirits();
+                        
+                        showNotification(`✨ ${fusion.name}이(가) 앨범에 등록되고 떠났습니다. (+25코인)`);
+                    },
+                    '떠나보내기',
+                    '조금 더 함께하기'
+                );
+                return;
             }
             
             // 스탯으로 진화 결정
@@ -7434,8 +7432,24 @@
                         }
                         
                         const count = musicCounts[type];
+                        const isLocked = lockedItems.music.includes(type);
+                        
+                        // 잠금 모드에 따른 버튼 결정
+                        let actionBtn;
+                        if (isLockMode) {
+                            // 잠금 모드: 잠금/해제 버튼
+                            actionBtn = isLocked 
+                                ? `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
+                                : `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
+                        } else {
+                            // 일반 모드: 판매 버튼 또는 잠금 표시
+                            actionBtn = isLocked 
+                                ? `<button disabled style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒 잠금</button>`
+                                : `<button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
+                        }
+                        
                         items.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#27ae60' : 'var(--border)'}; margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">🎵</span>
                                     <div>
@@ -7444,7 +7458,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
                                     </div>
                                 </div>
-                                <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white;">판매</button>
+                                ${actionBtn}
                             </div>
                         `);
                     });
@@ -7456,8 +7470,24 @@
                         if (sellFilter !== 'all' && !['intelligence', 'strength', 'charm'].includes(sellFilter)) return;
                         
                         const count = musicCounts[type];
+                        const isLocked = lockedItems.music.includes(type);
+                        
+                        // 잠금 모드에 따른 버튼 결정
+                        let actionBtn;
+                        if (isLockMode) {
+                            // 잠금 모드: 잠금/해제 버튼
+                            actionBtn = isLocked 
+                                ? `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
+                                : `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
+                        } else {
+                            // 일반 모드: 판매 버튼 또는 잠금 표시
+                            actionBtn = isLocked 
+                                ? `<button disabled style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒 잠금</button>`
+                                : `<button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
+                        }
+                        
                         items.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid #c41e3a; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#27ae60' : '#c41e3a'}; margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">🎄${eventItem.icon}</span>
                                     <div>
@@ -7466,7 +7496,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">판매가: 12💰</div>
                                     </div>
                                 </div>
-                                <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>
+                                ${actionBtn}
                             </div>
                         `);
                     });
@@ -7551,12 +7581,22 @@
                         
                         const price = item.type === 'food' ? 30 : item.type === 'music' ? 100 : 50;
                         
+                        // 보유량 계산
+                        let ownedCount = 0;
+                        if (item.type === 'food') {
+                            ownedCount = inventory.food ? inventory.food.filter(f => f === itemKey).length : 0;
+                        } else if (item.type === 'music') {
+                            ownedCount = inventory.music ? inventory.music.filter(m => m === itemKey).length : 0;
+                        } else if (item.type === 'decoration') {
+                            ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === itemKey).length : 0;
+                        }
+                        
                         eventItems.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${item.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #c41e3a;">🎄한정</span></div>
+                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #c41e3a;">🎄한정</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${price}💰</div>
                                     </div>
                                 </div>
@@ -7577,12 +7617,13 @@
             if ((currentShopCategory === 'all' || currentShopCategory === 'food') &&
                 (buyFilter === 'all' || buyFilter === 'etc')) {
                 // 만병통치 약초
+                const medicineCount = inventory.food ? inventory.food.filter(f => f === 'medicine').length : 0;
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                             <span style="font-size: 1.5rem; flex-shrink: 0;">${MEDICINE.icon}</span>
                             <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${MEDICINE.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
+                                <div style="font-weight: 700;">${MEDICINE.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${medicineCount})</span></div>
                                 <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
                                 <div style="font-size: 0.85rem; color: #888;">가격: ${MEDICINE.price}💰</div>
                             </div>
@@ -7593,12 +7634,13 @@
                 
                 // 수선화 꽃잎
                 const daffodil = SYNTH_ITEMS['reconciliation_flower'];
+                const daffodilCount = inventory.food ? inventory.food.filter(f => f === 'reconciliation_flower').length : 0;
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                             <span style="font-size: 1.5rem; flex-shrink: 0;">${daffodil.icon}</span>
                             <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${daffodil.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
+                                <div style="font-weight: 700;">${daffodil.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${daffodilCount})</span></div>
                                 <div style="font-size: 0.85rem; color: #666;">${daffodil.desc}</div>
                                 <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
                             </div>
@@ -7609,12 +7651,13 @@
                 
                 // 아카시아 꿀
                 const honey = SYNTH_ITEMS['acacia_honey'];
+                const honeyCount = inventory.food ? inventory.food.filter(f => f === 'acacia_honey').length : 0;
                 items.push(`
                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                             <span style="font-size: 1.5rem; flex-shrink: 0;">${honey.icon}</span>
                             <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${honey.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
+                                <div style="font-weight: 700;">${honey.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${honeyCount})</span></div>
                                 <div style="font-size: 0.85rem; color: #666;">${honey.desc}</div>
                                 <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
                             </div>
@@ -7631,12 +7674,13 @@
                 ['fire', 'water', 'wind', 'earth'].forEach(type => {
                     if (buyFilter !== 'all' && type !== buyFilter) return;
                     
+                    const ownedCount = inventory.food ? inventory.food.filter(f => f === type).length : 0;
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]}</div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                     <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +3, 성장 +2</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
                                 </div>
@@ -7650,12 +7694,13 @@
                 ['light', 'dark'].forEach(type => {
                     if (buyFilter !== 'all' && type !== buyFilter) return;
                     
+                    const ownedCount = inventory.food ? inventory.food.filter(f => f === type).length : 0;
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span></div>
+                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                     <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +6, 성장 +3</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
                                 </div>
@@ -7676,12 +7721,13 @@
                     if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
                     
                     const musicData = MUSIC_TYPES[type];
+                    const ownedCount = inventory.music ? inventory.music.filter(m => m === type).length : 0;
                     items.push(`
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.5rem;">🎵</span>
                                 <div>
-                                    <div style="font-weight: 700;">${musicData.name}</div>
+                                    <div style="font-weight: 700;">${musicData.name} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                     <div style="font-size: 0.85rem; color: #666;">${musicData.effect}</div>
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
                                 </div>
@@ -7743,12 +7789,13 @@
                 if (decorationsByQuality.common.length > 0) {
                     items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700; border-radius: 6px;">🏠 일반 장식물</div>`);
                     decorationsByQuality.common.forEach(({ key, data }) => {
+                        const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-weight: 700;">${data.name} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
@@ -7762,12 +7809,13 @@
                 if (decorationsByQuality.rare.length > 0) {
                     items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700; border-radius: 6px;">💎 희귀 장식물</div>`);
                     decorationsByQuality.rare.forEach(({ key, data }) => {
+                        const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-weight: 700;">${data.name} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
@@ -7781,12 +7829,13 @@
                 if (decorationsByQuality.epic.length > 0) {
                     items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700; border-radius: 6px;">⭐ 최상급 장식물</div>`);
                     decorationsByQuality.epic.forEach(({ key, data }) => {
+                        const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${data.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${data.name}</div>
+                                        <div style="font-weight: 700;">${data.name} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
@@ -7826,7 +7875,12 @@
 
         // 아이템 판매 잠금 토글
         function toggleItemLock(category, type) {
-            const lockCategory = category === 'food' ? 'food' : 'decorations';
+            let lockCategory;
+            if (category === 'food') lockCategory = 'food';
+            else if (category === 'decoration') lockCategory = 'decorations';
+            else if (category === 'music') lockCategory = 'music';
+            else lockCategory = 'decorations';
+            
             const index = lockedItems[lockCategory].indexOf(type);
             
             if (index === -1) {
@@ -7850,6 +7904,12 @@
             } else if (category === 'decoration') {
                 const deco = DECORATION_TYPES[type];
                 return deco ? deco.name : type;
+            } else if (category === 'music') {
+                const music = MUSIC_TYPES[type];
+                if (music) return music.name;
+                const eventMusic = EVENT_ITEMS[type];
+                if (eventMusic) return eventMusic.name;
+                return type;
             }
             return type;
         }
@@ -11235,6 +11295,10 @@
                 const ing1Status = ing1Count >= ing1.count ? `<span style="color: #27ae60;">${ing1Count}</span>` : `<span style="color: #e74c3c;">${ing1Count}</span>`;
                 const ing2Status = ing2Count >= ing2.count ? `<span style="color: #27ae60;">${ing2Count}</span>` : `<span style="color: #e74c3c;">${ing2Count}</span>`;
                 
+                // 결과물 보유량
+                const resultCategory = resultItem.type === 'decoration' ? 'decoration' : 'food';
+                const resultCount = countInventoryItem(recipe.result.type, resultCategory);
+                
                 html += `
                     <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" 
@@ -11243,6 +11307,7 @@
                             <span style="font-size: 1.5rem;">${resultItem.icon}</span>
                             <span style="font-weight: 600;">${resultItem.name}</span>
                             <span style="color: #9b59b6; font-size: 0.85rem;">×${recipe.result.count}</span>
+                            <span style="color: #888; font-size: 0.75rem; margin-left: 4px;">(보유: ${resultCount})</span>
                             ${canCraft ? '<span style="margin-left: auto; font-size: 0.75rem; background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px;">제작 가능</span>' : ''}
                         </div>
                         <div style="font-size: 0.85rem; color: #888; margin-bottom: 5px;">
