@@ -1100,11 +1100,11 @@
                     </button>
                     
                     <button onclick="showAlbumRecoveryDialog()" style="padding: 14px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        📖 도감에서 앨범 복구
+                        도감에서 앨범 복구
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        🔧 교배 정령 관리
+                        교배 정령 관리
                     </button>
                 </div>
                 
@@ -1238,6 +1238,7 @@
                             <option value="intelligence">🧠 지력</option>
                             <option value="strength">💪 체력</option>
                             <option value="charm">💖 매력</option>
+                            <option value="etc">📦 기타</option>
                         </select>
                         </div>
                     </div>
@@ -1259,6 +1260,7 @@
                             <option value="intelligence">🧠 지력</option>
                             <option value="strength">💪 체력</option>
                             <option value="charm">💖 매력</option>
+                            <option value="etc">📦 기타</option>
                         </select>
                     </div>
                     <div id="buyList"></div>
@@ -1946,7 +1948,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/DeIz4L6.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/4cJEWyi.png" style="width:3rem;height:3rem;vertical-align:middle;">',
             larva1: '🐛',
             larva2: '🐛',
             larva3: '🐛',
@@ -2075,6 +2077,15 @@
             light: '✨',
             dark: '🌙'
         };
+        
+        const ENV_NAMES = {
+            fire: '불',
+            water: '물',
+            wind: '바람',
+            earth: '땅',
+            light: '빛',
+            dark: '어둠'
+        };
 
         const MUSIC_TYPES = {
             classic: { name: '클래식 🎻', icon: '🎻', effect: '지력 +10' },
@@ -2188,6 +2199,12 @@
             
             // 특수 먹이 - 성장 억제
             dark_nectar: { name: '암흑의 넥타르', icon: '🖤🍯', type: 'food', attr: 'special', attrGain: 0, affectionGain: 2, growthGain: -2, desc: '성장을 늦추는 신비한 음료' },
+            
+            // 특수 먹이 - 화해 효과 (앙숙 전용)
+            reconciliation_flower: { name: '수선화 꽃잎', icon: '🌼💫', type: 'food', attr: 'special', attrGain: 0, affectionGain: 5, growthGain: 1, desc: '앙숙 관계인 정령에게 사용. 30분간 싸우지 않습니다', effectDuration: 30 * 60 * 1000, requiresRival: true },
+            
+            // 특수 먹이 - 친밀도 증가 효과
+            acacia_honey: { name: '아카시아 꿀', icon: '🍯✨', type: 'food', attr: 'special', attrGain: 0, affectionGain: 3, growthGain: 2, desc: '30분간 다른 정령과 빠르게 친해집니다', effectDuration: 30 * 60 * 1000 },
             
             // 장식물 합성 결과물
             flame_lamp: { name: '화염 램프', icon: '🏮', type: 'decoration', attr: 'fire', power: 3, quality: 'rare' },
@@ -2427,6 +2444,24 @@
                 ],
                 result: { type: 'dark_nectar', count: 2 },
                 category: 'food'
+            },
+            // 특수 먹이 - 화해 효과
+            reconciliation_flower: {
+                ingredients: [
+                    { type: 'light', category: 'food', count: 3 },
+                    { type: 'dark', category: 'food', count: 3 }
+                ],
+                result: { type: 'reconciliation_flower', count: 2 },
+                category: 'food'
+            },
+            // 특수 먹이 - 친밀도 증가
+            acacia_honey: {
+                ingredients: [
+                    { type: 'wind', category: 'food', count: 3 },
+                    { type: 'earth', category: 'food', count: 3 }
+                ],
+                result: { type: 'acacia_honey', count: 2 },
+                category: 'food'
             }
         };
         
@@ -2577,57 +2612,70 @@
             
             // 애정도 기반
             if (spirit.parameters.affection >= 100) {
-                keywords.push({ text: '사랑이 가득한', color: keywordColor });
+                keywords.push({ text: '사랑이 가득한', color: keywordColor, desc: '애정도가 최대치에 도달했습니다.' });
             } else if (spirit.parameters.affection >= 70) {
-                keywords.push({ text: '애정 어린', color: keywordColor });
+                keywords.push({ text: '애정 어린', color: keywordColor, desc: '애정도가 높습니다. 정령이 당신을 좋아합니다.' });
             } else if (spirit.parameters.affection <= 10) {
-                keywords.push({ text: '경계하는', color: keywordColor });
+                keywords.push({ text: '경계하는', color: keywordColor, desc: '애정도가 너무 낮습니다. 먹이를 주거나 음악을 들려주세요.' });
             }
             
             // 질병 상태
             if (spirit.isSick) {
-                keywords.push({ text: '질병에 걸린', color: keywordColor });
+                keywords.push({ text: '질병에 걸린', color: keywordColor, desc: '정령이 아픕니다! 만병통치 약초로 치료해주세요.' });
+            }
+            
+            // 화해의 꽃 효과 (30분간 지속)
+            if (spirit.reconciliationUntil && spirit.reconciliationUntil > Date.now()) {
+                const remaining = Math.ceil((spirit.reconciliationUntil - Date.now()) / 60000);
+                keywords.push({ text: '🌼 화해 중', color: '#f9a825', desc: `${remaining}분간 다른 정령과 싸우지 않습니다.` });
+            }
+            
+            // 아카시아 꿀 효과 (30분간 지속)
+            if (spirit.acaciaHoneyUntil && spirit.acaciaHoneyUntil > Date.now()) {
+                const remaining = Math.ceil((spirit.acaciaHoneyUntil - Date.now()) / 60000);
+                keywords.push({ text: '🍯 친밀 효과', color: '#ff9800', desc: `${remaining}분간 다른 정령과의 호감도가 2배로 증가합니다.` });
             }
             
             // 음악 청취 횟수 (musicListened 카운트)
             if (spirit.musicListened >= 10) {
-                keywords.push({ text: '음악을 사랑하는', color: keywordColor });
+                keywords.push({ text: '음악을 사랑하는', color: keywordColor, desc: `음악을 ${spirit.musicListened}번 들었습니다.` });
             }
             
             // 스탯 기반
             if (spirit.parameters.intelligence >= 80) {
-                keywords.push({ text: '현명한', color: keywordColor });
+                keywords.push({ text: '현명한', color: keywordColor, desc: `지력이 매우 높습니다. (${spirit.parameters.intelligence})` });
             } else if (spirit.parameters.intelligence <= 10) {
-                keywords.push({ text: '사교성이 적은', color: keywordColor });
+                keywords.push({ text: '사교성이 적은', color: keywordColor, desc: `지력이 너무 낮습니다. (${spirit.parameters.intelligence}) 다른 정령과 싸울 수 있습니다.` });
             }
             if (spirit.parameters.strength >= 80) {
-                keywords.push({ text: '강인한', color: keywordColor });
+                keywords.push({ text: '강인한', color: keywordColor, desc: `체력이 매우 높습니다. (${spirit.parameters.strength})` });
             } else if (spirit.parameters.strength <= 5) {
-                keywords.push({ text: '몸이 약한', color: keywordColor });
+                keywords.push({ text: '몸이 약한', color: keywordColor, desc: `체력이 너무 낮습니다. (${spirit.parameters.strength}) 질병에 걸리기 쉽습니다.` });
             }
             if (spirit.parameters.charm >= 80) {
-                keywords.push({ text: '매혹적인', color: keywordColor });
+                keywords.push({ text: '매혹적인', color: keywordColor, desc: `매력이 매우 높습니다. (${spirit.parameters.charm}) 호감도 증가량이 1.5배입니다.` });
             } else if (spirit.parameters.charm >= 50) {
-                keywords.push({ text: '매력적인', color: keywordColor });
+                keywords.push({ text: '매력적인', color: keywordColor, desc: `매력이 높습니다. (${spirit.parameters.charm}) 호감도 증가량이 1.5배입니다.` });
             }
             
             // 성장 단계 기반
             const stage = getStage(spirit.growth);
             if (stage === 'adult' && !spirit.isCompleted) {
-                keywords.push({ text: '번데기가 된', color: keywordColor });
+                keywords.push({ text: '번데기가 된', color: keywordColor, desc: '번데기 단계입니다. 조금만 더 성장하면 앨범에 등록됩니다.' });
             }
             
             // 만족도 기반
             if (spirit.satisfaction === 'high') {
-                keywords.push({ text: '행복한', color: keywordColor });
+                keywords.push({ text: '행복한', color: keywordColor, desc: '정령의 만족도가 높습니다. 잘 돌봐주고 계시네요!' });
             } else if (spirit.satisfaction === 'low') {
-                keywords.push({ text: '불만족스러운', color: keywordColor });
+                keywords.push({ text: '불만족스러운', color: keywordColor, desc: '정령의 만족도가 낮습니다. 먹이나 음악으로 관심을 보여주세요.' });
             }
             
             // 방치 시간 기반 (30분 이상)
             const timeSinceInteraction = Date.now() - (spirit.lastInteraction || Date.now());
             if (timeSinceInteraction > 30 * 60 * 1000) {
-                keywords.push({ text: '외로운', color: keywordColor });
+                const mins = Math.floor(timeSinceInteraction / 60000);
+                keywords.push({ text: '외로운', color: keywordColor, desc: `${mins}분 동안 상호작용이 없었습니다.` });
             }
             
             // 테라리움 환경과 속성 일치도
@@ -2636,7 +2684,7 @@
                 terrarium[a] > terrarium[b] ? a : b
             );
             if (dominantAttr === terrariumEnv && terrarium[terrariumEnv] >= 30) {
-                keywords.push({ text: '환경에 적응한', color: keywordColor });
+                keywords.push({ text: '환경에 적응한', color: keywordColor, desc: `테라리움 환경(${ENV_NAMES[terrariumEnv]})이 정령의 주 속성과 맞습니다.` });
             }
             
             // 빛/어둠 시간 기반 (더 많은 쪽만 표시)
@@ -2644,28 +2692,28 @@
             const darkTime = spirit.darkTime || 0;
             if (lightTime >= 10 || darkTime >= 10) {
                 if (lightTime > darkTime) {
-                    keywords.push({ text: '태양을 동경하는', color: keywordColor });
+                    keywords.push({ text: '태양을 동경하는', color: keywordColor, desc: '밝은 조명 환경에서 더 오래 자랐습니다.' });
                 } else if (darkTime > lightTime) {
-                    keywords.push({ text: '달을 숭배하는', color: keywordColor });
+                    keywords.push({ text: '달을 숭배하는', color: keywordColor, desc: '어두운 조명 환경에서 더 오래 자랐습니다.' });
                 }
                 // 같으면 아무것도 표시 안 함
             }
             
             // 먹이 횟수 (feedCount 카운트)
             if (spirit.feedCount >= 20) {
-                keywords.push({ text: '미식가', color: keywordColor });
+                keywords.push({ text: '미식가', color: keywordColor, desc: `먹이를 ${spirit.feedCount}번 먹었습니다.` });
             }
             
-            // 단짝 관계
+            // 짝꿍 관계
             const bestFriend = getBestFriend(spirit);
             if (bestFriend) {
-                keywords.push({ text: `단짝 : ${bestFriend.name}`, color: '#e91e63' }); // 핑크색
+                keywords.push({ text: `짝꿍 : ${bestFriend.name}`, color: '#e91e63', desc: `${bestFriend.name}와(과) 짝꿍 관계입니다.` });
             }
             
-            // 연정 관계
+            // 연모 관계
             const lover = getLover(spirit);
             if (lover) {
-                keywords.push({ text: `연정 : ${lover.name}`, color: '#e91e63' }); // 핑크색
+                keywords.push({ text: `연모 : ${lover.name}`, color: '#e91e63', desc: `${lover.name}에게 연모의 감정을 느끼고 있습니다. 둘 다 성장을 마치면 교배알이 생길 수 있습니다.` });
             }
             
             // 앙숙 관계 (호감도 0 미만)
@@ -2674,7 +2722,7 @@
                 activeSpirits.forEach(other => {
                     const rel = spirit.relationships[other.id] || 0;
                     if (rel < 0) {
-                        keywords.push({ text: `앙숙 : ${other.name}`, color: '#e74c3c' }); // 빨간색
+                        keywords.push({ text: `앙숙 : ${other.name}`, color: '#e74c3c', desc: `${other.name}와(과) 사이가 좋지 않습니다. (호감도: ${rel}) 수선화 꽃잎으로 화해시킬 수 있습니다.` });
                     }
                 });
             }
@@ -2800,9 +2848,9 @@
                 icon: '🎄',
                 attribute: 'event_christmas',
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
-                validUntil: '2026-01-31',
+                validUntil: '2026-01-10',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/YYpwCmZ.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2819,7 +2867,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/Pj0Oq75.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/zAxCH1K.png" style="width:3rem;height:3rem;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -3749,6 +3797,8 @@
             const eventFoods = [];
             const normalFoods = [];
             const synthFoods = [];
+            const etcFoods = []; // 기타 먹이 (수선화 꽃잎, 아카시아 꿀)
+            const ETC_FOOD_TYPES = ['reconciliation_flower', 'acacia_honey'];
             
             // 고정된 순서대로 정렬
             FOOD_ORDER.forEach(type => {
@@ -3764,10 +3814,14 @@
                 }
             });
             
-            // 합성 먹이
+            // 합성 먹이 (수선화 꽃잎, 아카시아 꿀 제외)
             Object.keys(SYNTH_ITEMS).forEach(type => {
                 if (foodCounts[type] && SYNTH_ITEMS[type].type === 'food') {
-                    synthFoods.push([type, foodCounts[type]]);
+                    if (ETC_FOOD_TYPES.includes(type)) {
+                        etcFoods.push([type, foodCounts[type]]);
+                    } else {
+                        synthFoods.push([type, foodCounts[type]]);
+                    }
                 }
             });
 
@@ -3833,6 +3887,24 @@
                         `;
                     }).join('')}
                 </div>
+                ${etcFoods.length > 0 ? `
+                    <div style="font-weight: 600; margin: 15px 0 10px 0; color: var(--text);">📦 기타</div>
+                    <div class="food-grid">
+                        ${etcFoods.map(([type, count]) => {
+                            const item = SYNTH_ITEMS[type];
+                            let effectText = item.desc.split('.')[0]; // 설명의 첫 문장만
+                            return `
+                                <button class="option-btn" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
+                                    <span class="option-icon">${item.icon}</span>
+                                    <div class="option-info">
+                                        <div class="option-name">${item.name} ×${count}</div>
+                                        <div class="option-effect">${effectText}</div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : ''}
                 <button class="close-btn" onclick="closeModal('feedModal')">닫기</button>
             `;
             modal.querySelector('.modal-content').innerHTML = content;
@@ -3912,6 +3984,15 @@
             // 합성 먹이 체크
             const synthItem = SYNTH_ITEMS[foodType];
             if (synthItem && synthItem.type === 'food') {
+                // 수선화 꽃잎은 앙숙 관계가 있는 정령에게만 사용 가능
+                if (synthItem.requiresRival) {
+                    const hasRival = spirit.relationships && Object.values(spirit.relationships).some(rel => rel < 0);
+                    if (!hasRival) {
+                        showNotification('❌ 앙숙 관계인 정령에게만 사용할 수 있습니다');
+                        return;
+                    }
+                }
+                
                 // 합성 먹이 효과 적용
                 if (!spirit.hiddenAttributes) {
                     spirit.hiddenAttributes = { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
@@ -3950,7 +4031,19 @@
                 if (!spirit.feedCount) spirit.feedCount = 0;
                 spirit.feedCount += 1;
                 
-                addLog(spirit, `${synthItem.icon} ${synthItem.name}을(를) 먹었습니다!`);
+                // 수선화 꽃잎 특수 효과 (앙숙 전용 - 싸움 방지)
+                if (foodType === 'reconciliation_flower' && synthItem.effectDuration) {
+                    spirit.reconciliationUntil = Date.now() + synthItem.effectDuration;
+                    addLog(spirit, `${synthItem.icon} ${synthItem.name}을(를) 먹었습니다!`);
+                    addLog(spirit, `🌼 30분간 다른 정령과 싸우지 않습니다!`);
+                // 아카시아 꿀 특수 효과 (친밀도 증가)
+                } else if (foodType === 'acacia_honey' && synthItem.effectDuration) {
+                    spirit.acaciaHoneyUntil = Date.now() + synthItem.effectDuration;
+                    addLog(spirit, `${synthItem.icon} ${synthItem.name}을(를) 먹었습니다!`);
+                    addLog(spirit, `🍯 30분간 다른 정령과 빠르게 친해집니다!`);
+                } else {
+                    addLog(spirit, `${synthItem.icon} ${synthItem.name}을(를) 먹었습니다!`);
+                }
                 
                 if (spirit.growth >= STAGE_REQUIREMENTS.adult && !spirit.isCompleted) {
                     completeSpirit(spirit);
@@ -3967,7 +4060,13 @@
                 } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
                     effectMsg = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
                 } else if (synthItem.attr === 'special') {
-                    effectMsg = '특수 효과';
+                    if (foodType === 'reconciliation_flower') {
+                        effectMsg = '30분간 화해 효과';
+                    } else if (foodType === 'acacia_honey') {
+                        effectMsg = '30분간 친밀 효과';
+                    } else {
+                        effectMsg = '특수 효과';
+                    }
                 } else {
                     effectMsg = `${synthItem.attr} +${synthItem.attrGain}`;
                 }
@@ -4816,13 +4915,23 @@
                 inventory.food.forEach(f => {
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
-                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark', 'medicine'];
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark', 'medicine', 'reconciliation_flower', 'acacia_honey'];
                 let foodHTML = foodOrder
                     .filter(type => foodCounts[type])
                     .map(type => {
-                        const icon = type === 'medicine' ? MEDICINE.icon : ENV_ICONS[type];
+                        let icon, name;
+                        if (type === 'medicine') {
+                            icon = MEDICINE.icon;
+                            name = MEDICINE.name;
+                        } else if (SYNTH_ITEMS[type]) {
+                            icon = SYNTH_ITEMS[type].icon;
+                            name = SYNTH_ITEMS[type].name;
+                        } else {
+                            icon = ENV_ICONS[type];
+                            name = FOOD_NAMES[type];
+                        }
                         return `
-                            <div class="inventory-item">
+                            <div class="inventory-item" title="${name || ''}">
                                 ${icon} ×${foodCounts[type]}
                             </div>
                         `;
@@ -4839,9 +4948,10 @@
                     }
                 });
                 
-                // 합성 먹이 아이템 추가
+                // 합성 먹이 아이템 추가 (수선화 꽃잎, 아카시아 꿀은 일반 먹이로 분류되어 제외)
+                const etcFoods = ['reconciliation_flower', 'acacia_honey'];
                 Object.keys(foodCounts).forEach(key => {
-                    if (SYNTH_ITEMS[key] && SYNTH_ITEMS[key].type === 'food') {
+                    if (SYNTH_ITEMS[key] && SYNTH_ITEMS[key].type === 'food' && !etcFoods.includes(key)) {
                         foodHTML += `
                             <div class="inventory-item" title="${SYNTH_ITEMS[key].name}" style="border: 1px solid #9b59b6;">
                                 ${SYNTH_ITEMS[key].icon} ×${foodCounts[key]}
@@ -5500,7 +5610,7 @@
                     renderSpirits();
                     showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
                     
-                    // 연정 알 이벤트 체크
+                    // 연모 알 이벤트 체크
                     checkLoveEggEvent(spirit);
                     
                     // 첫 번째 정령 완성 시 두 번째 튜토리얼 시작
@@ -5513,9 +5623,9 @@
             );
         }
         
-        // 연정 알 이벤트 체크
+        // 연모 알 이벤트 체크
         function checkLoveEggEvent(completedSpirit) {
-            // 연정 bond가 있는지 확인
+            // 연모 bond가 있는지 확인
             if (!completedSpirit.bond || completedSpirit.bond.type !== 'lover') return;
             
             const partnerId = completedSpirit.bond.partnerId;
@@ -5544,7 +5654,7 @@
             
             setTimeout(() => {
                 showConfirm(
-                    '💕 연정의 결실',
+                    '💕 연모의 결실',
                     `${partnerInAlbum.originalName}와(과) ${justAdded.originalName}의 사랑이 결실을 맺었습니다!\n\n🥚 둘 사이에서 알이 나타났어요.\n\n알을 받으시겠습니까?`,
                     () => {
                         // 알 생성
@@ -5559,7 +5669,7 @@
             }, 1500);
         }
         
-        // 연정 알 생성
+        // 연모 알 생성
         function createLoveEgg(parent1, parent2) {
             // 슬롯 체크 (최대 6마리)
             if (spirits.length >= 6) {
@@ -5612,7 +5722,7 @@
                 feedCount: 0,
                 relationships: {},
                 bond: null,
-                isLoveChild: true, // 연정 알 표시
+                isLoveChild: true, // 연모 알 표시
                 parents: [parent1.originalName, parent2.originalName]
             };
             
@@ -6137,15 +6247,9 @@
                 const previousGrowth = spirit.growth;
                 let growthAmount = 1;
                 
-                // 관계 보너스 (연정 15%, 단짝 10% 추가 성장 확률)
-                const relationshipBonus = getBestFriendGrowthBonus(spirit);
-                if (relationshipBonus > 0 && Math.random() < relationshipBonus) {
-                    growthAmount += 1; // 추가 성장
-                }
-                
                 spirit.growth += growthAmount;
 
-                console.log(`Spirit ${spirit.name}: growth ${previousGrowth} → ${spirit.growth}${growthAmount > 1 ? ' (관계 보너스!)' : ''}`);
+                console.log(`Spirit ${spirit.name}: growth ${previousGrowth} → ${spirit.growth}`);
 
                 // 성충 체크 (100 이상이면 무조건 완료)
                 if (spirit.growth >= STAGE_REQUIREMENTS.adult) {
@@ -6203,8 +6307,13 @@
         
         // 정령 관계 업데이트 (5분마다 호출)
         function updateSpiritRelationships() {
-            // 살아있고 완성되지 않은 정령들만
-            const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            // 살아있고 완성되지 않은 정령들만 (알과 성충 제외)
+            const activeSpirits = spirits.filter(s => {
+                if (s.isDead || s.isCompleted) return false;
+                const stage = getStage(s.growth);
+                // 알(egg)과 성충(adult)는 제외, 애벌레와 번데기만 관계 형성
+                return stage === 'larva1' || stage === 'larva2' || stage === 'larva3' || stage === 'pupa';
+            });
             
             if (activeSpirits.length < 2) return;
             
@@ -6222,11 +6331,17 @@
                     const currentRel1 = spirit1.relationships[spirit2.id] || 0;
                     const currentRel2 = spirit2.relationships[spirit1.id] || 0;
                     
-                    // 지력 10 이하면 싸움 확률 20%
+                    // 화해의 꽃 효과 체크 (싸움 방지용)
+                    const now = Date.now();
+                    const spirit1HasReconciliation = spirit1.reconciliationUntil && spirit1.reconciliationUntil > now;
+                    const spirit2HasReconciliation = spirit2.reconciliationUntil && spirit2.reconciliationUntil > now;
+                    const hasReconciliationEffect = spirit1HasReconciliation || spirit2HasReconciliation;
+                    
+                    // 지력 10 이하면 싸움 확률 20% (화해의 꽃 효과가 있으면 싸움 안 함)
                     const spirit1LowInt = (spirit1.parameters?.intelligence || 0) <= 10;
                     const spirit2LowInt = (spirit2.parameters?.intelligence || 0) <= 10;
                     
-                    if ((spirit1LowInt || spirit2LowInt) && Math.random() < 0.2) {
+                    if ((spirit1LowInt || spirit2LowInt) && !hasReconciliationEffect && Math.random() < 0.2) {
                         // 싸움 발생! 관계 감소
                         const fightDamage = Math.floor(Math.random() * 5) + 1; // -1 ~ -5
                         const newRel1 = Math.max(-100, currentRel1 - fightDamage);
@@ -6254,7 +6369,7 @@
                     }
                     
                     // 관계 변화량 (함께 있으면 자연스럽게 친해짐)
-                    let change = Math.floor(Math.random() * 4) + 1; // +1 ~ +4
+                    let change = Math.floor(Math.random() * 5) + 4; // +4 ~ +8
                     
                     // 매력 50 이상이면 호감도 증가량 보너스 (1.5배)
                     const spirit1HighCharm = (spirit1.parameters?.charm || 0) >= 50;
@@ -6270,50 +6385,70 @@
                         }
                     }
                     
-                    // 관계 수치 업데이트 (범위: 0 ~ 100)
+                    // 아카시아 꿀 효과 체크 (30분간 지속) - 호감도 증가량 2배
+                    const spirit1HasHoney = spirit1.acaciaHoneyUntil && spirit1.acaciaHoneyUntil > now;
+                    const spirit2HasHoney = spirit2.acaciaHoneyUntil && spirit2.acaciaHoneyUntil > now;
+                    
+                    if (spirit1HasHoney || spirit2HasHoney) {
+                        change = Math.floor(change * 2);
+                        
+                        // 둘 다 효과가 있으면 추가 보너스 (총 3배)
+                        if (spirit1HasHoney && spirit2HasHoney) {
+                            change = Math.floor(change * 1.5);
+                        }
+                    }
+                    
+                    // 관계 수치 업데이트 (범위: -100 ~ 100)
                     const newRel1 = Math.min(100, currentRel1 + change);
                     const newRel2 = Math.min(100, currentRel2 + change);
                     
                     spirit1.relationships[spirit2.id] = newRel1;
                     spirit2.relationships[spirit1.id] = newRel2;
                     
+                    // 앙숙 해제 이벤트 (둘 다 음수였는데 둘 다 0 이상이 됨)
+                    if (currentRel1 < 0 && currentRel2 < 0 && newRel1 >= 0 && newRel2 >= 0) {
+                        showNotification(`🌼 ${spirit1.name}와(과) ${spirit2.name}이(가) 서로의 사과를 받아주었습니다.`);
+                        addLog(spirit1, `🌼 ${spirit2.name}와(과) 화해했습니다.`);
+                        addLog(spirit2, `🌼 ${spirit1.name}와(과) 화해했습니다.`);
+                    }
+                    
                     // 이미 bond가 있으면 이벤트 스킵
                     const hasBond1 = spirit1.bond && spirit1.bond.partnerId;
                     const hasBond2 = spirit2.bond && spirit2.bond.partnerId;
                     
-                    // 단짝 이벤트 (둘 다 80 이상 도달 시, bond 없을 때만)
-                    if (!hasBond1 && !hasBond2 && currentRel1 < 80 && newRel1 >= 80 && newRel2 >= 80) {
-                        // 이미 연정인 경우 알림 안 함
-                        if (newRel1 < 95 && newRel2 < 95) {
+                    // 짝꿍 이벤트 (둘 다 35 이상 도달 시, bond 없을 때만)
+                    if (!hasBond1 && !hasBond2 && currentRel1 < 35 && newRel1 >= 35 && newRel2 >= 35) {
+                        // 이미 연모인 경우 알림 안 함
+                        if (newRel1 < 55 && newRel2 < 55) {
                             // 영구 관계 기록
                             spirit1.bond = { type: 'bestfriend', partnerId: spirit2.id };
                             spirit2.bond = { type: 'bestfriend', partnerId: spirit1.id };
                             
-                            showNotification(`💕 ${spirit1.name}와(과) ${spirit2.name}이(가) 단짝이 되었습니다!`);
-                            addLog(spirit1, `💕 ${spirit2.name}와(과) 단짝이 되었습니다!`);
-                            addLog(spirit2, `💕 ${spirit1.name}와(과) 단짝이 되었습니다!`);
+                            showNotification(`💕 ${spirit1.name}와(과) ${spirit2.name}이(가) 짝꿍이 되었습니다!`);
+                            addLog(spirit1, `💕 ${spirit2.name}와(과) 짝꿍이 되었습니다!`);
+                            addLog(spirit2, `💕 ${spirit1.name}와(과) 짝꿍이 되었습니다!`);
                         }
                     }
                     
-                    // 연정 이벤트 (둘 다 95 이상 도달 시)
-                    // 기존 단짝에서 연정으로 승급 가능
+                    // 연모 이벤트 (둘 다 55 이상 도달 시)
+                    // 기존 짝꿍에서 연모으로 승급 가능
                     const areBestFriends = spirit1.bond?.type === 'bestfriend' && spirit1.bond?.partnerId === spirit2.id;
-                    if (currentRel1 < 95 && newRel1 >= 95 && newRel2 >= 95) {
+                    if (currentRel1 < 55 && newRel1 >= 55 && newRel2 >= 55) {
                         if (areBestFriends || (!hasBond1 && !hasBond2)) {
-                            // 영구 관계 기록 (연정으로 승급)
+                            // 영구 관계 기록 (연모으로 승급)
                             spirit1.bond = { type: 'lover', partnerId: spirit2.id };
                             spirit2.bond = { type: 'lover', partnerId: spirit1.id };
                             
-                            showNotification(`💗 ${spirit1.name}와(과) ${spirit2.name} 사이에 연정이 싹텄습니다!`);
-                            addLog(spirit1, `💗 ${spirit2.name}에게 연정을 느끼고 있습니다...`);
-                            addLog(spirit2, `💗 ${spirit1.name}에게 연정을 느끼고 있습니다...`);
+                            showNotification(`💗 ${spirit1.name}와(과) ${spirit2.name} 사이에 연모이 싹텄습니다!`);
+                            addLog(spirit1, `💗 ${spirit2.name}에게 연모을 느끼고 있습니다...`);
+                            addLog(spirit2, `💗 ${spirit1.name}에게 연모을 느끼고 있습니다...`);
                         }
                     }
                 }
             }
         }
         
-        // 연정 관계인 정령 찾기 (bond 기반)
+        // 연모 관계인 정령 찾기 (bond 기반)
         function getLover(spirit) {
             // bond가 있고 타입이 lover인 경우
             if (spirit.bond && spirit.bond.type === 'lover' && spirit.bond.partnerId) {
@@ -6323,7 +6458,7 @@
             return null;
         }
         
-        // 단짝 관계인 정령 찾기 (bond 기반)
+        // 짝꿍 관계인 정령 찾기 (bond 기반)
         function getBestFriend(spirit) {
             // bond가 있고 타입이 bestfriend인 경우
             if (spirit.bond && spirit.bond.type === 'bestfriend' && spirit.bond.partnerId) {
@@ -6331,23 +6466,6 @@
                 return bestFriend || null;
             }
             return null;
-        }
-        
-        // 관계 보너스 체크 (성장 시 호출)
-        function getBestFriendGrowthBonus(spirit) {
-            // 연정이 있으면 15% 보너스
-            const lover = getLover(spirit);
-            if (lover) {
-                return 0.15;
-            }
-            
-            // 단짝이 있으면 10% 보너스
-            const bestFriend = getBestFriend(spirit);
-            if (bestFriend) {
-                return 0.1;
-            }
-            
-            return 0;
         }
         
         // 질병 체크 함수
@@ -6770,17 +6888,26 @@
                             if (keywords.length === 0) return '';
                             return `
                                 <div style="margin: 12px 0; padding: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px;">
-                                    ${keywords.map(kw => `
-                                        <span style="
-                                            display: inline-flex;
-                                            align-items: center;
-                                            padding: 4px 10px;
-                                            background: #f5f5f5;
-                                            border: 1px solid #ddd;
-                                            font-size: 0.8rem;
-                                            font-weight: 600;
-                                            color: ${kw.color};
-                                        ">
+                                    ${keywords.map((kw, idx) => `
+                                        <span 
+                                            class="keyword-tag"
+                                            title="${kw.desc || ''}"
+                                            onclick="showKeywordDesc('${kw.text.replace(/'/g, "\\'")}', '${(kw.desc || '').replace(/'/g, "\\'")}')"
+                                            style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 4px 10px;
+                                                background: #f5f5f5;
+                                                border: 1px solid #ddd;
+                                                font-size: 0.8rem;
+                                                font-weight: 600;
+                                                color: ${kw.color};
+                                                cursor: pointer;
+                                                transition: all 0.2s;
+                                            "
+                                            onmouseover="this.style.background='#e8e8e8'; this.style.transform='scale(1.02)';"
+                                            onmouseout="this.style.background='#f5f5f5'; this.style.transform='scale(1)';"
+                                        >
                                             ${kw.text}
                                         </span>
                                     `).join('')}
@@ -6967,7 +7094,7 @@
                             // 판매 모드: 판매 버튼 (잠긴 아이템은 비활성화)
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
@@ -6989,6 +7116,8 @@
                     Object.keys(foodCounts).forEach(type => {
                         const eventItem = EVENT_ITEMS[type];
                         if (!eventItem || eventItem.type !== 'food') return;
+                        // 기타 필터일 때 이벤트 아이템 숨김
+                        if (sellFilter === 'etc') return;
                         if (sellFilter !== 'all' && !['intelligence', 'strength', 'charm'].includes(sellFilter)) return;
                         
                         const count = foodCounts[type];
@@ -7002,7 +7131,7 @@
                         } else {
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
@@ -7024,7 +7153,14 @@
                     Object.keys(foodCounts).forEach(type => {
                         const synthItem = SYNTH_ITEMS[type];
                         if (!synthItem || synthItem.type !== 'food') return;
-                        if (sellFilter !== 'all') return;
+                        
+                        // 기타 아이템 (수선화 꽃잎, 아카시아 꿀)은 기타 필터에서만 표시
+                        const isEtcItem = ['reconciliation_flower', 'acacia_honey'].includes(type);
+                        if (isEtcItem) {
+                            if (sellFilter !== 'all' && sellFilter !== 'etc') return;
+                        } else {
+                            if (sellFilter !== 'all') return;
+                        }
                         
                         const count = foodCounts[type];
                         const isLocked = lockedItems.food.includes(type);
@@ -7034,9 +7170,13 @@
                             effectText = `전속성 +${synthItem.attrGain}`;
                         } else if (synthItem.attr === 'dual') {
                             effectText = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
+                        } else if (synthItem.attr === 'special') {
+                            effectText = synthItem.desc;
                         } else {
                             effectText = `${synthItem.attr} +${synthItem.attrGain}`;
                         }
+                        
+                        const labelText = isEtcItem ? '<span style="font-size: 0.75rem; color: #888;">기타</span>' : '<span style="font-size: 0.75rem; color: #9b59b6;">합성</span>';
                         
                         let actionButton;
                         if (isLockMode) {
@@ -7046,16 +7186,16 @@
                         } else {
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('food', '${type}')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
                             <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span style="font-size: 1.5rem;">🔬${synthItem.icon}</span>
+                                    <span style="font-size: 1.5rem;">${isEtcItem ? '' : '🔬'}${synthItem.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${synthItem.name} ×${count} <span style="font-size: 0.75rem; color: #9b59b6;">합성</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #9b59b6;">${effectText}, 애정 +${synthItem.affectionGain}, 성장 +${synthItem.growthGain}</div>
+                                        <div style="font-weight: 700;">${synthItem.name} ×${count} ${labelText}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
+                                        <div style="font-size: 0.85rem; color: #9b59b6;">${effectText}</div>
                                         <div style="font-size: 0.85rem; color: #888;">판매가: 8💰</div>
                                     </div>
                                 </div>
@@ -7063,6 +7203,39 @@
                             </div>
                         `);
                     });
+                    
+                    // 만병통치 약초 판매
+                    if (foodCounts['medicine']) {
+                        if (sellFilter === 'all' || sellFilter === 'etc') {
+                            const count = foodCounts['medicine'];
+                            const isLocked = lockedItems.food.includes('medicine');
+                            
+                            let actionButton;
+                            if (isLockMode) {
+                                actionButton = isLocked 
+                                    ? `<button onclick="toggleItemLock('food', 'medicine')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
+                                    : `<button onclick="toggleItemLock('food', 'medicine')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
+                            } else {
+                                actionButton = isLocked
+                                    ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
+                                    : `<button onclick="sellItem('food', 'medicine')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
+                            }
+                            
+                            items.push(`
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
+                                        <div>
+                                            <div style="font-weight: 700;">${MEDICINE.name} ×${count} <span style="font-size: 0.75rem; color: #888;">기타</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
+                                            <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
+                                            <div style="font-size: 0.85rem; color: #888;">판매가: 10💰</div>
+                                        </div>
+                                    </div>
+                                    ${actionButton}
+                                </div>
+                            `);
+                        }
+                    }
                 }
             }
             
@@ -7143,7 +7316,7 @@
                             // 판매 모드: 판매 버튼 (잠긴 아이템은 비활성화)
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
@@ -7178,7 +7351,7 @@
                         } else {
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
@@ -7213,7 +7386,7 @@
                         } else {
                             actionButton = isLocked
                                 ? `<button disabled style="padding: 8px 16px; background: #888; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒</button>`
-                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>`;
+                                : `<button onclick="sellItem('decoration', '${key}')" style="padding: 8px 16px; background: #9b59b6; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         items.push(`
@@ -7293,7 +7466,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">판매가: 12💰</div>
                                     </div>
                                 </div>
-                                <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer;">판매</button>
+                                <button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: #c41e3a; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>
                             </div>
                         `);
                     });
@@ -7368,6 +7541,8 @@
                         
                         // 세부 필터 적용
                         if (buyFilter !== 'all') {
+                            // 기타 필터일 때 이벤트 아이템 숨김
+                            if (buyFilter === 'etc') return;
                             // 속성 필터일 때 음악은 숨김
                             if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter) && item.type === 'music') return;
                             // 스탯 필터일 때 먹이/장식물은 숨김
@@ -7385,7 +7560,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${price}💰</div>
                                     </div>
                                 </div>
-                                <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px;">구매</button>
+                                <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                             </div>
                         `);
                     });
@@ -7398,20 +7573,53 @@
                 }
             }
             
-            // 약초 구매 (카테고리가 all 또는 food이고, 필터가 all이거나 속성 필터일 때만 표시)
+            // 기타 아이템 구매 (만병통치 약초, 수선화 꽃잎, 아카시아 꿀)
             if ((currentShopCategory === 'all' || currentShopCategory === 'food') &&
-                (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter))) {
+                (buyFilter === 'all' || buyFilter === 'etc')) {
+                // 만병통치 약초
                 items.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
-                            <div>
-                                <div style="font-weight: 700;">${MEDICINE.name}</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                            <span style="font-size: 1.5rem; flex-shrink: 0;">${MEDICINE.icon}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 700;">${MEDICINE.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
                                 <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
                                 <div style="font-size: 0.85rem; color: #888;">가격: ${MEDICINE.price}💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('food', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px;">구매</button>
+                        <button onclick="buyItem('food', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
+                    </div>
+                `);
+                
+                // 수선화 꽃잎
+                const daffodil = SYNTH_ITEMS['reconciliation_flower'];
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                            <span style="font-size: 1.5rem; flex-shrink: 0;">${daffodil.icon}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 700;">${daffodil.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
+                                <div style="font-size: 0.85rem; color: #666;">${daffodil.desc}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('food', 'reconciliation_flower', 25)" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
+                    </div>
+                `);
+                
+                // 아카시아 꿀
+                const honey = SYNTH_ITEMS['acacia_honey'];
+                items.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                            <span style="font-size: 1.5rem; flex-shrink: 0;">${honey.icon}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 700;">${honey.name} <span style="font-size: 0.75rem; color: #888;">기타</span></div>
+                                <div style="font-size: 0.85rem; color: #666;">${honey.desc}</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
+                            </div>
+                        </div>
+                        <button onclick="buyItem('food', 'acacia_honey', 25)" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
                     </div>
                 `);
             }
@@ -7433,7 +7641,7 @@
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px;">구매</button>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                         </div>
                     `);
                 });
@@ -7452,7 +7660,7 @@
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px;">구매</button>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                         </div>
                     `);
                 });
@@ -7478,7 +7686,7 @@
                                     <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px;">구매</button>
+                            <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                         </div>
                     `);
                 });
@@ -7544,7 +7752,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
-                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                             </div>
                         `);
                     });
@@ -7563,7 +7771,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
-                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                             </div>
                         `);
                     });
@@ -7582,7 +7790,7 @@
                                         <div style="font-size: 0.85rem; color: #888;">가격: ${data.price}💰 | ${getDecoAttrDisplay(data)}</div>
                                     </div>
                                 </div>
-                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px;">구매</button>
+                                <button onclick="buyItem('decoration', '${key}', ${data.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
                             </div>
                         `);
                     });
@@ -7882,9 +8090,16 @@
                 const index = inventory.food.indexOf(type);
                 if (index === -1) return;
                 inventory.food.splice(index, 1);
-                const isRare = type === 'light' || type === 'dark';
-                sellPrice = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
-                itemName = FOOD_NAMES[type];
+                
+                // medicine은 별도 처리
+                if (type === 'medicine') {
+                    sellPrice = 10; // 판매가 10
+                    itemName = MEDICINE.name;
+                } else {
+                    const isRare = type === 'light' || type === 'dark';
+                    sellPrice = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
+                    itemName = FOOD_NAMES[type];
+                }
                 coins += sellPrice;
                 showShopNotification(itemName, 'sell', sellPrice);
             } else if (category === 'decoration') {
@@ -7933,6 +8148,10 @@
                     showShopNotification(itemName, 'buy', price);
                     // 질병 튜토리얼: 약초 구매 액션 체크
                     checkSickTutorialAction('buyMedicine');
+                } else if (SYNTH_ITEMS[type]) {
+                    // 합성 아이템 (수선화 꽃잎, 아카시아 꿀 등)
+                    itemName = SYNTH_ITEMS[type].name;
+                    showShopNotification(itemName, 'buy', price);
                 } else {
                     itemName = FOOD_NAMES[type];
                     showShopNotification(itemName, 'buy', price);
@@ -13456,6 +13675,66 @@
                 notif.style.animation = 'slideOut 0.3s ease-out';
                 setTimeout(() => notif.remove(), 300);
             }, 3000);
+        }
+        
+        // 키워드 설명 표시 (모바일용 클릭/터치)
+        function showKeywordDesc(keyword, desc) {
+            if (!desc) return;
+            
+            // 기존 키워드 툴팁이 있으면 제거
+            const existingTooltip = document.querySelector('.keyword-tooltip');
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'keyword-tooltip';
+            tooltip.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 6px; color: var(--text);">${keyword}</div>
+                <div style="color: #666; line-height: 1.5;">${desc}</div>
+            `;
+            tooltip.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--card);
+                border: 2px solid var(--border);
+                border-radius: 12px;
+                padding: 16px 20px;
+                max-width: 300px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                z-index: 10001;
+                animation: fadeIn 0.2s ease-out;
+            `;
+            
+            // 배경 오버레이
+            const overlay = document.createElement('div');
+            overlay.className = 'keyword-tooltip-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.3);
+                z-index: 10000;
+            `;
+            overlay.onclick = () => {
+                tooltip.remove();
+                overlay.remove();
+            };
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(tooltip);
+            
+            // 3초 후 자동 닫기
+            setTimeout(() => {
+                if (document.body.contains(tooltip)) {
+                    tooltip.remove();
+                    overlay.remove();
+                }
+            }, 5000);
         }
 
         function updateTimeDisplay() {
