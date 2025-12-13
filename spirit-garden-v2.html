@@ -1132,7 +1132,7 @@
             <div style="background: var(--card); padding: 60px 24px; border: 1px solid var(--border); border-radius: 12px; text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
                 <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
-                <p style="font-size: 0.9rem; color: #888; margin-top: 12px;">정령들과의 추억을 기록할 수 있는 메모 기능이 곧 추가됩니다!</p>
+                <p style="font-size: 0.9rem; color: #888; margin-top: 12px;">스토리 추가 예정</p>
             </div>
         </div>
     </div>
@@ -7285,10 +7285,8 @@
         }
 
         function updateCoinDisplay() {
-            const displays = document.querySelectorAll('#coinDisplay, #shopCoinDisplay');
-            displays.forEach(el => {
-                if (el) el.textContent = coins;
-            });
+            const display = document.getElementById('coinDisplay');
+            if (display) display.textContent = coins;
         }
 
         function changeSellFilter() {
@@ -12279,6 +12277,11 @@
             updateSettingsInfo();
             renderRecipeList(); // 레시피 목록도 갱신
             checkAchievements(); // 업적 체크 (기존 백업 데이터에 업적이 없을 경우 재계산)
+            
+            // 현재 일지 탭이 열려있으면 해당 서브탭도 갱신
+            if (document.getElementById('journalSection')?.classList.contains('active')) {
+                switchJournalTab(currentJournalTab || 'encyclopedia');
+            }
             
             showNotification('💡 정령들의 배고픔 상태가 초기화되었습니다!');
         }
