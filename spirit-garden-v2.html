@@ -1011,12 +1011,12 @@
         
         <div style="max-width: 800px; margin: 0 auto;">
             <!-- 합성 영역 -->
-            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+            <div style="background: var(--card); border: 1px solid var(--border); padding: 16px; margin-bottom: 20px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.2rem; margin-bottom: 15px; text-align: center;">재료 합성</h3>
                 
                 <div style="display: flex; justify-content: center; align-items: center; gap: 6px; margin-bottom: 15px;">
                     <!-- 슬롯 1 -->
-                    <div id="labSlot1" onclick="openLabSlotModal(1)" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px dashed var(--border); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
+                    <div id="labSlot1" onclick="openLabSlotModal(1)" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px dashed var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
                         <div style="font-size: 1.3rem; margin-bottom: 2px;">➕</div>
                         <div style="font-size: 0.65rem; color: #888;">재료1</div>
                     </div>
@@ -1024,7 +1024,7 @@
                     <div style="font-size: 1rem; color: #888; flex-shrink: 0;">+</div>
                     
                     <!-- 슬롯 2 -->
-                    <div id="labSlot2" onclick="openLabSlotModal(2)" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px dashed var(--border); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
+                    <div id="labSlot2" onclick="openLabSlotModal(2)" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px dashed var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; background: var(--bg); transition: all 0.2s;">
                         <div style="font-size: 1.3rem; margin-bottom: 2px;">➕</div>
                         <div style="font-size: 0.65rem; color: #888;">재료2</div>
                     </div>
@@ -1032,14 +1032,14 @@
                     <div style="font-size: 1rem; color: #888; flex-shrink: 0;">→</div>
                     
                     <!-- 결과 슬롯 -->
-                    <div id="labResultSlot" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg);">
+                    <div id="labResultSlot" style="width: 70px; height: 70px; flex-shrink: 0; border: 2px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; background: var(--bg);">
                         <div style="font-size: 1.3rem; margin-bottom: 2px;">❓</div>
                         <div style="font-size: 0.65rem; color: #888;">결과</div>
                     </div>
                 </div>
                 
                 <div style="text-align: center;">
-                    <button id="synthesizeBtn" onclick="synthesize()" style="padding: 10px 30px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 700; cursor: pointer; opacity: 0.5;" disabled>
+                    <button id="synthesizeBtn" onclick="synthesize()" style="padding: 10px 30px; background: #9b59b6; color: white; border: none; font-size: 0.95rem; font-weight: 700; cursor: pointer; opacity: 0.5;" disabled>
                         🔮 합성하기
                     </button>
                 </div>
@@ -1048,16 +1048,34 @@
             </div>
             
             <!-- 레시피 목록 -->
-            <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px;">📜 레시피 목록</h3>
-                
-                <!-- 카테고리 필터 -->
-                <div style="margin-bottom: 20px;">
-                    <select id="recipeFilterSelect" onchange="filterRecipes(this.value)" style="padding: 10px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 1rem; cursor: pointer; min-width: 150px;">
-                        <option value="all">📋 전체</option>
-                        <option value="food">🍎 먹이</option>
-                        <option value="decoration">🌳 장식물</option>
-                    </select>
+            <div style="background: var(--card); border: 1px solid var(--border); padding: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0;">📜 레시피 목록</h3>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span id="recipeCountDisplay" style="font-size: 0.85rem; color: #888;"></span>
+                        <select id="recipeFilterSelect" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
+                            <option value="all">📋 전체</option>
+                            <option value="food">🍎 먹이</option>
+                            <option value="decoration">🌳 장식물</option>
+                        </select>
+                        <select id="recipeAttrFilter" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
+                            <option value="all">속성</option>
+                            <option value="fire">🔥 불</option>
+                            <option value="water">💧 물</option>
+                            <option value="wind">🌪️ 바람</option>
+                            <option value="earth">🌱 땅</option>
+                            <option value="light">✨ 빛</option>
+                            <option value="dark">🌙 어둠</option>
+                            <option value="all_attr">🌈 전속성</option>
+                        </select>
+                        <select id="recipeQualityFilter" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
+                            <option value="all">품질</option>
+                            <option value="common">일반</option>
+                            <option value="rare">💎 희귀</option>
+                            <option value="epic">⭐ 최상급</option>
+                            <option value="legendary">👑 전설</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div id="recipeList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;"></div>
@@ -10711,7 +10729,7 @@
             
             let html = `
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; justify-content: center; align-items: center;" onclick="if(event.target === this) closeLabModal()">
-                    <div style="background: var(--card); border-radius: 12px; padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                    <div style="background: var(--card); padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3 style="font-family: 'Nanum Myeongjo', serif; margin: 0; font-size: 1.1rem;">재료 선택 (슬롯 ${slotNum})</h3>
                             <button onclick="closeLabModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">✕</button>
@@ -10733,13 +10751,13 @@
                     const isInsufficient = count < needed;
                     if (isInsufficient) {
                         html += `
-                            <button onclick="showNotification('⚠️ ${FOOD_NAMES[type]} 부족! (보유: ${count}개, 필요: ${needed}개)')" style="padding: 8px 12px; border: 1px solid #e74c3c; border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; opacity: 0.5; font-size: 0.85rem;">
+                            <button onclick="showNotification('⚠️ ${FOOD_NAMES[type]} 부족! (보유: ${count}개, 필요: ${needed}개)')" style="padding: 8px 12px; border: 1px solid #e74c3c; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; opacity: 0.5; font-size: 0.85rem;">
                                 ${getItemIcon(type, 'food')} ${FOOD_NAMES[type]} ×${count} <span style="color: #e74c3c; font-size: 0.7rem;">(${needed}개 필요)</span>
                             </button>
                         `;
                     } else {
                         html += `
-                            <button onclick="selectLabItem('${type}', 'food')" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                            <button onclick="selectLabItem('${type}', 'food')" style="padding: 8px 12px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
                                 ${getItemIcon(type, 'food')} ${FOOD_NAMES[type]} ×${count}
                             </button>
                         `;
@@ -10754,7 +10772,7 @@
                     if (count > 0) {
                         hasFood = true;
                         html += `
-                            <button onclick="selectLabItem('${type}', 'food')" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                            <button onclick="selectLabItem('${type}', 'food')" style="padding: 8px 12px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
                                 ${SYNTH_ITEMS[type].icon} ${SYNTH_ITEMS[type].name} ×${count}
                             </button>
                         `;
@@ -10786,13 +10804,13 @@
                     const isInsufficient = count < needed;
                     if (isInsufficient) {
                         html += `
-                            <button onclick="showNotification('⚠️ ${deco.name} 부족! (보유: ${count}개, 필요: ${needed}개)')" style="padding: 8px 12px; border: 1px solid #e74c3c; border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; opacity: 0.5; font-size: 0.85rem;">
+                            <button onclick="showNotification('⚠️ ${deco.name} 부족! (보유: ${count}개, 필요: ${needed}개)')" style="padding: 8px 12px; border: 1px solid #e74c3c; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; opacity: 0.5; font-size: 0.85rem;">
                                 ${deco.icon} ${deco.name} ×${count} <span style="color: #e74c3c; font-size: 0.7rem;">(${needed}개 필요)</span>
                             </button>
                         `;
                     } else {
                         html += `
-                            <button onclick="selectLabItem('${type}', 'decoration')" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                            <button onclick="selectLabItem('${type}', 'decoration')" style="padding: 8px 12px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
                                 ${deco.icon} ${deco.name} ×${count}
                             </button>
                         `;
@@ -10809,7 +10827,7 @@
                         </div>
                         
                         <div style="margin-top: 15px; text-align: center;">
-                            <button onclick="clearLabSlot(${slotNum})" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">슬롯 비우기</button>
+                            <button onclick="clearLabSlot(${slotNum})" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; cursor: pointer; font-size: 0.9rem;">슬롯 비우기</button>
                         </div>
                     </div>
                 </div>
@@ -11196,21 +11214,47 @@
         }
         
         // 레시피 목록 렌더링
-        function renderRecipeList(filter = 'all') {
+        function renderRecipeList(categoryFilter = 'all', attrFilter = 'all', qualityFilter = 'all') {
             const container = document.getElementById('recipeList');
             if (!container) return;
             
             let html = '';
-            let discoveredCount = 0;
+            let filteredCount = 0;
             
             Object.entries(RECIPES).forEach(([recipeId, recipe]) => {
                 // 발견한 레시피만 표시
                 if (!discoveredRecipes.includes(recipeId)) return;
                 
-                if (filter !== 'all' && recipe.category !== filter) return;
-                
-                discoveredCount++;
                 const resultItem = SYNTH_ITEMS[recipe.result.type];
+                if (!resultItem) return;
+                
+                // 카테고리 필터
+                if (categoryFilter !== 'all' && recipe.category !== categoryFilter) return;
+                
+                // 속성 필터
+                if (attrFilter !== 'all') {
+                    if (attrFilter === 'all_attr') {
+                        // 전속성 아이템만
+                        if (resultItem.attr !== 'all') return;
+                    } else {
+                        // 단일 속성 또는 복합 속성에 포함
+                        const itemAttr = resultItem.attr;
+                        const dualAttrs = resultItem.dualAttr || [];
+                        if (itemAttr !== attrFilter && !dualAttrs.includes(attrFilter)) return;
+                    }
+                }
+                
+                // 품질 필터 (장식물만 해당)
+                if (qualityFilter !== 'all') {
+                    if (resultItem.type === 'decoration') {
+                        if (resultItem.quality !== qualityFilter) return;
+                    } else {
+                        // 먹이는 품질이 없으므로 품질 필터 시 제외
+                        return;
+                    }
+                }
+                
+                filteredCount++;
                 const ing1 = recipe.ingredients[0];
                 const ing2 = recipe.ingredients[1];
                 
@@ -11253,7 +11297,7 @@
                 const resultCount = countInventoryItem(recipe.result.type, resultCategory);
                 
                 html += `
-                    <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
+                    <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" 
                          onmouseout="this.style.transform=''; this.style.boxShadow='${canCraft ? '0 0 8px rgba(39, 174, 96, 0.3)' : ''}';">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -11261,7 +11305,7 @@
                             <span style="font-weight: 600;">${resultItem.name}</span>
                             <span style="color: #9b59b6; font-size: 0.85rem;">×${recipe.result.count}</span>
                             <span style="color: #888; font-size: 0.75rem; margin-left: 4px;">(보유: ${resultCount})</span>
-                            ${canCraft ? '<span style="margin-left: auto; font-size: 0.75rem; background: #27ae60; color: white; padding: 2px 6px; border-radius: 4px;">제작 가능</span>' : ''}
+                            ${canCraft ? '<span style="margin-left: auto; font-size: 0.75rem; background: #27ae60; color: white; padding: 2px 6px;">제작 가능</span>' : ''}
                         </div>
                         <div style="font-size: 0.85rem; color: #888; margin-bottom: 5px;">
                             ${ing1Icon} ${ing1Name} ×${ing1.count} (${ing1Status}) + ${ing2Icon} ${ing2Name} ×${ing2.count} (${ing2Status})
@@ -11277,9 +11321,18 @@
             });
             
             const totalRecipes = Object.keys(RECIPES).length;
-            const headerText = `<div style="margin-bottom: 15px; font-size: 0.9rem; color: #888;">발견한 레시피: ${discoveredRecipes.length} / ${totalRecipes}</div>`;
             
-            container.innerHTML = headerText + (html || '<div style="color: #888; text-align: center; padding: 20px;">아직 발견한 레시피가 없습니다.<br>재료를 조합해 새로운 레시피를 발견해보세요!</div>');
+            // 발견한 레시피 숫자를 상단에 표시
+            const countDisplay = document.getElementById('recipeCountDisplay');
+            if (countDisplay) {
+                countDisplay.textContent = `${discoveredRecipes.length} / ${totalRecipes}`;
+            }
+            
+            const noResultMsg = filteredCount === 0 && discoveredRecipes.length > 0 
+                ? '<div style="color: #888; text-align: center; padding: 20px;">조건에 맞는 레시피가 없습니다.</div>'
+                : '<div style="color: #888; text-align: center; padding: 20px;">아직 발견한 레시피가 없습니다.<br>재료를 조합해 새로운 레시피를 발견해보세요!</div>';
+            
+            container.innerHTML = html || noResultMsg;
         }
         
         // 레시피 자동 배치
@@ -11315,18 +11368,26 @@
             updateLabUI();
             checkRecipe();
             renderInventory();
-            // 현재 필터 유지
-            const currentFilter = document.getElementById('recipeFilterSelect')?.value || 'all';
-            renderRecipeList(currentFilter);
+            // 현재 필터 유지하면서 레시피 목록 갱신
+            applyRecipeFilters();
             saveGame();
             
             const resultItem = SYNTH_ITEMS[recipe.result.type];
             showNotification(`✨ ${resultItem.name} 레시피 자동 배치 완료!`);
         }
         
-        // 레시피 필터
+        // 레시피 필터 적용
+        function applyRecipeFilters() {
+            const categoryFilter = document.getElementById('recipeFilterSelect')?.value || 'all';
+            const attrFilter = document.getElementById('recipeAttrFilter')?.value || 'all';
+            const qualityFilter = document.getElementById('recipeQualityFilter')?.value || 'all';
+            renderRecipeList(categoryFilter, attrFilter, qualityFilter);
+        }
+        
+        // 레시피 필터 (하위 호환성)
         function filterRecipes(filter) {
-            renderRecipeList(filter);
+            document.getElementById('recipeFilterSelect').value = filter;
+            applyRecipeFilters();
         }
         
         // 게임 데이터 내보내기
@@ -12028,7 +12089,7 @@
             // 필터 UI를 오른쪽 상단에 렌더링
             if (filterArea) {
                 filterArea.innerHTML = `
-                    <select id="terrariumAttrFilter" onchange="setTerrariumFilter(this.value, 'attr')" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
+                    <select id="terrariumAttrFilter" onchange="setTerrariumFilter(this.value, 'attr')" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
                         <option value="all" ${terrariumInvFilter === 'all' ? 'selected' : ''}>속성</option>
                         <option value="event" ${terrariumInvFilter === 'event' ? 'selected' : ''}>🎄 이벤트</option>
                         <option value="fire" ${terrariumInvFilter === 'fire' ? 'selected' : ''}>🔥 불</option>
@@ -12038,7 +12099,7 @@
                         <option value="light" ${terrariumInvFilter === 'light' ? 'selected' : ''}>✨ 빛</option>
                         <option value="dark" ${terrariumInvFilter === 'dark' ? 'selected' : ''}>🌙 어둠</option>
                     </select>
-                    <select id="terrariumQualityFilterSelect" onchange="setTerrariumFilter(this.value, 'quality')" style="padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
+                    <select id="terrariumQualityFilterSelect" onchange="setTerrariumFilter(this.value, 'quality')" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); font-size: 0.85rem;">
                         <option value="all" ${terrariumQualityFilter === 'all' ? 'selected' : ''}>품질</option>
                         <option value="common" ${terrariumQualityFilter === 'common' ? 'selected' : ''}>일반</option>
                         <option value="rare" ${terrariumQualityFilter === 'rare' ? 'selected' : ''}>💎 희귀</option>
@@ -12290,7 +12351,7 @@
             );
             if (index === -1) return;
 
-            const decoData = DECORATION_TYPES[decorationType];
+            const decoData = DECORATION_TYPES[decorationType] || SYNTH_ITEMS[decorationType];
             const eventItem = EVENT_ITEMS[decorationType];
             const itemData = decoData || eventItem;
             
