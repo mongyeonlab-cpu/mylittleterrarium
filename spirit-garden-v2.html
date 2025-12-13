@@ -2713,6 +2713,13 @@
             const keywords = [];
             const keywordColor = '#2a2a2a';  // 검정색 통일
             
+            // 🧬 유전받은 키워드 (부모에게서 물려받은 특성)
+            if (spirit.inheritedKeywords && spirit.inheritedKeywords.length > 0) {
+                spirit.inheritedKeywords.forEach(keyword => {
+                    keywords.push({ text: `🧬 ${keyword}`, color: '#9c27b0', desc: `부모에게서 유전받은 특성입니다.` });
+                });
+            }
+            
             // 애정도 기반
             if (spirit.parameters.affection >= 100) {
                 keywords.push({ text: '사랑이 가득한', color: keywordColor, desc: '애정도가 최대치에 도달했습니다.' });
@@ -2744,14 +2751,15 @@
                 keywords.push({ text: '음악을 사랑하는', color: keywordColor, desc: `음악을 ${spirit.musicListened}번 들었습니다.` });
             }
             
-            // 스탯 50 기준 키워드
-            if (spirit.parameters.intelligence >= 50) {
+            // 스탯 50 기준 키워드 (유전받은 키워드는 중복 표시 안 함)
+            const inherited = spirit.inheritedKeywords || [];
+            if (spirit.parameters.intelligence >= 50 && !inherited.includes('똑똑한')) {
                 keywords.push({ text: '똑똑한', color: keywordColor, desc: `지력이 50 이상입니다. (${spirit.parameters.intelligence}) 음악 청취 시 스탯 보너스 +2!` });
             }
-            if (spirit.parameters.strength >= 50) {
+            if (spirit.parameters.strength >= 50 && !inherited.includes('강한')) {
                 keywords.push({ text: '강한', color: keywordColor, desc: `체력이 50 이상입니다. (${spirit.parameters.strength}) 질병에 걸리지 않습니다!` });
             }
-            if (spirit.parameters.charm >= 50) {
+            if (spirit.parameters.charm >= 50 && !inherited.includes('매력적인')) {
                 keywords.push({ text: '매력적인', color: keywordColor, desc: `매력이 50 이상입니다. (${spirit.parameters.charm}) 다른 정령과 상호작용 확률이 높아집니다!` });
             }
             
@@ -5828,6 +5836,50 @@
                 '정령 완성',
                 endingMessage,
                 () => {
+                    // 상태 키워드 계산 (유전 가능한 것들)
+                    const statusKeywords = [];
+                    if (spirit.parameters.intelligence >= 50) statusKeywords.push('똑똑한');
+                    if (spirit.parameters.strength >= 50) statusKeywords.push('강한');
+                    if (spirit.parameters.charm >= 50) statusKeywords.push('매력적인');
+                    
+                    // 모든 상태 키워드 저장 (앨범 표시용)
+                    const allStatusKeywords = [];
+                    
+                    // 스탯 기반 긍정 키워드
+                    if (spirit.parameters.intelligence >= 50) allStatusKeywords.push('똑똑한');
+                    if (spirit.parameters.strength >= 50) allStatusKeywords.push('강한');
+                    if (spirit.parameters.charm >= 50) allStatusKeywords.push('매력적인');
+                    
+                    // 스탯 기반 부정 키워드
+                    if (spirit.parameters.intelligence <= 10) allStatusKeywords.push('사교성이 적은');
+                    if (spirit.parameters.strength <= 5) allStatusKeywords.push('몸이 약한');
+                    
+                    // 애정도 기반
+                    if (spirit.parameters.affection >= 100) allStatusKeywords.push('사랑이 가득한');
+                    else if (spirit.parameters.affection >= 70) allStatusKeywords.push('애정 어린');
+                    
+                    // 만족도 기반
+                    if (spirit.satisfaction === 'high') allStatusKeywords.push('행복한');
+                    
+                    // 빛/어둠 시간 기반
+                    const lightTime = spirit.lightTime || 0;
+                    const darkTime = spirit.darkTime || 0;
+                    if (lightTime >= 10 && lightTime > darkTime) allStatusKeywords.push('태양을 동경하는');
+                    else if (darkTime >= 10 && darkTime > lightTime) allStatusKeywords.push('달을 숭배하는');
+                    
+                    // 먹이/음악 횟수 기반
+                    if (spirit.feedCount >= 20) allStatusKeywords.push('미식가');
+                    if (spirit.musicListened >= 10) allStatusKeywords.push('음악을 사랑하는');
+                    
+                    // 유전받은 키워드
+                    if (spirit.inheritedKeywords && spirit.inheritedKeywords.length > 0) {
+                        spirit.inheritedKeywords.forEach(kw => {
+                            if (!allStatusKeywords.includes(kw)) {
+                                allStatusKeywords.push(`🧬 ${kw}`);
+                            }
+                        });
+                    }
+                    
                     // 앨범에 추가
                 collection.push({
                     id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, // 고유 ID
@@ -5848,7 +5900,13 @@
                     isEventSpirit: spirit.isEventSpirit || false,
                     eventType: spirit.eventType || null,
                     // 관계 정보 저장
-                    bond: spirit.bond || null
+                    bond: spirit.bond || null,
+                    // 상태 키워드 저장 (유전용)
+                    statusKeywords: statusKeywords,
+                    // 부모에게서 유전받은 키워드
+                    inheritedKeywords: spirit.inheritedKeywords || [],
+                    // 모든 상태 키워드 (앨범 표시용)
+                    allStatusKeywords: allStatusKeywords
                 });
                 
                 // 도감에 등록 (진화 타입별 카운트) - wingType 포함
@@ -5923,7 +5981,9 @@
                 }
                 
                     renderSpirits();
-                    showNotification(`${evolutionData.icon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
+                    // 알림용 아이콘 (이미지 태그가 포함된 경우 이모지로 대체)
+                    const notifyIcon = evolutionData.icon.includes('<img') ? '🦋' : evolutionData.icon;
+                    showNotification(`${notifyIcon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
                     
                     // 연모 알 이벤트 체크
                     checkLoveEggEvent(spirit);
@@ -6009,10 +6069,50 @@
                 affection: 10 // 사랑의 결실이므로 애정도 보너스
             };
             
+            // 🧬 키워드 유전 시스템
+            const parent1Keywords = parent1.statusKeywords || [];
+            const parent2Keywords = parent2.statusKeywords || [];
+            const inheritedKeywords = [];
+            
+            // 유전 가능한 키워드 목록
+            const heritableKeywords = ['똑똑한', '강한', '매력적인'];
+            
+            heritableKeywords.forEach(keyword => {
+                const p1Has = parent1Keywords.includes(keyword);
+                const p2Has = parent2Keywords.includes(keyword);
+                
+                if (p1Has && p2Has) {
+                    // 양쪽 부모 모두 가지고 있으면 100% 유전
+                    inheritedKeywords.push(keyword);
+                } else if (p1Has || p2Has) {
+                    // 한쪽만 가지고 있으면 50% 확률로 유전
+                    if (Math.random() < 0.5) {
+                        inheritedKeywords.push(keyword);
+                    }
+                }
+            });
+            
+            // 유전된 키워드에 따른 스탯 보너스
+            if (inheritedKeywords.includes('똑똑한')) {
+                inheritedParams.intelligence += 15; // 지력 보너스
+            }
+            if (inheritedKeywords.includes('강한')) {
+                inheritedParams.strength += 15; // 체력 보너스
+            }
+            if (inheritedKeywords.includes('매력적인')) {
+                inheritedParams.charm += 15; // 매력 보너스
+            }
+            
             // 이름 생성
             const namePrefix = ['사랑', '축복', '행운', '기적', '희망'];
             const randomPrefix = namePrefix[Math.floor(Math.random() * namePrefix.length)];
             const randomName = `${randomPrefix}의 아이`;
+            
+            // 유전 키워드 로그 메시지
+            let inheritLog = `💕 ${parent1.originalName}와(과) ${parent2.originalName}의 사랑으로 태어났습니다.`;
+            if (inheritedKeywords.length > 0) {
+                inheritLog += ` 🧬 유전된 특성: ${inheritedKeywords.join(', ')}`;
+            }
             
             const spirit = {
                 id: Date.now(),
@@ -6029,7 +6129,7 @@
                 lastInteraction: Date.now(),
                 status: '사랑의 결실로 태어난 알이에요 💕',
                 birthTime: Date.now(),
-                logs: [`💕 ${parent1.originalName}와(과) ${parent2.originalName}의 사랑으로 태어났습니다.`],
+                logs: [inheritLog],
                 lightTime: 0,
                 darkTime: 0,
                 musicListened: 0,
@@ -6037,14 +6137,20 @@
                 relationships: {},
                 bond: null,
                 isLoveChild: true, // 연모 알 표시
-                parents: [parent1.originalName, parent2.originalName]
+                parents: [parent1.originalName, parent2.originalName],
+                inheritedKeywords: inheritedKeywords // 유전받은 키워드 저장
             };
             
             spirits.push(spirit);
             saveGame();
             renderSpirits();
             
-            showNotification(`💕 ${randomName}이(가) 태어났습니다! 부모의 능력을 조금 물려받았어요.`);
+            // 유전 키워드에 따른 알림 메시지
+            let notification = `💕 ${randomName}이(가) 태어났습니다! 부모의 능력을 조금 물려받았어요.`;
+            if (inheritedKeywords.length > 0) {
+                notification += ` 🧬 유전: ${inheritedKeywords.join(', ')}`;
+            }
+            showNotification(notification);
         }
 
         function showAlbumDetail(index) {
@@ -6075,12 +6181,45 @@
             const lightMinutes = Math.floor((item.lightTime || 0) / 60);
             const darkMinutes = Math.floor((item.darkTime || 0) / 60);
             
-            // 숨겨진 속성 정보
+            // 속성 정보
             const hiddenAttrs = item.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
             // 애정도 체크
             const affection = item.parameters?.affection || 0;
             const canBreed = affection >= 50;
+            
+            // 갖고있던 상태 키워드 표시
+            let keywordsHtml = '';
+            const allStatusKeywords = item.allStatusKeywords || [];
+            
+            // 기존 데이터 호환 (allStatusKeywords가 없는 경우)
+            if (allStatusKeywords.length === 0) {
+                const statusKeywords = item.statusKeywords || [];
+                const inheritedKeywords = item.inheritedKeywords || [];
+                inheritedKeywords.forEach(kw => allStatusKeywords.push(`🧬 ${kw}`));
+                statusKeywords.forEach(kw => {
+                    if (!inheritedKeywords.includes(kw)) allStatusKeywords.push(kw);
+                });
+            }
+            
+            if (allStatusKeywords.length > 0) {
+                const keywordTags = allStatusKeywords.map(kw => {
+                    if (kw.startsWith('🧬')) {
+                        return `<span style="display: inline-block; padding: 4px 10px; background: linear-gradient(135deg, #9c27b0, #673ab7); color: white; border-radius: 12px; font-size: 0.8rem; margin: 2px;">${kw}</span>`;
+                    } else {
+                        return `<span style="display: inline-block; padding: 4px 10px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-size: 0.8rem; margin: 2px;">${kw}</span>`;
+                    }
+                });
+                
+                keywordsHtml = `
+                    <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🏷️ 갖고있던 상태</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                            ${keywordTags.join('')}
+                        </div>
+                    </div>
+                `;
+            }
             
             modalContent.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -6101,7 +6240,7 @@
                 </div>
                 
                 <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🌈 숨겨진 속성</h3>
+                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🌈 속성</h3>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">🔥 화: ${hiddenAttrs.fire}</div>
                         <div style="font-size: 0.85rem; padding: 8px; background: var(--card); border-radius: 4px;">💧 수: ${hiddenAttrs.water}</div>
@@ -6120,6 +6259,8 @@
                         <div style="margin-top: 8px; color: #888;">등록 날짜: ${new Date(item.completedAt).toLocaleString('ko-KR')}</div>
                     </div>
                 </div>
+                
+                ${keywordsHtml}
                 
                 <!-- 교배 섹션 -->
                 <div id="breedSection" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
