@@ -1966,7 +1966,7 @@
         };
 
         const STAGE_ICONS = {
-            egg: '<img src="https://i.imgur.com/o7CifqJ.png" style="width:150px;height:150px;vertical-align:middle;">',
+            egg: '<img src="https://i.imgur.com/4cJEWyi.png" style="width:150px;height:150px;vertical-align:middle;">',
             larva1: '<img src="https://i.imgur.com/ORqIuM4.png" style="width:150px;height:150px;vertical-align:middle;">',
             larva2: '<img src="https://i.imgur.com/9sA8M5u.png" style="width:150px;height:150px;vertical-align:middle;">',
             larva3: '<img src="https://i.imgur.com/tXVDb33.png" style="width:150px;height:150px;vertical-align:middle;">',
@@ -2004,7 +2004,7 @@
                 normal: '투명한 초록빛 몸을 하고 있습니다.'
             },
             larva2: {
-                fire: '외견이 붉고, 만졌을 때 따뜻하며 더듬이가 불꽃처럼 일렁입니다.',
+                fire: '외견이 붉고, 만졌을 때 따뜻하며 머리카락이 불꽃처럼 일렁입니다.',
                 water: '푸른빛이 도는 몸에서 시원한 기운이 나며, 몸 표면에 물결 무늬가 있습니다.',
                 wind: '연한 하늘색 몸에 깃털 같은 솜털이 돋아있고, 공중에 둥둥 떠오릅니다.',
                 earth: '갈색빛 몸에 작은 이끼가 자라고, 만지면 흙 냄새가 납니다.',
@@ -2851,7 +2851,7 @@
                 desc: '크리스마스의 따뜻한 마음을 담은 특별한 정령.',
                 validUntil: '2026-01-31',
                 stages: {
-                    egg: '<img src="https://i.imgur.com/I7hgZOP.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                    egg: '<img src="https://i.imgur.com/YYpwCmZ.png" style="width:150px;height:150px;vertical-align:middle;">',
                     baby: '⭐',
                     child: '🎄',
                     adult: '🎅'
@@ -2868,7 +2868,7 @@
                     icon: '❄️',
                     desc: '겨울의 신비로운 기운을 담은 희귀한 정령.',
                     stages: {
-                        egg: '<img src="https://i.imgur.com/qh9ngkl.png" style="width:3rem;height:3rem;vertical-align:middle;">',
+                        egg: '<img src="https://i.imgur.com/zAxCH1K.png" style="width:150px;height:150px;vertical-align:middle;">',
                         baby: '❄️',
                         child: '🌨️',
                         adult: '⛄'
@@ -6941,8 +6941,9 @@
                 }, 100);
             }
             
-            // 속성 불균형 튜토리얼 체크 (살아있는 정령 중 불균형 있으면)
-            if (!localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) {
+            // 속성 불균형 튜토리얼 체크 (다른 튜토리얼이 진행 중이지 않을 때만)
+            if (!localStorage.getItem('spiritGarden_imbalanceTutorialSeen') && 
+                !tutorialActive && !tutorial2Active && !sickTutorialActive && !labTutorialActive && !imbalanceTutorialActive) {
                 spirits.forEach(spirit => {
                     if (!spirit.isDead && !spirit.isCompleted) {
                         checkImbalanceAndTutorial(spirit);
@@ -14087,6 +14088,9 @@
             const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
             if (tutorialSeen) return;
             
+            // 이미 기본 튜토리얼이 진행 중이면 시작하지 않음
+            if (tutorialActive) return;
+            
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
             if (tutorial2Active || sickTutorialActive || imbalanceTutorialActive || labTutorialActive) return;
             
@@ -14380,6 +14384,12 @@
         ];
         
         function startTutorial2() {
+            // 이미 본 적 있으면 시작하지 않음
+            if (localStorage.getItem('spiritGarden_tutorial2Seen')) return;
+            
+            // 이미 튜토리얼2가 진행 중이면 시작하지 않음
+            if (tutorial2Active) return;
+            
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
             if (tutorialActive || sickTutorialActive || imbalanceTutorialActive || labTutorialActive) return;
             
@@ -14585,6 +14595,9 @@
         function startSickTutorial() {
             // 이미 본 적 있으면 시작하지 않음
             if (localStorage.getItem('spiritGarden_sickTutorialSeen')) return;
+            
+            // 이미 질병 튜토리얼이 진행 중이면 시작하지 않음
+            if (sickTutorialActive) return;
             
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
             if (tutorialActive || tutorial2Active || imbalanceTutorialActive || labTutorialActive) return;
@@ -14866,6 +14879,9 @@
             // 이미 본 적 있으면 시작하지 않음
             if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
             
+            // 이미 불균형 튜토리얼이 진행 중이면 시작하지 않음
+            if (imbalanceTutorialActive) return;
+            
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
             if (tutorialActive || tutorial2Active || sickTutorialActive || labTutorialActive) return;
             
@@ -14965,6 +14981,9 @@
         function checkImbalanceAndTutorial(spirit) {
             if (!spirit || !spirit.hiddenAttributes) return;
             if (localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) return;
+            
+            // 다른 튜토리얼이 진행 중이면 체크하지 않음
+            if (tutorialActive || tutorial2Active || sickTutorialActive || labTutorialActive || imbalanceTutorialActive) return;
             
             // 먹이 속성
             const foodAttrs = spirit.hiddenAttributes;
