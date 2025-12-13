@@ -2904,7 +2904,14 @@
         // 속성별 정령 이름
         const ATTRIBUTE_NAMES = {
             normal: { name: '백의 정령', icon: '⚪', desc: '순수한 백색의 빛을 지닌 정령.' },
-            fire: { name: '화염의 정령', icon: '🔥', desc: '타오르는 열정을 간직한 화염의 정령.' },
+            fire: { 
+                name: '화염의 정령', 
+                icon: { 
+                    butterfly: '<img src="https://i.imgur.com/JlOx9TH.png" style="width:150px;height:150px;vertical-align:middle;">', 
+                    moth: '<img src="https://i.imgur.com/lPP6SdC.png" style="width:150px;height:150px;vertical-align:middle;">' 
+                }, 
+                desc: '타오르는 열정을 간직한 화염의 정령.' 
+            },
             water: { name: '빙하의 정령', icon: '💧', desc: '차가운 지혜를 품은 물의 정령.' },
             wind: { name: '질풍의 정령', icon: '🌬️', desc: '자유로운 바람을 담은 질풍의 정령.' },
             earth: { name: '대지의 정령', icon: '🌱', desc: '견고한 대지의 힘을 지닌 정령.' },
@@ -5669,6 +5676,15 @@
                 wingType = 'butterfly'; // 동점이면 나비
             }
             
+            // 속성 아이콘 가져오기 (나비/나방형 지원)
+            const getAttrIcon = (attrData) => {
+                if (!attrData || !attrData.icon) return '🤍';
+                if (typeof attrData.icon === 'object') {
+                    return attrData.icon[wingType] || attrData.icon.butterfly || '🤍';
+                }
+                return attrData.icon;
+            };
+            
             // 티타니아/오베론 조건 체크
             // 모든 스탯 70 이상 + 모든 속성 100 근접 (90 이상)
             const isPerfectStats = params.intelligence >= 70 && params.strength >= 70 && params.charm >= 70;
@@ -5691,7 +5707,7 @@
                     // 스탯도 낮음 - 순수한 백의 정령
                     if (attributeData) {
                         finalName = attributeData.name;
-                        finalIcon = attributeData.icon;
+                        finalIcon = getAttrIcon(attributeData);
                         finalDesc = attributeData.desc;
                     } else {
                         finalName = '백의 정령';
@@ -5703,7 +5719,7 @@
                     const evolution = EVOLUTION_TYPES[evolutionKey];
                     if (evolution && attributeData) {
                         finalName = `${evolution.prefix} ${attributeData.name}`;
-                        finalIcon = `${evolution.icon}${attributeData.icon}`;
+                        finalIcon = `${evolution.icon}${getAttrIcon(attributeData)}`;
                         finalDesc = attributeData.desc;
                     } else if (evolution) {
                         // evolution은 있는데 attributeData가 없으면 백의 정령 사용
@@ -5720,7 +5736,7 @@
                 // 스탯 부족하지만 속성 있음 - 속성 이름만
                 if (attributeData) {
                     finalName = attributeData.name;
-                    finalIcon = attributeData.icon;
+                    finalIcon = getAttrIcon(attributeData);
                     finalDesc = attributeData.desc;
                 } else {
                     console.error('attributeData is undefined for key:', attributeKey);
@@ -5728,7 +5744,7 @@
                     const fallbackKey = sortedAttrs[0][0];
                     const fallbackData = ATTRIBUTE_NAMES[fallbackKey] || ATTRIBUTE_NAMES['fire'];
                     finalName = fallbackData.name;
-                    finalIcon = fallbackData.icon;
+                    finalIcon = getAttrIcon(fallbackData);
                     finalDesc = fallbackData.desc;
                     attributeKey = fallbackKey;
                 }
@@ -5737,7 +5753,7 @@
                 const evolution = EVOLUTION_TYPES[evolutionKey];
                 if (evolution && attributeData) {
                     finalName = `${evolution.prefix} ${attributeData.name}`;
-                    finalIcon = `${evolution.icon}${attributeData.icon}`;
+                    finalIcon = `${evolution.icon}${getAttrIcon(attributeData)}`;
                     finalDesc = attributeData.desc;
                 } else {
                     console.error('Evolution data missing:', { evolutionKey, attributeKey, evolution, attributeData });
@@ -5747,11 +5763,11 @@
                     const fallbackEvolution = EVOLUTION_TYPES[evolutionKey] || EVOLUTION_TYPES['intelligent-mid'];
                     if (fallbackEvolution && fallbackData) {
                         finalName = `${fallbackEvolution.prefix} ${fallbackData.name}`;
-                        finalIcon = `${fallbackEvolution.icon}${fallbackData.icon}`;
+                        finalIcon = `${fallbackEvolution.icon}${getAttrIcon(fallbackData)}`;
                         finalDesc = fallbackData.desc;
                     } else {
                         finalName = fallbackData.name;
-                        finalIcon = fallbackData.icon;
+                        finalIcon = getAttrIcon(fallbackData);
                         finalDesc = fallbackData.desc;
                     }
                     attributeKey = fallbackKey;
@@ -5843,20 +5859,20 @@
                     bond: spirit.bond || null
                 });
                 
-                // 도감에 등록 (진화 타입별 카운트)
+                // 도감에 등록 (진화 타입별 카운트) - wingType 포함
                 let encyclopediaKey;
                 if (evolutionData.type === 'titania' || evolutionData.type === 'oberon') {
                     // 전설적 존재는 고유 키 사용
                     encyclopediaKey = evolutionData.type;
                 } else if (evolutionData.type === 'nostat') {
-                    // 수식어 없는 정령
-                    encyclopediaKey = `nostat-${evolutionData.attributeType}`;
+                    // 수식어 없는 정령 (wingType 포함)
+                    encyclopediaKey = `nostat-${evolutionData.attributeType}-${evolutionData.wingType}`;
                 } else if (evolutionData.type && evolutionData.type.startsWith('event_')) {
                     // 이벤트 정령은 타입 그대로 사용
                     encyclopediaKey = evolutionData.type;
                 } else {
-                    // 일반 정령 (스탯-레벨-속성)
-                    encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType}`;
+                    // 일반 정령 (스탯-레벨-속성-wingType)
+                    encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType}-${evolutionData.wingType}`;
                 }
                 
                 if (!encyclopedia[encyclopediaKey]) {
@@ -8613,13 +8629,14 @@
             
             collection.forEach(spirit => {
                 let encyclopediaKey;
+                const wingType = spirit.wingType || 'butterfly'; // 기본값 나비형
                 
                 if (spirit.type === 'titania' || spirit.type === 'oberon') {
                     // 전설적 존재는 고유 키 사용
                     encyclopediaKey = spirit.type;
                 } else if (spirit.type === 'nostat') {
-                    // 수식어 없는 정령
-                    encyclopediaKey = `nostat-${spirit.attributeType}`;
+                    // 수식어 없는 정령 (wingType 포함)
+                    encyclopediaKey = `nostat-${spirit.attributeType}-${wingType}`;
                 } else if (spirit.type && spirit.type.startsWith('fusion-')) {
                     // 교배 정령은 타입 그대로 사용
                     encyclopediaKey = spirit.type;
@@ -8627,8 +8644,8 @@
                     // 이벤트 정령은 타입 그대로 사용
                     encyclopediaKey = spirit.type;
                 } else {
-                    // 일반 정령 (스탯-속성)
-                    encyclopediaKey = `${spirit.type}-${spirit.attributeType}`;
+                    // 일반 정령 (스탯-속성-wingType)
+                    encyclopediaKey = `${spirit.type}-${spirit.attributeType}-${wingType}`;
                 }
                 
                 if (!newEncyclopedia[encyclopediaKey]) {
@@ -10401,105 +10418,124 @@
                     const attributeData = ATTRIBUTE_NAMES[attrType];
                     if (!attributeData) return;
                     
-                    // 속성 아이콘만 표시 (이름 숨김)
+                    // 속성 아이콘 (객체면 각각 사용)
+                    const butterflyIcon = typeof attributeData.icon === 'object' ? attributeData.icon.butterfly : attributeData.icon;
+                    const mothIcon = typeof attributeData.icon === 'object' ? attributeData.icon.moth : attributeData.icon;
+                    
+                    // 속성 헤더
                     html += `<div style="grid-column: 1 / -1; margin-top: 20px; margin-bottom: 10px;">
                         <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.2rem; color: var(--text); display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 2rem;">${attributeData.icon}</span>
+                            <span style="font-size: 2rem;">${butterflyIcon}</span>
+                            <span>${attributeData.name}</span>
                         </h3>
                     </div>`;
                     
-                    // 가로로 나열 (수식어 없음 + 3개 스탯 계열 + 현자)
-                    statTypes.forEach(statInfo => {
-                        let count = 0;
-                        let displayName = '???????';
-                        let displayIcon = '?';
-                        let isUnlocked = false;
-                        let achievedLevel = 'mid'; // 기본값 설정 (모든 경로에서 사용 가능)
+                    // 나비형/나방형 각각 표시
+                    const wingTypes = [
+                        { key: 'butterfly', name: '나비형', emoji: '🦋' },
+                        { key: 'moth', name: '나방형', emoji: '🦋' }
+                    ];
+                    
+                    wingTypes.forEach(wingInfo => {
+                        const currentIcon = wingInfo.key === 'butterfly' ? butterflyIcon : mothIcon;
                         
-                        if (statInfo.key === 'nostat') {
-                            // 수식어 없는 정령
-                            count = getEncyclopediaCount(`nostat-${attrType}`);
-                            isUnlocked = count > 0;
-                            displayName = isUnlocked ? '(수식어 없음)' : '???????';
-                            displayIcon = isUnlocked ? attributeData.icon : '?';
-                        } else if (statInfo.key === 'sage') {
-                            // 현자 계열 (레벨 없이 sage-속성 형태)
-                            count = getEncyclopediaCount(`sage-${attrType}`);
-                            isUnlocked = count > 0;
+                        // 날개 타입 서브헤더
+                        html += `<div style="grid-column: 1 / -1; margin-top: 10px; margin-bottom: 5px;">
+                            <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">
+                                ${wingInfo.emoji} ${wingInfo.name}
+                            </span>
+                        </div>`;
+                        
+                        // 가로로 나열 (수식어 없음 + 3개 스탯 계열 + 현자)
+                        statTypes.forEach(statInfo => {
+                            let count = 0;
+                            let displayName = '???????';
+                            let displayIcon = '?';
+                            let isUnlocked = false;
+                            let achievedLevel = 'mid';
+                            
+                            if (statInfo.key === 'nostat') {
+                                // 수식어 없는 정령
+                                count = getEncyclopediaCount(`nostat-${attrType}-${wingInfo.key}`);
+                                isUnlocked = count > 0;
+                                displayName = isUnlocked ? '(수식어 없음)' : '???????';
+                                displayIcon = isUnlocked ? currentIcon : '?';
+                            } else if (statInfo.key === 'sage') {
+                                // 현자 계열
+                                count = getEncyclopediaCount(`sage-${attrType}-${wingInfo.key}`);
+                                isUnlocked = count > 0;
+                                
+                                if (isUnlocked) {
+                                    const sageData = EVOLUTION_TYPES['sage'];
+                                    displayName = sageData.prefix;
+                                    displayIcon = `${sageData.icon}${currentIcon}`;
+                                }
+                            } else {
+                                // 스탯 계열 정령
+                                const lowCount = getEncyclopediaCount(`${statInfo.key}-low-${attrType}-${wingInfo.key}`);
+                                const midCount = getEncyclopediaCount(`${statInfo.key}-mid-${attrType}-${wingInfo.key}`);
+                                const highCount = getEncyclopediaCount(`${statInfo.key}-high-${attrType}-${wingInfo.key}`);
+                                count = lowCount + midCount + highCount;
+                                isUnlocked = count > 0;
+                                
+                                if (highCount > 0) achievedLevel = 'high';
+                                else if (midCount > 0) achievedLevel = 'mid';
+                                else if (lowCount > 0) achievedLevel = 'low';
+                                
+                                if (isUnlocked) {
+                                    const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
+                                    const statIcon = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].icon;
+                                    displayName = statPrefix;
+                                    displayIcon = `${statIcon}${currentIcon}`;
+                                }
+                            }
+                            
+                            const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
+                            const countText = isUnlocked ? `${count}회` : '미달성';
+                            
+                            // 정령 전체 이름 생성
+                            let fullName = '???????';
+                            let hintKey = '';
                             
                             if (isUnlocked) {
-                                const sageData = EVOLUTION_TYPES['sage'];
-                                displayName = sageData.prefix;
-                                displayIcon = `${sageData.icon}${attributeData.icon}`;
+                                if (statInfo.key === 'nostat') {
+                                    fullName = attributeData.name;
+                                    hintKey = `nostat-${attrType}`;
+                                } else if (statInfo.key === 'sage') {
+                                    const sageData = EVOLUTION_TYPES['sage'];
+                                    fullName = `${sageData.prefix} ${attributeData.name}`;
+                                    hintKey = `sage-${attrType}`;
+                                } else {
+                                    const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
+                                    fullName = `${statPrefix} ${attributeData.name}`;
+                                    hintKey = `${statInfo.key}-${achievedLevel}-${attrType}`;
+                                }
                             }
-                        } else {
-                            // 스탯 계열 정령
-                            const lowCount = getEncyclopediaCount(`${statInfo.key}-low-${attrType}`);
-                            const midCount = getEncyclopediaCount(`${statInfo.key}-mid-${attrType}`);
-                            const highCount = getEncyclopediaCount(`${statInfo.key}-high-${attrType}`);
-                            count = lowCount + midCount + highCount;
-                            isUnlocked = count > 0;
                             
-                            // 달성된 레벨 찾기 (우선순위: high > mid > low)
-                            if (highCount > 0) achievedLevel = 'high';
-                            else if (midCount > 0) achievedLevel = 'mid';
-                            else if (lowCount > 0) achievedLevel = 'low';
-                            
+                            // 힌트 표시
+                            let hint = '';
                             if (isUnlocked) {
-                                const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
-                                const statIcon = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].icon;
-                                displayName = statPrefix;
-                                displayIcon = `${statIcon}${attributeData.icon}`;
-                            }
-                        }
-                        
-                        const cardClass = isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked';
-                        const countText = isUnlocked ? `${count}회` : '미달성';
-                        
-                        // 정령 전체 이름 생성
-                        let fullName = '???????';
-                        let hintKey = '';
-                        
-                        if (isUnlocked) {
-                            if (statInfo.key === 'nostat') {
-                                fullName = attributeData.name;
-                                hintKey = `nostat-${attrType}`;
-                            } else if (statInfo.key === 'sage') {
-                                const sageData = EVOLUTION_TYPES['sage'];
-                                fullName = `${sageData.prefix} ${attributeData.name}`;
-                                hintKey = `sage-${attrType}`;
+                                hint = ENCYCLOPEDIA_HINTS[hintKey] || '';
                             } else {
-                                const statPrefix = EVOLUTION_TYPES[`${statInfo.key}-${achievedLevel}`].prefix;
-                                fullName = `${statPrefix} ${attributeData.name}`;
-                                hintKey = `${statInfo.key}-${achievedLevel}-${attrType}`;
+                                if (statInfo.key === 'nostat') {
+                                    hint = ENCYCLOPEDIA_HINTS[`nostat-${attrType}`] || '???';
+                                } else if (statInfo.key === 'sage') {
+                                    hint = ENCYCLOPEDIA_HINTS[`sage-${attrType}`] || '모든 것을 깨달은 현자 정령.';
+                                } else {
+                                    hint = ENCYCLOPEDIA_HINTS[`${statInfo.key}-mid-${attrType}`] || 
+                                           ENCYCLOPEDIA_HINTS[`${statInfo.key}-low-${attrType}`] || '???';
+                                }
                             }
-                        }
-                        
-                        // 잠금 상태에서도 힌트 표시
-                        let hint = '';
-                        if (isUnlocked) {
-                            hint = ENCYCLOPEDIA_HINTS[hintKey] || '';
-                        } else {
-                            // 잠금 상태일 때도 힌트 표시
-                            if (statInfo.key === 'nostat') {
-                                hint = ENCYCLOPEDIA_HINTS[`nostat-${attrType}`] || '???';
-                            } else if (statInfo.key === 'sage') {
-                                hint = ENCYCLOPEDIA_HINTS[`sage-${attrType}`] || '모든 것을 깨달은 현자 정령.';
-                            } else {
-                                // 임의의 레벨로 힌트 표시 (mid 우선)
-                                hint = ENCYCLOPEDIA_HINTS[`${statInfo.key}-mid-${attrType}`] || 
-                                       ENCYCLOPEDIA_HINTS[`${statInfo.key}-low-${attrType}`] || '???';
-                            }
-                        }
-                        
-                        html += `
-                            <div class="${cardClass}" style="min-height: 120px;">
-                                <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
-                                <div class="encyclopedia-name" style="font-size: 0.85rem; font-weight: 600;">${fullName}</div>
-                                <div class="encyclopedia-count" style="font-size: 0.75rem; margin-top: 4px;">${countText}</div>
-                                ${hint ? `<div style="font-size: 0.7rem; color: #888; margin-top: 6px; line-height: 1.3; padding: 0 8px; text-align: center;">${hint}</div>` : ''}
-                            </div>
-                        `;
+                            
+                            html += `
+                                <div class="${cardClass}" style="min-height: 120px;">
+                                    <div class="encyclopedia-icon" style="font-size: 2.5rem;">${displayIcon}</div>
+                                    <div class="encyclopedia-name" style="font-size: 0.85rem; font-weight: 600;">${fullName}</div>
+                                    <div class="encyclopedia-count" style="font-size: 0.75rem; margin-top: 4px;">${countText}</div>
+                                    ${hint ? `<div style="font-size: 0.7rem; color: #888; margin-top: 6px; line-height: 1.3; padding: 0 8px; text-align: center;">${hint}</div>` : ''}
+                                </div>
+                            `;
+                        });
                     });
                 });
             });
