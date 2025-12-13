@@ -1085,9 +1085,37 @@
     
     <div id="journalSection" class="section">
         <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">📖 일지</h2>
-        <div style="max-width: 600px; margin: 0 auto; text-align: center; padding: 60px 20px;">
-            <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
-            <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
+        
+        <div style="max-width: 700px; margin: 0 auto;">
+            <!-- 업적 요약 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">🏅 업적 현황</h3>
+                <div id="achievementSummary" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <!-- 자바스크립트로 채워짐 -->
+                </div>
+            </div>
+            
+            <!-- 키운 정령 수 업적 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">
+                    🦋 키운 정령의 수
+                    <span id="albumCountDisplay" style="font-size: 0.9rem; color: #888; font-weight: normal; margin-left: 10px;"></span>
+                </h3>
+                <div id="albumAchievements" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 자바스크립트로 채워짐 -->
+                </div>
+            </div>
+            
+            <!-- 도감 수집 업적 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">
+                    📚 도감 수집
+                    <span id="encyclopediaCountDisplay" style="font-size: 0.9rem; color: #888; font-weight: normal; margin-left: 10px;"></span>
+                </h3>
+                <div id="encyclopediaAchievements" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 자바스크립트로 채워짐 -->
+                </div>
+            </div>
         </div>
     </div>
     
@@ -1562,6 +1590,93 @@
         let totalPausedTime = 0; // 총 일시정지 시간
         let activatedEvents = []; // 활성화된 이벤트 목록
         let lowSatisfactionStartTime = {}; // 정령별 불만 상태 시작 시간
+        let achievements = {}; // 달성한 업적 목록 { achievementId: timestamp }
+
+        // 업적 정의
+        const ACHIEVEMENTS = {
+            // 키운 정령의 수 (앨범)
+            album_1: {
+                id: 'album_1',
+                category: 'album',
+                requirement: 1,
+                title: '테라리스트로서의 첫 시작',
+                icon: '🌱',
+                desc: '첫 번째 정령을 성충까지 키웠습니다.'
+            },
+            album_10: {
+                id: 'album_10',
+                category: 'album',
+                requirement: 10,
+                title: '초보 테라리스트',
+                icon: '🌿',
+                desc: '10마리의 정령을 성충까지 키웠습니다.'
+            },
+            album_25: {
+                id: 'album_25',
+                category: 'album',
+                requirement: 25,
+                title: '성장하는 테라리스트',
+                icon: '🌳',
+                desc: '25마리의 정령을 성충까지 키웠습니다.'
+            },
+            album_50: {
+                id: 'album_50',
+                category: 'album',
+                requirement: 50,
+                title: '숙련된 테라리스트',
+                icon: '🌲',
+                desc: '50마리의 정령을 성충까지 키웠습니다.'
+            },
+            album_70: {
+                id: 'album_70',
+                category: 'album',
+                requirement: 70,
+                title: '베테랑 테라리스트',
+                icon: '🏆',
+                desc: '70마리의 정령을 성충까지 키웠습니다.'
+            },
+            album_100: {
+                id: 'album_100',
+                category: 'album',
+                requirement: 100,
+                title: '전설의 테라리스트',
+                icon: '👑',
+                desc: '100마리의 정령을 성충까지 키웠습니다.'
+            },
+            // 도감 채운 수
+            encyclopedia_5: {
+                id: 'encyclopedia_5',
+                category: 'encyclopedia',
+                requirement: 5,
+                title: '도감 수집가',
+                icon: '📖',
+                desc: '도감에 5종류의 정령을 등록했습니다.'
+            },
+            encyclopedia_10: {
+                id: 'encyclopedia_10',
+                category: 'encyclopedia',
+                requirement: 10,
+                title: '열정적인 수집가',
+                icon: '📚',
+                desc: '도감에 10종류의 정령을 등록했습니다.'
+            },
+            encyclopedia_25: {
+                id: 'encyclopedia_25',
+                category: 'encyclopedia',
+                requirement: 25,
+                title: '박학다식한 수집가',
+                icon: '🔬',
+                desc: '도감에 25종류의 정령을 등록했습니다.'
+            },
+            encyclopedia_50: {
+                id: 'encyclopedia_50',
+                category: 'encyclopedia',
+                requirement: 50,
+                title: '정령 박사',
+                icon: '🎓',
+                desc: '도감에 50종류의 정령을 등록했습니다.'
+            }
+        };
 
         // 랜덤 문구 시스템
         const RANDOM_MESSAGES = {
@@ -3179,6 +3294,7 @@
                 lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
                 hasVisitedShop = data.hasVisitedShop || false;
                 discoveredRecipes = data.discoveredRecipes || [];
+                achievements = data.achievements || {};
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
                 
@@ -3248,6 +3364,7 @@
                 lowSatisfactionStartTime,
                 hasVisitedShop,
                 discoveredRecipes,
+                achievements,
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
                 lockedItems
             }));
@@ -3277,6 +3394,147 @@
             
             // 일지 추가 시에만 전체 렌더링
             renderSpirits();
+        }
+
+        // 업적 체크 및 달성 함수
+        function checkAchievements() {
+            const albumCount = collection.length;
+            const encyclopediaCount = Object.keys(encyclopedia).length;
+            let newAchievements = [];
+            
+            // 앨범 업적 체크
+            Object.values(ACHIEVEMENTS).filter(a => a.category === 'album').forEach(achievement => {
+                if (!achievements[achievement.id] && albumCount >= achievement.requirement) {
+                    achievements[achievement.id] = Date.now();
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            // 도감 업적 체크
+            Object.values(ACHIEVEMENTS).filter(a => a.category === 'encyclopedia').forEach(achievement => {
+                if (!achievements[achievement.id] && encyclopediaCount >= achievement.requirement) {
+                    achievements[achievement.id] = Date.now();
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            // 새로운 업적 달성 시 알림
+            newAchievements.forEach(achievement => {
+                showNotification(`🏆 업적 달성! "${achievement.title}"`);
+            });
+            
+            if (newAchievements.length > 0) {
+                saveGame();
+                renderJournal();
+            }
+            
+            return newAchievements;
+        }
+        
+        // 일지 탭 렌더링
+        function renderJournal() {
+            const albumCount = collection.length;
+            const encyclopediaCount = Object.keys(encyclopedia).length;
+            const totalAchievements = Object.keys(ACHIEVEMENTS).length;
+            const completedAchievements = Object.keys(achievements).length;
+            
+            // 업적 요약
+            const summaryDiv = document.getElementById('achievementSummary');
+            if (summaryDiv) {
+                summaryDiv.innerHTML = `
+                    <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
+                        <div style="font-size: 2rem; margin-bottom: 4px;">🏆</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${completedAchievements} / ${totalAchievements}</div>
+                        <div style="font-size: 0.85rem; color: #888;">달성한 업적</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
+                        <div style="font-size: 2rem; margin-bottom: 4px;">🦋</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${albumCount}</div>
+                        <div style="font-size: 0.85rem; color: #888;">키운 정령</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
+                        <div style="font-size: 2rem; margin-bottom: 4px;">📚</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${encyclopediaCount}</div>
+                        <div style="font-size: 0.85rem; color: #888;">도감 수집</div>
+                    </div>
+                `;
+            }
+            
+            // 앨범 카운트 표시
+            const albumCountDisplay = document.getElementById('albumCountDisplay');
+            if (albumCountDisplay) {
+                albumCountDisplay.textContent = `(현재 ${albumCount}마리)`;
+            }
+            
+            // 도감 카운트 표시
+            const encyclopediaCountDisplay = document.getElementById('encyclopediaCountDisplay');
+            if (encyclopediaCountDisplay) {
+                encyclopediaCountDisplay.textContent = `(현재 ${encyclopediaCount}종)`;
+            }
+            
+            // 앨범 업적 렌더링
+            const albumAchievementsDiv = document.getElementById('albumAchievements');
+            if (albumAchievementsDiv) {
+                const albumAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'album').sort((a, b) => a.requirement - b.requirement);
+                albumAchievementsDiv.innerHTML = albumAchievements.map(achievement => {
+                    const isCompleted = achievements[achievement.id];
+                    const progress = Math.min(albumCount, achievement.requirement);
+                    const progressPercent = (progress / achievement.requirement) * 100;
+                    const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    return `
+                        <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="font-size: 1.8rem; ${isCompleted ? '' : 'filter: grayscale(100%); opacity: 0.5;'}">${achievement.icon}</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: ${isCompleted ? 'var(--text)' : '#888'}; font-size: 1.05rem;">${achievement.title}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">${achievement.desc}</div>
+                                </div>
+                                ${isCompleted ? '<span style="color: #ffd700; font-size: 1.2rem;">✓</span>' : ''}
+                            </div>
+                            <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : 'var(--water)'}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                                <span>${progress} / ${achievement.requirement}마리</span>
+                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // 도감 업적 렌더링
+            const encyclopediaAchievementsDiv = document.getElementById('encyclopediaAchievements');
+            if (encyclopediaAchievementsDiv) {
+                const encyclopediaAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'encyclopedia').sort((a, b) => a.requirement - b.requirement);
+                encyclopediaAchievementsDiv.innerHTML = encyclopediaAchievements.map(achievement => {
+                    const isCompleted = achievements[achievement.id];
+                    const progress = Math.min(encyclopediaCount, achievement.requirement);
+                    const progressPercent = (progress / achievement.requirement) * 100;
+                    const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    return `
+                        <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="font-size: 1.8rem; ${isCompleted ? '' : 'filter: grayscale(100%); opacity: 0.5;'}">${achievement.icon}</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: ${isCompleted ? 'var(--text)' : '#888'}; font-size: 1.05rem;">${achievement.title}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">${achievement.desc}</div>
+                                </div>
+                                ${isCompleted ? '<span style="color: #ffd700; font-size: 1.2rem;">✓</span>' : ''}
+                            </div>
+                            <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : 'var(--earth)'}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                                <span>${progress} / ${achievement.requirement}종</span>
+                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         function createNewSpirit() {
@@ -5193,6 +5451,9 @@
                         // 코인 보상
                         coins += 25;
                         
+                        // 업적 체크
+                        checkAchievements();
+                        
                         // 정령 제거
                         spirits = spirits.filter(s => s.id !== spiritId);
                         saveGame();
@@ -5576,6 +5837,9 @@
                 
                 // 코인 보상 (25코인)
                 coins += 25;
+                
+                // 업적 체크
+                checkAchievements();
                 
                 // 정령 제거
                 spirits = spirits.filter(s => s.id !== spiritId);
@@ -10502,6 +10766,8 @@
                 } else if (tab === 'journal') {
                     document.querySelector('.tab:nth-child(8)').classList.add('active');
                     document.getElementById('journalSection').classList.add('active');
+                    renderJournal();
+                    checkAchievements();
                 } else if (tab === 'settings') {
                     // 설정은 탭 바에 없으므로 active 처리 안함
                     document.getElementById('settingsSection').classList.add('active');
@@ -11429,7 +11695,8 @@
                 lockedItems: lockedItems,
                 activatedEvents: activatedEvents,
                 hasVisitedShop: hasVisitedShop,
-                currentTitle: currentTitle
+                currentTitle: currentTitle,
+                achievements: achievements
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
             };
             
@@ -11631,6 +11898,7 @@
             activatedEvents = gameData.activatedEvents || [];
             hasVisitedShop = gameData.hasVisitedShop || false;
             currentTitle = gameData.currentTitle || 'none';
+            achievements = gameData.achievements || {};
             
             // 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
             labSlot1 = null;
@@ -11662,6 +11930,7 @@
             applyLightMode();
             updateSettingsInfo();
             renderRecipeList(); // 레시피 목록도 갱신
+            checkAchievements(); // 업적 체크 (기존 백업 데이터에 업적이 없을 경우 재계산)
             
             showNotification('💡 정령들의 배고픔 상태가 초기화되었습니다!');
         }
@@ -15335,6 +15604,7 @@
             updateInventoryCollapseUI(); // 소지품 접힘 상태 적용
             startAutoGather(); // 자동 채집 시작
             checkAndShowOpening(); // 오프닝 체크
+            checkAchievements(); // 업적 체크 (기존 데이터용)
             
             // 연구실 튜토리얼 체크 (약간의 딜레이로 다른 튜토리얼과 충돌 방지)
             setTimeout(() => {
