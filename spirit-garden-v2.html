@@ -692,7 +692,7 @@
                 gap: 15px !important;
             }
             
-            /* 테라리움 장식물 목록 1열로 변경 */
+            /* 테라리움 미니어처 목록 1열로 변경 */
             #installedDecorList > div,
             #terrariumDecorList > div {
                 grid-template-columns: 1fr !important;
@@ -973,14 +973,14 @@
                     </div>
 
                     <div class="inventory-section">
-                        <div class="inventory-label">음악</div>
+                        <div class="inventory-label">🎼 레코드</div>
                         <div class="inventory-items" id="musicInventory">
                             <div class="inventory-item">없음</div>
                         </div>
                     </div>
 
                     <div class="inventory-section">
-                        <div class="inventory-label">🌳 나무 & 장식물</div>
+                        <div class="inventory-label">🌳 미니어처</div>
                         <div class="inventory-items" id="decorInventory">
                             <div class="inventory-item">없음</div>
                         </div>
@@ -1056,7 +1056,7 @@
                         <select id="recipeFilterSelect" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
                             <option value="all">📋 전체</option>
                             <option value="food">🍎 먹이</option>
-                            <option value="decoration">🌳 장식물</option>
+                            <option value="decoration">🌳 미니어처</option>
                         </select>
                         <select id="recipeAttrFilter" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
                             <option value="all">속성</option>
@@ -1233,7 +1233,7 @@
                 <select id="shopCategorySelect" onchange="changeShopCategory()" style="padding: 12px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; min-width: 200px;">
                     <option value="all">📦 전체</option>
                     <option value="food">🍎 먹이</option>
-                    <option value="decoration">🌳 장식물</option>
+                    <option value="decoration">🌳 미니어처</option>
                     <option value="music">레코드</option>
                 </select>
             </div>
@@ -1393,7 +1393,7 @@
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">테라리움 환경</h2>
-                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;" title="장식물 품질의 합계 (장식물을 추가할수록 올라감)">
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: #f0f0f0; border-radius: 8px;" title="미니어처 품질의 합계 (미니어처를 추가할수록 올라감)">
                         <span style="font-weight: 600; color: #666;">품질 합계:</span>
                         <span id="terrariumQuality" style="font-size: 1.2rem; font-weight: 700; color: #ff9800;">0.0</span>
                     </div>
@@ -1444,10 +1444,10 @@
                 </div>
             </div>
 
-            <!-- 설치된 장식물 -->
+            <!-- 설치된 미니어처 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">설치된 장식물</h2>
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">설치된 미니어처</h2>
                     <button onclick="removeAllDecorations()" style="padding: 6px 12px; background: var(--fire); color: white; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
                         전체 해제
                     </button>
@@ -1459,10 +1459,10 @@
                 <div id="installedDecorList"></div>
             </div>
 
-            <!-- 인벤토리 장식물 -->
+            <!-- 인벤토리 미니어처 -->
             <div style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">인벤토리 장식물</h2>
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; margin: 0;">인벤토리 미니어처</h2>
                     <div id="terrariumFilterArea" style="display: flex; gap: 8px;"></div>
                 </div>
                 <div id="terrariumDecorList"></div>
@@ -1539,7 +1539,7 @@
             light: 0,
             dark: 0
         };
-        let installedDecorations = []; // 설치된 장식물 목록 (객체 배열: { type, index })
+        let installedDecorations = []; // 설치된 미니어처 목록 (객체 배열: { type, index })
         let lightMode = true; // 조명 모드 (true: 빛, false: 어둠)
         let coins = 0; // 화폐
         let hasVisitedShop = false; // 상점 첫 방문 여부
@@ -1743,7 +1743,7 @@
                 '{name}이(가) {music}의 선율에 미세하게 반응합니다.',
                 '{name} 안에서 음악을 즐기는 듯한 기운이 느껴집니다.'
             ],
-            // 장식물 관련 (30개 전체)
+            // 미니어처 관련 (30개 전체)
             decorations: {
                 // 불 속성
                 fire_common1: [
@@ -2167,7 +2167,7 @@
             dual_earth_wind: { name: '사막의 모래시계', icon: '⏳', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['earth', 'wind'] },
             dual_light_dark: { name: '황혼의 거울', icon: '🪞', attr: 'dual', power: 1, quality: 'rare', price: 80, dualAttr: ['light', 'dark'] },
             all_elements: { name: '무지개 프리즘', icon: '🌈', attr: 'all', power: 1, quality: 'rare', price: 120 }
-            // 합성 장식물은 SYNTH_ITEMS에서만 관리
+            // 합성 미니어처은 SYNTH_ITEMS에서만 관리
         };
 
         const FOOD_NAMES = {
@@ -2224,7 +2224,7 @@
             // 특수 먹이 - 친밀도 증가 효과
             acacia_honey: { name: '아카시아 꿀', icon: '🍯✨', type: 'food', attr: 'special', attrGain: 0, affectionGain: 3, growthGain: 2, desc: '30분간 다른 정령과 빠르게 친해집니다', effectDuration: 30 * 60 * 1000 },
             
-            // 장식물 합성 결과물
+            // 미니어처 합성 결과물
             flame_lamp: { name: '화염 램프', icon: '🏮', type: 'decoration', attr: 'fire', power: 3, quality: 'rare' },
             aqua_fountain: { name: '아쿠아 분수', icon: '⛲', type: 'decoration', attr: 'water', power: 3, quality: 'rare' },
             wind_chime: { name: '바람의 종', icon: '🔔', type: 'decoration', attr: 'wind', power: 3, quality: 'rare' },
@@ -2405,7 +2405,7 @@
                 result: { type: 'earth_dark_mushroom', count: 2 },
                 category: 'food'
             },
-            // 장식물 합성 (같은 속성 common 장식물 2개 = rare 장식물 1개)
+            // 미니어처 합성 (같은 속성 common 미니어처 2개 = rare 미니어처 1개)
             flame_lamp: {
                 ingredients: [
                     { type: 'fire_common1', category: 'decoration', count: 1 },
@@ -2736,7 +2736,7 @@
             sell: {
                 food_common: 8,    // 일반 먹이 판매
                 food_rare: 15,     // 희귀 먹이 판매
-                decoration: 15,    // 장식물 1개 = 15코인
+                decoration: 15,    // 미니어처 1개 = 15코인
                 music: 25          // 음악 1개 = 25코인
             },
             // 구매 가격 (코인 → 인벤토리)
@@ -2744,7 +2744,7 @@
                 food_common: 20,   // 일반 먹이 (화수풍지)
                 food_rare: 40,     // 희귀 먹이 (빛암)
                 music: 80,         // 음악 레코드
-                decoration: 50     // 장식물
+                decoration: 50     // 미니어처
             }
         };
 
@@ -3128,7 +3128,7 @@
                     inventory.music = inventory.music.filter(m => allValidMusicKeys.includes(m));
                 }
                 
-                // 기존 장식물 키를 새 형식으로 변환 (fire → fire_common1 등)
+                // 기존 미니어처 키를 새 형식으로 변환 (fire → fire_common1 등)
                 const oldToNewDecoMapping = {
                     fire: 'fire_common1',
                     water: 'water_common1',
@@ -3200,7 +3200,7 @@
                     pausedAt = Date.now();
                 }
 
-                // 설치된 장식물로 환경 재계산
+                // 설치된 미니어처로 환경 재계산
                 if (installedDecorations.length > 0) {
                     recalculateTerrariumEnvironment();
                 }
@@ -3513,7 +3513,7 @@
                 } else if (eventItem && eventItem.quality) {
                     totalQuality += getQualityScore(eventItem.quality);
                 } else if (synthItem) {
-                    totalQuality += 6; // 합성 장식물은 최상급(5)과 전설(7) 사이
+                    totalQuality += 6; // 합성 미니어처은 최상급(5)과 전설(7) 사이
                 }
             });
             
@@ -3576,7 +3576,7 @@
             // 죽었거나 완성된 정령은 만족도 계산 안 함
             if (spirit.isDead || spirit.isCompleted) return spirit.satisfaction || 'mid';
             
-            // 장식물이 없으면 낮음
+            // 미니어처가 없으면 낮음
             if (installedDecorations.length === 0) return 'low';
             
             // 테라리움 품질 합계
@@ -4675,13 +4675,13 @@
                 discoveries.push(`${FOOD_NAMES[randomRareFood]}`);
             }
 
-            // 장식물 채집 (장소별 + 등급별 확률)
+            // 미니어처 채집 (장소별 + 등급별 확률)
             const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
             
-            // 합성 전용 장식물 목록 (채집 불가)
+            // 합성 전용 미니어처 목록 (채집 불가)
             const synthOnlyDecos = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
             
-            // 50% 확률로 일반(common) 장식물 (장소 고정)
+            // 50% 확률로 일반(common) 미니어처 (장소 고정)
             if (Math.random() < (0.5 * decoBonus * autoGatherMultiplier)) {
                 const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
@@ -4694,7 +4694,7 @@
                 }
             }
             
-            // 20% 확률로 희귀(rare) 장식물 (장소 고정)
+            // 20% 확률로 희귀(rare) 미니어처 (장소 고정)
             if (Math.random() < (0.2 * decoBonus * autoGatherMultiplier)) {
                 const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
@@ -4707,7 +4707,7 @@
                 }
             }
             
-            // 8% 확률로 최상급(epic) 장식물 (장소 고정) - 자동 채집에서는 제외
+            // 8% 확률로 최상급(epic) 미니어처 (장소 고정) - 자동 채집에서는 제외
             if (!isAuto && Math.random() < (0.08 * decoBonus)) {
                 const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
@@ -4983,7 +4983,7 @@
                 musicContainer.innerHTML = musicHTML || '<div class="inventory-item">없음</div>';
             }
 
-            // 장식물 인벤토리 (등급별 표시 + 이벤트 아이템)
+            // 미니어처 인벤토리 (등급별 표시 + 이벤트 아이템)
             const decorContainer = document.getElementById('decorInventory');
             if (!inventory.decorations) inventory.decorations = [];
             
@@ -4996,7 +4996,7 @@
                 });
                 
                 const decorHTML = Object.keys(decorCounts).map(key => {
-                    // 일반 장식물 체크
+                    // 일반 미니어처 체크
                     const decoData = DECORATION_TYPES[key];
                     if (decoData) {
                         const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
@@ -5007,7 +5007,7 @@
                         `;
                     }
                     
-                    // 합성 장식물 체크
+                    // 합성 미니어처 체크
                     const synthItem = SYNTH_ITEMS[key];
                     if (synthItem && synthItem.type === 'decoration') {
                         return `
@@ -5017,7 +5017,7 @@
                         `;
                     }
                     
-                    // 이벤트 장식물 체크
+                    // 이벤트 미니어처 체크
                     const eventItem = EVENT_ITEMS[key];
                     if (eventItem && eventItem.type === 'decoration') {
                         return `
@@ -6947,6 +6947,15 @@
                     highlightTutorialTarget(window.tutorialWaitingFor);
                 }, 100);
             }
+            
+            // 속성 불균형 튜토리얼 체크 (살아있는 정령 중 불균형 있으면)
+            if (!localStorage.getItem('spiritGarden_imbalanceTutorialSeen')) {
+                spirits.forEach(spirit => {
+                    if (!spirit.isDead && !spirit.isCompleted) {
+                        checkImbalanceAndTutorial(spirit);
+                    }
+                });
+            }
         }
 
         function updateCoinDisplay() {
@@ -7223,7 +7232,7 @@
             }
             
             if (currentShopCategory === 'all' || currentShopCategory === 'decoration') {
-                // 장식물 판매 (속성 → 품질 → 이름 순 정렬)
+                // 미니어처 판매 (속성 → 품질 → 이름 순 정렬)
                 if (inventory.decorations && inventory.decorations.length > 0) {
                     const decorCounts = {};
                     inventory.decorations.forEach(d => {
@@ -7260,11 +7269,11 @@
                         if (sellFilter === 'all') {
                             // 전체 보기
                         } else if (['intelligence', 'strength', 'charm'].includes(sellFilter)) {
-                            return; // 스탯 필터 시 장식물 숨김
+                            return; // 스탯 필터 시 미니어처 숨김
                         } else if (decoData.attr === 'dual') {
                             if (!decoData.dualAttr || !decoData.dualAttr.includes(sellFilter)) return;
                         } else if (decoData.attr === 'all') {
-                            // all 속성 장식물은 모든 속성 필터에서 표시
+                            // all 속성 미니어처은 모든 속성 필터에서 표시
                         } else if (decoData.attr !== sellFilter) {
                             return; // 다른 속성이면 숨김
                         }
@@ -7317,7 +7326,7 @@
                         `);
                     });
                     
-                    // 이벤트 장식물 판매
+                    // 이벤트 미니어처 판매
                     Object.keys(decorCounts).forEach(key => {
                         const eventItem = EVENT_ITEMS[key];
                         if (!eventItem || eventItem.type !== 'decoration') return;
@@ -7352,7 +7361,7 @@
                         `);
                     });
                     
-                    // 합성 장식물 판매
+                    // 합성 미니어처 판매
                     Object.keys(decorCounts).forEach(key => {
                         const synthItem = SYNTH_ITEMS[key];
                         if (!synthItem || synthItem.type !== 'decoration') return;
@@ -7509,8 +7518,8 @@
                                     <option value="food_common">일반 먹이 전체</option>
                                     <option value="food_rare">희귀 먹이 전체</option>
                                 </optgroup>
-                                <optgroup label="🎨 장식물">
-                                    <option value="deco_common">일반 장식물 전체</option>
+                                <optgroup label="🎨 미니어처">
+                                    <option value="deco_common">일반 미니어처 전체</option>
                                     <option value="deco_rare">희귀 이하 전체</option>
                                     <option value="deco_epic">최상급 이하 전체</option>
                                 </optgroup>
@@ -7560,7 +7569,7 @@
                             if (buyFilter === 'etc') return;
                             // 속성 필터일 때 음악은 숨김
                             if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter) && item.type === 'music') return;
-                            // 스탯 필터일 때 먹이/장식물은 숨김
+                            // 스탯 필터일 때 먹이/미니어처은 숨김
                             if (['intelligence', 'strength', 'charm'].includes(buyFilter) && item.type !== 'music') return;
                         }
                         
@@ -7723,7 +7732,7 @@
                 });
             }
             
-            // 장식물 구매 (카테고리가 all 또는 decoration, 속성 필터 적용, legendary 제외 - 미니게임 전용)
+            // 미니어처 구매 (카테고리가 all 또는 decoration, 속성 필터 적용, legendary 제외 - 미니게임 전용)
             if ((currentShopCategory === 'all' || currentShopCategory === 'decoration') &&
                 (buyFilter === 'all' || ['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(buyFilter))) {
                 const decorationsByQuality = {
@@ -7761,7 +7770,7 @@
                         if (decoData.attr === 'dual') {
                             if (!decoData.dualAttr || !decoData.dualAttr.includes(buyFilter)) return;
                         } else if (decoData.attr === 'all') {
-                            // all 속성 장식물은 모든 속성 필터에서 표시
+                            // all 속성 미니어처은 모든 속성 필터에서 표시
                         } else if (decoData.attr !== buyFilter) {
                             return;
                         }
@@ -7770,9 +7779,9 @@
                     decorationsByQuality[decoData.quality].push({ key, data: decoData });
                 });
                 
-                // 일반 장식물
+                // 일반 미니어처
                 if (decorationsByQuality.common.length > 0) {
-                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700; border-radius: 6px;">🏠 일반 장식물</div>`);
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #f0f0f0; color: #333; font-weight: 700; border-radius: 6px;">🏠 일반 미니어처</div>`);
                     decorationsByQuality.common.forEach(({ key, data }) => {
                         const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
@@ -7790,9 +7799,9 @@
                     });
                 }
                 
-                // 희귀 장식물
+                // 희귀 미니어처
                 if (decorationsByQuality.rare.length > 0) {
-                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700; border-radius: 6px;">💎 희귀 장식물</div>`);
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #e3f2fd; color: #1565c0; font-weight: 700; border-radius: 6px;">💎 희귀 미니어처</div>`);
                     decorationsByQuality.rare.forEach(({ key, data }) => {
                         const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
@@ -7810,9 +7819,9 @@
                     });
                 }
                 
-                // 최상급 장식물
+                // 최상급 미니어처
                 if (decorationsByQuality.epic.length > 0) {
-                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700; border-radius: 6px;">⭐ 최상급 장식물</div>`);
+                    items.push(`<div style="margin: 20px 0 10px 0; padding: 10px; background: #fff3e0; color: #e65100; font-weight: 700; border-radius: 6px;">⭐ 최상급 미니어처</div>`);
                     decorationsByQuality.epic.forEach(({ key, data }) => {
                         const ownedCount = inventory.decorations ? inventory.decorations.filter(d => d === key).length : 0;
                         items.push(`
@@ -7970,14 +7979,14 @@
             if (select) select.value = '';
         }
         
-        // 장식물 품질별 일괄 판매
+        // 미니어처 품질별 일괄 판매
         function bulkSellByQuality(maxQuality) {
             const qualityOrder = ['common', 'rare', 'epic', 'legendary'];
             const maxIndex = qualityOrder.indexOf(maxQuality);
             
             if (maxIndex === -1) return;
             
-            // 판매할 장식물 찾기 (잠금 제외)
+            // 판매할 미니어처 찾기 (잠금 제외)
             const toSell = [];
             inventory.decorations.forEach((type, idx) => {
                 const deco = DECORATION_TYPES[type];
@@ -7993,14 +8002,14 @@
             });
             
             if (toSell.length === 0) {
-                showNotification('판매할 장식물이 없습니다 (잠금 제외)');
+                showNotification('판매할 미니어처가 없습니다 (잠금 제외)');
                 return;
             }
             
             const totalPrice = toSell.reduce((sum, item) => sum + item.price, 0);
             const qualityText = maxQuality === 'common' ? '일반' : maxQuality === 'rare' ? '희귀 이하' : '최상급 이하';
             
-            showBulkSellConfirm(`${qualityText} 장식물 ${toSell.length}개를 ${totalPrice}💰에 판매하시겠습니까?`, () => {
+            showBulkSellConfirm(`${qualityText} 미니어처 ${toSell.length}개를 ${totalPrice}💰에 판매하시겠습니까?`, () => {
                 // 역순으로 삭제 (인덱스 변경 방지)
                 const typesToRemove = toSell.map(item => item.type);
                 typesToRemove.forEach(type => {
@@ -8009,7 +8018,7 @@
                 });
                 
                 coins += totalPrice;
-                showNotification(`📦 ${toSell.length}개 장식물 판매 완료! +${totalPrice}💰`);
+                showNotification(`📦 ${toSell.length}개 미니어처 판매 완료! +${totalPrice}💰`);
                 setShopkeeperDialogue('...대량 거래 감사합니다.');
                 
                 saveGame();
@@ -10604,11 +10613,11 @@
                 const icons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
                 return icons[type] || '❓';
             } else if (category === 'decoration') {
-                // 합성 장식물인지 확인
+                // 합성 미니어처인지 확인
                 if (SYNTH_ITEMS[type]) {
                     return SYNTH_ITEMS[type].icon;
                 }
-                // 기본 장식물
+                // 기본 미니어처
                 return DECORATION_TYPES[type]?.icon || '❓';
             }
             return '❓';
@@ -10665,7 +10674,7 @@
                 checkLabTutorialAction('clickSlot1');
             }
             
-            // 먹이와 장식물 목록 생성 (현재 인벤토리 기준)
+            // 먹이와 미니어처 목록 생성 (현재 인벤토리 기준)
             const foodCounts = {};
             inventory.food.forEach(f => {
                 foodCounts[f] = (foodCounts[f] || 0) + 1;
@@ -10789,11 +10798,11 @@
                         </div>
                         
                         <div>
-                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">🌳 장식물</div>
+                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">🌳 미니어처</div>
                             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
             `;
             
-            // 장식물 버튼들
+            // 미니어처 버튼들
             let hasDeco = false;
             Object.keys(decoCounts).forEach(type => {
                 const count = decoCounts[type];
@@ -10819,7 +10828,7 @@
             });
             
             if (!hasDeco) {
-                html += `<div style="color: #888; font-size: 0.85rem;">장식물이 없습니다</div>`;
+                html += `<div style="color: #888; font-size: 0.85rem;">미니어처가 없습니다</div>`;
             }
             
             html += `
@@ -11244,7 +11253,7 @@
                     }
                 }
                 
-                // 품질 필터 (장식물만 해당)
+                // 품질 필터 (미니어처만 해당)
                 if (qualityFilter !== 'all') {
                     if (resultItem.type === 'decoration') {
                         if (resultItem.quality !== qualityFilter) return;
@@ -11618,7 +11627,7 @@
             labSlot1 = null;
             labSlot2 = null;
             
-            // 설치된 장식물로 환경 재계산
+            // 설치된 미니어처로 환경 재계산
             if (installedDecorations.length > 0) {
                 recalculateTerrariumEnvironment();
             }
@@ -11659,19 +11668,19 @@
                 dark: 0
             };
 
-            // 설치된 모든 장식물을 순회하며 환경 계산
+            // 설치된 모든 미니어처를 순회하며 환경 계산
             installedDecorations.forEach(deco => {
                 // 문자열 또는 객체 모두 지원
                 const decoKey = typeof deco === 'string' ? deco : deco.type;
                 const decoData = DECORATION_TYPES[decoKey] || SYNTH_ITEMS[decoKey];
                 const eventItem = EVENT_ITEMS[decoKey];
                 
-                // 일반 장식물 처리
+                // 일반 미니어처 처리
                 if (decoData) {
                     const attr = decoData.attr;
                     const power = decoData.power;
                     
-                    // 복합 속성 장식물 처리
+                    // 복합 속성 미니어처 처리
                     if (attr === 'dual' && decoData.dualAttr) {
                         // 두 속성 모두 증가 (대립 속성 감소 없음)
                         decoData.dualAttr.forEach(dualAttr => {
@@ -11686,7 +11695,7 @@
                         // 해당 속성 증가 (최대 50까지)
                         terrarium[attr] = Math.min(50, terrarium[attr] + power);
 
-                        // 대립 속성 감소 (power만큼)
+                        // 대립 속성 감소 (power의 절반만큼)
                         const opposites = {
                             fire: 'water',
                             water: 'fire',
@@ -11697,12 +11706,12 @@
                         };
                         const opposite = opposites[attr];
                         if (opposite) {
-                            terrarium[opposite] = Math.max(0, terrarium[opposite] - power);
+                            terrarium[opposite] = Math.max(0, terrarium[opposite] - Math.floor(power / 2));
                         }
                     }
                 }
                 
-                // 이벤트 장식물 처리 (effects 객체 사용, 대립 속성 감소 없음)
+                // 이벤트 미니어처 처리 (effects 객체 사용, 대립 속성 감소 없음)
                 if (eventItem && eventItem.type === 'decoration' && eventItem.effects) {
                     Object.entries(eventItem.effects).forEach(([attr, power]) => {
                         if (terrarium.hasOwnProperty(attr) && power > 0) {
@@ -11843,7 +11852,7 @@
         async function resetGame() {
             const confirm1 = await showConfirm(
                 '게임 초기화',
-                '정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 장식물, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!'
+                '정말로 게임을 초기화하시겠습니까?\n\n모든 정령, 미니어처, 먹이, 음악, 코인, 도감이 삭제됩니다.\n이 작업은 되돌릴 수 없습니다!'
             );
             
             if (!confirm1) {
@@ -11964,7 +11973,7 @@
                 }
             }
 
-            // 설치된 장식물 개수 업데이트
+            // 설치된 미니어처 개수 업데이트
             const installedCountEl = document.getElementById('installedCount');
             if (installedCountEl) {
                 installedCountEl.textContent = `${installedDecorations.length} / 20`;
@@ -11983,10 +11992,10 @@
                 legendaryCountEl.style.color = legendaryCount >= 5 ? '#f44336' : '#9c27b0';
             }
 
-            // 설치된 장식물 목록
+            // 설치된 미니어처 목록
             const installedContainer = document.getElementById('installedDecorList');
             if (installedDecorations.length === 0) {
-                installedContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">설치된 장식물이 없습니다</p>';
+                installedContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">설치된 미니어처가 없습니다</p>';
             } else {
                 const installedCounts = {};
                 installedDecorations.forEach(d => {
@@ -12028,7 +12037,7 @@
                 installedContainer.innerHTML = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         ${sortedEntries.map(([key, count]) => {
-                            // 일반/합성 장식물 체크
+                            // 일반/합성 미니어처 체크
                             const decoData = DECORATION_TYPES[key] || SYNTH_ITEMS[key];
                             if (decoData) {
                                 const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
@@ -12049,7 +12058,7 @@
                                 `;
                             }
                             
-                            // 이벤트 장식물 체크
+                            // 이벤트 미니어처 체크
                             const eventItem = EVENT_ITEMS[key];
                             if (eventItem && eventItem.type === 'decoration') {
                                 // 간소화된 효과 텍스트
@@ -12081,7 +12090,7 @@
                 `;
             }
 
-            // 인벤토리 장식물 목록
+            // 인벤토리 미니어처 목록
             const listContainer = document.getElementById('terrariumDecorList');
             const filterArea = document.getElementById('terrariumFilterArea');
             if (!inventory.decorations) inventory.decorations = [];
@@ -12110,7 +12119,7 @@
             }
             
             if (inventory.decorations.length === 0) {
-                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">보유한 장식물이 없습니다</p>';
+                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">보유한 미니어처가 없습니다</p>';
                 return;
             }
 
@@ -12142,7 +12151,7 @@
                 if (isEventA && !isEventB) return -1;
                 if (!isEventA && isEventB) return 1;
                 
-                // 일반 장식물 정렬
+                // 일반 미니어처 정렬
                 if (!isEventA && !isEventB) {
                     // 1. 속성별 정렬
                     const attrOrder = { fire: 0, water: 1, wind: 2, earth: 3, light: 4, dark: 5 };
@@ -12191,14 +12200,14 @@
             });
             
             if (sortedDecorEntries.length === 0) {
-                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">조건에 맞는 장식물이 없습니다</p>';
+                listContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">조건에 맞는 미니어처가 없습니다</p>';
                 return;
             }
 
             listContainer.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     ${sortedDecorEntries.map(([key, count]) => {
-                        // 일반/합성 장식물 체크
+                        // 일반/합성 미니어처 체크
                         const decoData = DECORATION_TYPES[key] || SYNTH_ITEMS[key];
                         if (decoData) {
                             const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
@@ -12222,7 +12231,7 @@
                             `;
                         }
                         
-                        // 이벤트 장식물 체크 (전설급 취급)
+                        // 이벤트 미니어처 체크 (전설급 취급)
                         const eventItem = EVENT_ITEMS[key];
                         if (eventItem && eventItem.type === 'decoration') {
                             // 간소화된 효과 텍스트
@@ -12284,7 +12293,7 @@
             
             if (!decoData && !eventItem && !synthItem) return;
             
-            // 전설 등급 장식물 최대 5개 제한
+            // 전설 등급 미니어처 최대 5개 제한
             const itemQuality = decoData?.quality || eventItem?.quality || null;
             if (itemQuality === 'legendary') {
                 const legendaryCount = installedDecorations.filter(d => {
@@ -12295,12 +12304,12 @@
                 }).length;
                 
                 if (legendaryCount >= 5) {
-                    showNotification('👑 전설 등급 장식물은 최대 5개까지만 설치할 수 있습니다');
+                    showNotification('👑 전설 등급 미니어처은 최대 5개까지만 설치할 수 있습니다');
                     return;
                 }
             }
 
-            // 같은 타입의 장식물이 있는지 확인 (위치 고정을 위해)
+            // 같은 타입의 미니어처가 있는지 확인 (위치 고정을 위해)
             const existingIndices = installedDecorations
                 .map((d, i) => ({ type: typeof d === 'string' ? d : d.type, index: i }))
                 .filter(d => d.type === decorationType)
@@ -12394,7 +12403,7 @@
                         // 타임아웃 실행 시점에도 정령이 살아있고 완성되지 않았는지 재확인
                         const currentSpirit = spirits.find(s => s.id === spirit.id);
                         if (currentSpirit && !currentSpirit.isDead && !currentSpirit.isCompleted) {
-                            console.log(`${currentSpirit.name}: 장식물 반응 표시 - "${randomMessage}"`);
+                            console.log(`${currentSpirit.name}: 미니어처 반응 표시 - "${randomMessage}"`);
                             currentSpirit.status = randomMessage;
                             
                             // 일지 추가
@@ -12570,7 +12579,7 @@
                         msg.replace('{music}', musicName)
                     );
                 }
-                // 장식물 설치됨 (30% 확률)
+                // 미니어처 설치됨 (30% 확률)
                 else if (installedDecorations.length > 0 && Math.random() < 0.3) {
                     const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
                     const decoType = typeof randomDeco === 'string' ? randomDeco : randomDeco.type;
@@ -12675,7 +12684,7 @@
                 .replace('{name2}', spirit2.name);
             
             
-            // 장식물 상호작용일 경우 장식물 이름 추가
+            // 미니어처 상호작용일 경우 미니어처 이름 추가
             if (selectedType === 'decoration') {
                 if (installedDecorations.length > 0) {
                     const randomDeco = installedDecorations[Math.floor(Math.random() * installedDecorations.length)];
@@ -12683,12 +12692,12 @@
                     const decoData = DECORATION_TYPES[decoType];
                     if (decoData) {
                         message = message.replace('{deco}', decoData.name);
-                        console.log('[상호작用] 장식물 이름 적용:', decoData.name);
+                        console.log('[상호작用] 미니어처 이름 적용:', decoData.name);
                     } else {
-                        return false; // 장식물 데이터 없으면 취소
+                        return false; // 미니어처 데이터 없으면 취소
                     }
                 } else {
-                    return false; // 장식물 없으면 취소
+                    return false; // 미니어처 없으면 취소
                 }
             }
             
@@ -12966,15 +12975,15 @@
 
         function removeAllDecorations() {
             if (installedDecorations.length === 0) {
-                showNotification('설치된 장식물이 없습니다');
+                showNotification('설치된 미니어처가 없습니다');
                 return;
             }
             
             showConfirm(
-                '장식물 전체 해제',
-                `설치된 장식물 ${installedDecorations.length}개를 모두 해제하시겠습니까?`,
+                '미니어처 전체 해제',
+                `설치된 미니어처 ${installedDecorations.length}개를 모두 해제하시겠습니까?`,
                 () => {
-                    // 모든 장식물을 인벤토리로 반환
+                    // 모든 미니어처를 인벤토리로 반환
                 installedDecorations.forEach(deco => {
                     // 문자열 또는 객체 모두 지원
                     const decoType = typeof deco === 'string' ? deco : deco.type;
@@ -13003,7 +13012,7 @@
                     renderTerrariumManagement();
                     renderInventory();
                     renderSpirits();  // 만족도 변경 반영
-                    showNotification('모든 장식물을 해제했습니다');
+                    showNotification('모든 미니어처를 해제했습니다');
                 }
             );
         }
