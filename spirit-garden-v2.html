@@ -3412,14 +3412,14 @@
                             larva1: '초록색 몸에 빨간색 점 무늬가 있습니다.',
                             larva2: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위에 별모양 더듬이가 있습니다.',
                             larva3: '초록색 몸에 빨간색 점 무늬가 있으며 머리 위의 별모양 더듬이가 반짝이고 있습니다.',
-                            pupa: '반짝이는 금색 실로 감싸진 번데기입니다. 안에서 은은한 빛이 새어나옵니다.'
+                            pupa: '반짝이는 금색 실로 감싸진 번데기입니다. 안에서 붉은 빛이 새어나옵니다.'
                         },
                         shiny: {
                             egg: '은은한 파란빛이 감도는 하얀 알입니다. 차가운 기운이 느껴집니다.',
                             larva1: '연한 파란색 몸에 은색 점 무늬가 있습니다.',
                             larva2: '연한 파란색 몸에 은색 점 무늬가 있으며 머리 위에 눈꽃 모양 더듬이가 있습니다.',
                             larva3: '연한 파란색 몸에 은색 점 무늬가 있으며 머리 위의 눈꽃 더듬이에서 눈이 흩날립니다.',
-                            pupa: '반짝이는 은색 얼음으로 감싸진 번데기입니다. 안에서 푸른 빛이 새어나옵니다.'
+                            pupa: '반짝이는 은색 실로 감싸진 번데기입니다. 안에서 푸른 빛이 새어나옵니다.'
                         }
                     }
                 };
@@ -3920,6 +3920,26 @@
                 return;
             }
 
+            // 아카시아꿀, 수선화 꽃잎은 알/번데기 상태에서 사용 불가 (아이템 소모 전에 체크!)
+            if (foodType === 'acacia_honey' || foodType === 'reconciliation_flower') {
+                const stage = getStage(spirit.growth);
+                if (stage === 'egg' || stage === 'pupa') {
+                    const itemName = foodType === 'acacia_honey' ? '아카시아 꿀' : '수선화 꽃잎';
+                    const stageKorean = stage === 'egg' ? '알' : '번데기';
+                    showNotification(`❌ ${stageKorean} 상태에서는 ${itemName} 사용이 불가능합니다`);
+                    return;
+                }
+            }
+
+            // 수선화 꽃잎은 앙숙 관계가 있는 정령에게만 사용 가능 (아이템 소모 전에 체크!)
+            if (foodType === 'reconciliation_flower') {
+                const hasRival = spirit.relationships && Object.values(spirit.relationships).some(rel => rel < 0);
+                if (!hasRival) {
+                    showNotification('❌ 앙숙 관계인 정령에게만 사용할 수 있습니다');
+                    return;
+                }
+            }
+
             // 먹이 소모
             inventory.food.splice(foodIndex, 1);
 
@@ -3963,15 +3983,6 @@
             // 합성 먹이 체크
             const synthItem = SYNTH_ITEMS[foodType];
             if (synthItem && synthItem.type === 'food') {
-                // 수선화 꽃잎은 앙숙 관계가 있는 정령에게만 사용 가능
-                if (synthItem.requiresRival) {
-                    const hasRival = spirit.relationships && Object.values(spirit.relationships).some(rel => rel < 0);
-                    if (!hasRival) {
-                        showNotification('❌ 앙숙 관계인 정령에게만 사용할 수 있습니다');
-                        return;
-                    }
-                }
-                
                 // 합성 먹이 효과 적용
                 if (!spirit.hiddenAttributes) {
                     spirit.hiddenAttributes = { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
@@ -6286,12 +6297,12 @@
         
         // 정령 관계 업데이트 (5분마다 호출)
         function updateSpiritRelationships() {
-            // 살아있고 완성되지 않은 정령들만 (알과 성충 제외)
+            // 살아있고 완성되지 않은 정령들만 (알, 번데기, 성충 제외)
             const activeSpirits = spirits.filter(s => {
                 if (s.isDead || s.isCompleted) return false;
                 const stage = getStage(s.growth);
-                // 알(egg)과 성충(adult)는 제외, 애벌레와 번데기만 관계 형성
-                return stage === 'larva1' || stage === 'larva2' || stage === 'larva3' || stage === 'pupa';
+                // 알(egg), 번데기(pupa), 성충(adult)는 제외 - 애벌레만 관계 형성
+                return stage === 'larva1' || stage === 'larva2' || stage === 'larva3';
             });
             
             if (activeSpirits.length < 2) return;
@@ -12643,8 +12654,13 @@
                 return false;
             }
             
-            // 살아있고 완성되지 않은 정령만
-            const activeSpirits = spirits.filter(s => !s.isDead && !s.isCompleted);
+            // 살아있고 완성되지 않은 정령만 (알, 번데기 제외 - 움직일 수 없음)
+            const activeSpirits = spirits.filter(s => {
+                if (s.isDead || s.isCompleted) return false;
+                const stage = getStage(s.growth);
+                // 알(egg)과 번데기(pupa)는 움직일 수 없으므로 제외
+                return stage === 'larva1' || stage === 'larva2' || stage === 'larva3';
+            });
             
             // 2마리 이상일 때만 상호작용
             if (activeSpirits.length < 2) {
