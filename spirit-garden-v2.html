@@ -2884,8 +2884,8 @@
             fire: { 
                 name: '화염의 정령', 
                 icon: { 
-                    butterfly: '<img src="https://i.imgur.com/JlOx9TH.png" style="width:75px;height:75px;vertical-align:middle;">', 
-                    moth: '<img src="https://i.imgur.com/lPP6SdC.png" style="width:75px;height:75px;vertical-align:middle;">' 
+                    butterfly: '<img src="https://i.imgur.com/JlOx9TH.png" style="width:150px;height:auto;vertical-align:middle;">', 
+                    moth: '<img src="https://i.imgur.com/lPP6SdC.png" style="width:150px;height:auto;vertical-align:middle;">' 
                 }, 
                 desc: '타오르는 열정을 간직한 화염의 정령.' 
             },
@@ -10982,13 +10982,13 @@
                             const emojiIcon = headerEmoji;
                             
                             if (statInfo.key === 'nostat') {
-                                // 수식어 없는 정령 - 이미지 사용 (75px)
+                                // 수식어 없는 정령 - 이미지 사용 (150px)
                                 count = getEncyclopediaCount(`nostat-${attrType}-${wingInfo.key}`);
                                 isUnlocked = count > 0;
                                 displayName = isUnlocked ? '(타이틀 없음)' : '???????';
-                                // 이미지인 경우 75px로 조정
+                                // 이미지인 경우 150px로 조정
                                 if (isUnlocked && currentIcon.includes('<img')) {
-                                    displayIcon = currentIcon.replace(/width:\d+px;height:\d+px/g, 'width:75px;height:75px');
+                                    displayIcon = currentIcon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:150px;height:auto');
                                 } else {
                                     displayIcon = isUnlocked ? currentIcon : '?';
                                 }
