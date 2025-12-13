@@ -1082,6 +1082,7 @@
             <button id="journalTabAlbum" onclick="switchJournalTab('album')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">💝 앨범</button>
             <button id="journalTabAchievement" onclick="switchJournalTab('achievement')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">🏅 업적</button>
             <button id="journalTabMemo" onclick="switchJournalTab('memo')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">📝 메모</button>
+            <button id="journalTabHelp" onclick="switchJournalTab('help')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">❓ 도움말</button>
         </div>
         
         <!-- 도감 탭 -->
@@ -1133,6 +1134,49 @@
                 <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
                 <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
                 <p style="font-size: 0.9rem; color: #888; margin-top: 12px;">스토리 추가 예정</p>
+            </div>
+        </div>
+        
+        <!-- 도움말 탭 -->
+        <div id="journalHelpTab" style="display: none; max-width: 700px; margin: 0 auto;">
+            <!-- 튜토리얼 다시보기 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">📖 튜토리얼 다시보기</h3>
+                <p style="font-size: 0.9rem; color: #888; margin-bottom: 16px;">게임 플레이에 도움이 되는 튜토리얼을 다시 볼 수 있습니다.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button onclick="replayTutorial('basic')" style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🥚</span>
+                        <div>
+                            <div>기본 튜토리얼</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령 육성의 기초를 배웁니다</div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="replayTutorial('album')" style="padding: 16px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">💝</span>
+                        <div>
+                            <div>앨범 & 도감 튜토리얼</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령 완성 후 앨범과 도감 사용법</div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="replayTutorial('sick')" style="padding: 16px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">💊</span>
+                        <div>
+                            <div>질병 튜토리얼</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령이 아플 때 치료하는 방법</div>
+                        </div>
+                    </button>
+                    
+                    <button onclick="replayTutorial('lab')" style="padding: 16px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">🔬</span>
+                        <div>
+                            <div>연구실 튜토리얼</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">합성과 교배 시스템 사용법</div>
+                        </div>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -3409,7 +3453,7 @@
             currentJournalTab = tab;
             
             // 모든 탭 콘텐츠 숨기기
-            const tabs = ['encyclopedia', 'album', 'achievement', 'memo'];
+            const tabs = ['encyclopedia', 'album', 'achievement', 'memo', 'help'];
             tabs.forEach(t => {
                 const tabContent = document.getElementById(`journal${t.charAt(0).toUpperCase() + t.slice(1)}Tab`);
                 const tabBtn = document.getElementById(`journalTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -14863,6 +14907,56 @@
                 text: '자, 그럼 내가 선배로서 설명해줄 건 여기까지야. 나머지는 직접 부딪혀 가면서 배우도록 해. 그럼 이만!'
             }
         ];
+        
+        // 튜토리얼 다시보기 함수
+        function replayTutorial(type) {
+            // 진행 중인 튜토리얼이 있으면 중단
+            if (tutorialActive || tutorial2Active || sickTutorialActive || labTutorialActive) {
+                showNotification('⚠️ 진행 중인 튜토리얼이 있습니다');
+                return;
+            }
+            
+            switch(type) {
+                case 'basic':
+                    // 기본 튜토리얼 플래그 리셋
+                    localStorage.removeItem('spiritGarden_tutorialSeen');
+                    tutorialStep = 0;
+                    tutorialActive = true;
+                    switchTab('garden');
+                    showTutorialStep();
+                    break;
+                    
+                case 'album':
+                    // 앨범/도감 튜토리얼 플래그 리셋
+                    localStorage.removeItem('spiritGarden_tutorial2Seen');
+                    tutorial2Step = 0;
+                    tutorial2Active = true;
+                    switchTab('garden');
+                    showTutorial2Step();
+                    break;
+                    
+                case 'sick':
+                    // 질병 튜토리얼 플래그 리셋
+                    localStorage.removeItem('spiritGarden_sickTutorialSeen');
+                    sickTutorialStep = 0;
+                    sickTutorialActive = true;
+                    switchTab('garden');
+                    showSickTutorialStep();
+                    break;
+                    
+                case 'lab':
+                    // 연구실 튜토리얼 플래그 리셋
+                    localStorage.removeItem('spiritGarden_labTutorialSeen');
+                    labTutorialStep = 0;
+                    labTutorialActive = true;
+                    switchTab('lab');
+                    showLabTutorialStep();
+                    break;
+                    
+                default:
+                    showNotification('❌ 알 수 없는 튜토리얼입니다');
+            }
+        }
         
         function startTutorial() {
             const tutorialSeen = localStorage.getItem('spiritGarden_tutorialSeen');
