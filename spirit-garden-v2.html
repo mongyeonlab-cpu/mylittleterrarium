@@ -15325,6 +15325,13 @@
             // 다른 튜토리얼이 진행 중이면 시작하지 않음
             if (tutorialActive || tutorial2Active || imbalanceTutorialActive || labTutorialActive) return;
             
+            // 약초 구매를 위한 코인 지급 (50코인 미만이면 50코인으로 맞춰줌)
+            if (coins < 50) {
+                coins = 50;
+                updateCoinDisplay();
+                saveGame();
+            }
+            
             // 육성 탭으로 이동
             switchTab('garden');
             
