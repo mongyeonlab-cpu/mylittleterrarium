@@ -11672,7 +11672,7 @@
                 dark: 0
             };
 
-            // 설치된 모든 미니어처를 순회하며 환경 계산
+            // 1단계: 모든 미니어처의 속성 합계 계산 (페널티 없이)
             installedDecorations.forEach(deco => {
                 // 문자열 또는 객체 모두 지원
                 const decoKey = typeof deco === 'string' ? deco : deco.type;
@@ -11686,43 +11686,53 @@
                     
                     // 복합 속성 미니어처 처리
                     if (attr === 'dual' && decoData.dualAttr) {
-                        // 두 속성 모두 증가 (대립 속성 감소 없음)
+                        // 두 속성 모두 증가
                         decoData.dualAttr.forEach(dualAttr => {
-                            terrarium[dualAttr] = Math.min(50, terrarium[dualAttr] + power);
+                            terrarium[dualAttr] += power;
                         });
                     } else if (attr === 'all') {
-                        // 모든 속성 증가 (대립 속성 감소 없음)
+                        // 모든 속성 증가
                         ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(allAttr => {
-                            terrarium[allAttr] = Math.min(50, terrarium[allAttr] + power);
+                            terrarium[allAttr] += power;
                         });
                     } else {
-                        // 해당 속성 증가 (최대 50까지)
-                        terrarium[attr] = Math.min(50, terrarium[attr] + power);
-
-                        // 대립 속성 감소 (power의 절반만큼)
-                        const opposites = {
-                            fire: 'water',
-                            water: 'fire',
-                            wind: 'earth',
-                            earth: 'wind',
-                            light: 'dark',
-                            dark: 'light'
-                        };
-                        const opposite = opposites[attr];
-                        if (opposite) {
-                            terrarium[opposite] = Math.max(0, terrarium[opposite] - Math.floor(power / 2));
-                        }
+                        // 해당 속성 증가
+                        terrarium[attr] += power;
                     }
                 }
                 
-                // 이벤트 미니어처 처리 (effects 객체 사용, 대립 속성 감소 없음)
+                // 이벤트 미니어처 처리 (effects 객체 사용)
                 if (eventItem && eventItem.type === 'decoration' && eventItem.effects) {
                     Object.entries(eventItem.effects).forEach(([attr, power]) => {
                         if (terrarium.hasOwnProperty(attr) && power > 0) {
-                            terrarium[attr] = Math.min(50, terrarium[attr] + power);
+                            terrarium[attr] += power;
                         }
                     });
                 }
+            });
+            
+            // 2단계: 상극 속성끼리 상호 페널티 적용 (순서 무관)
+            const oppositePairs = [
+                ['fire', 'water'],
+                ['wind', 'earth'],
+                ['light', 'dark']
+            ];
+            
+            oppositePairs.forEach(([attr1, attr2]) => {
+                const val1 = terrarium[attr1];
+                const val2 = terrarium[attr2];
+                
+                // 서로의 절반만큼 감소
+                const penalty1 = Math.floor(val2 / 2);
+                const penalty2 = Math.floor(val1 / 2);
+                
+                terrarium[attr1] = Math.max(0, val1 - penalty1);
+                terrarium[attr2] = Math.max(0, val2 - penalty2);
+            });
+            
+            // 3단계: 최대값 50으로 제한
+            Object.keys(terrarium).forEach(attr => {
+                terrarium[attr] = Math.min(50, terrarium[attr]);
             });
         }
 
