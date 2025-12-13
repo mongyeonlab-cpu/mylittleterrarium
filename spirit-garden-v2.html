@@ -926,8 +926,6 @@
         <button class="tab" onclick="switchTab('lab')">연구실</button>
         <button class="tab" onclick="switchTab('shop')">상점 💰<span id="coinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('minigame')">미니게임</button>
-        <button class="tab" onclick="switchTab('encyclopedia')">도감</button>
-        <button class="tab" onclick="switchTab('album')">앨범</button>
         <button class="tab" onclick="switchTab('journal')">일지</button>
         <!-- 일시정지 / 조명 버튼 -->
         <button id="pauseBtn" onclick="togglePause()" style="padding: 8px 12px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem; margin-left: auto;">⏸️</button>
@@ -995,19 +993,12 @@
         </div>
     </div>
 
-    <div id="encyclopediaSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">정령 도감</h2>
-        <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
-    </div>
+    <div id="encyclopediaSection" class="section" style="display: none;"></div>
 
-    <div id="albumSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">💝 정령 앨범</h2>
-        <div class="collection-grid" id="collectionGrid"></div>
-    </div>
+    <div id="albumSection" class="section" style="display: none;"></div>
     
     <!-- 일지 섹션 -->
     <div id="labSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">🔬 연구실</h2>
         
         <div style="max-width: 800px; margin: 0 auto;">
             <!-- 합성 영역 -->
@@ -1084,9 +1075,27 @@
     </div>
     
     <div id="journalSection" class="section">
-        <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 30px;">📖 일지</h2>
         
-        <div style="max-width: 700px; margin: 0 auto;">
+        <!-- 서브탭 인덱스 -->
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; padding-top: 10px;">
+            <button id="journalTabEncyclopedia" onclick="switchJournalTab('encyclopedia')" style="padding: 10px 20px; background: #9b59b6; color: white; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">📚 도감</button>
+            <button id="journalTabAlbum" onclick="switchJournalTab('album')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">💝 앨범</button>
+            <button id="journalTabAchievement" onclick="switchJournalTab('achievement')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">🏅 업적</button>
+            <button id="journalTabMemo" onclick="switchJournalTab('memo')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">📝 메모</button>
+        </div>
+        
+        <!-- 도감 탭 -->
+        <div id="journalEncyclopediaTab">
+            <div class="encyclopedia-grid" id="encyclopediaGrid"></div>
+        </div>
+        
+        <!-- 앨범 탭 -->
+        <div id="journalAlbumTab" style="display: none;">
+            <div class="collection-grid" id="collectionGrid"></div>
+        </div>
+        
+        <!-- 업적 탭 -->
+        <div id="journalAchievementTab" style="display: none; max-width: 700px; margin: 0 auto;">
             <!-- 업적 요약 -->
             <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">🏅 업적 현황</h3>
@@ -1115,6 +1124,15 @@
                 <div id="encyclopediaAchievements" style="display: flex; flex-direction: column; gap: 12px;">
                     <!-- 자바스크립트로 채워짐 -->
                 </div>
+            </div>
+        </div>
+        
+        <!-- 메모 탭 -->
+        <div id="journalMemoTab" style="display: none; max-width: 700px; margin: 0 auto;">
+            <div style="background: var(--card); padding: 60px 24px; border: 1px solid var(--border); border-radius: 12px; text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
+                <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
+                <p style="font-size: 0.9rem; color: #888; margin-top: 12px;">정령들과의 추억을 기록할 수 있는 메모 기능이 곧 추가됩니다!</p>
             </div>
         </div>
     </div>
@@ -1253,9 +1271,7 @@
                 </div>
             </div>
             
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🏪 정령 상점</h2>
-                <div style="font-size: 1.5rem; font-weight: 700; color: var(--fire); margin-bottom: 20px;">보유 코인: <span id="shopCoinDisplay">0</span> 💰</div>
+            <div style="text-align: center; margin-bottom: 20px;">
                 
                 <!-- 카테고리 선택 드롭다운 -->
                 <select id="shopCategorySelect" onchange="changeShopCategory()" style="padding: 12px 20px; font-size: 1rem; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; min-width: 200px;">
@@ -1318,8 +1334,6 @@
     <!-- 미니게임 섹션 -->
     <div id="minigameSection" class="section">
         <div style="max-width: 800px; margin: 0 auto;">
-            <h2 style="text-align: center; font-family: 'Nanum Myeongjo', serif; font-size: 2rem; margin-bottom: 10px;">🎮 정령 지키기</h2>
-            <p style="text-align: center; color: #888; margin-bottom: 30px;">떨어지는 해충과 독버섯으로부터 정령을 지켜주세요!</p>
             
             <!-- 게임 시작 전 화면 -->
             <div id="minigameIntro" style="background: var(--card); border: 1px solid var(--border); padding: 40px; text-align: center;">
@@ -3429,6 +3443,45 @@
             }
             
             return newAchievements;
+        }
+        
+        // 일지 서브탭 전환
+        let currentJournalTab = 'encyclopedia'; // 기본 탭
+        
+        function switchJournalTab(tab) {
+            currentJournalTab = tab;
+            
+            // 모든 탭 콘텐츠 숨기기
+            const tabs = ['encyclopedia', 'album', 'achievement', 'memo'];
+            tabs.forEach(t => {
+                const tabContent = document.getElementById(`journal${t.charAt(0).toUpperCase() + t.slice(1)}Tab`);
+                const tabBtn = document.getElementById(`journalTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (tabContent) tabContent.style.display = 'none';
+                if (tabBtn) {
+                    tabBtn.style.background = 'var(--bg)';
+                    tabBtn.style.color = 'var(--text)';
+                    tabBtn.style.border = '1px solid var(--border)';
+                }
+            });
+            
+            // 선택한 탭 표시
+            const selectedContent = document.getElementById(`journal${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`);
+            const selectedBtn = document.getElementById(`journalTab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+            if (selectedContent) selectedContent.style.display = 'block';
+            if (selectedBtn) {
+                selectedBtn.style.background = '#9b59b6';
+                selectedBtn.style.color = 'white';
+                selectedBtn.style.border = 'none';
+            }
+            
+            // 탭별 렌더링 호출
+            if (tab === 'encyclopedia') {
+                renderEncyclopedia();
+            } else if (tab === 'album') {
+                renderCollection();
+            } else if (tab === 'achievement') {
+                renderJournal();
+            }
         }
         
         // 일지 탭 렌더링
@@ -10754,19 +10807,22 @@
                         pauseMinigame();
                     }
                 } else if (tab === 'encyclopedia') {
+                    // 도감은 일지 탭의 서브탭으로 이동
                     document.querySelector('.tab:nth-child(6)').classList.add('active');
-                    document.getElementById('encyclopediaSection').classList.add('active');
-                    renderEncyclopedia();
+                    document.getElementById('journalSection').classList.add('active');
+                    switchJournalTab('encyclopedia');
                 } else if (tab === 'album') {
-                    document.querySelector('.tab:nth-child(7)').classList.add('active');
-                    document.getElementById('albumSection').classList.add('active');
-                    renderCollection();
+                    // 앨범은 일지 탭의 서브탭으로 이동
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
+                    document.getElementById('journalSection').classList.add('active');
+                    switchJournalTab('album');
                     // 튜토리얼2: 앨범 탭 열기 액션 체크
                     checkTutorialAction('openAlbum');
                 } else if (tab === 'journal') {
-                    document.querySelector('.tab:nth-child(8)').classList.add('active');
+                    document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('journalSection').classList.add('active');
-                    renderJournal();
+                    // 현재 서브탭 유지 또는 기본 도감 표시
+                    switchJournalTab(currentJournalTab || 'encyclopedia');
                     checkAchievements();
                 } else if (tab === 'settings') {
                     // 설정은 탭 바에 없으므로 active 처리 안함
