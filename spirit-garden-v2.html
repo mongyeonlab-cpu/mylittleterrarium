@@ -3487,6 +3487,8 @@
                 renderEncyclopedia();
             } else if (tab === 'album') {
                 renderCollection();
+                // 튜토리얼2: 앨범 탭 열기 액션 체크
+                checkTutorialAction('openAlbum');
             } else if (tab === 'achievement') {
                 renderJournal();
             }
@@ -10884,14 +10886,14 @@
                     document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('journalSection').classList.add('active');
                     switchJournalTab('album');
-                    // 튜토리얼2: 앨범 탭 열기 액션 체크
-                    checkTutorialAction('openAlbum');
                 } else if (tab === 'journal') {
                     document.querySelector('.tab:nth-child(6)').classList.add('active');
                     document.getElementById('journalSection').classList.add('active');
                     // 현재 서브탭 유지 또는 기본 도감 표시
                     switchJournalTab(currentJournalTab || 'encyclopedia');
                     checkAchievements();
+                    // 튜토리얼2: 일지 탭 열기 액션 체크
+                    checkTutorialAction('openJournal');
                 } else if (tab === 'settings') {
                     // 설정은 탭 바에 없으므로 active 처리 안함
                     document.getElementById('settingsSection').classList.add('active');
@@ -15000,7 +15002,10 @@
                     targetSelector = '#lightBtn';
                     break;
                 case 'openAlbum':
-                    targetSelector = '.tab:nth-child(7)';
+                    targetSelector = '#journalTabAlbum';
+                    break;
+                case 'openJournal':
+                    targetSelector = '.tab:nth-child(6)';
                     break;
                 case 'openAlbumDetail':
                     targetSelector = '.collection-card';
@@ -15076,8 +15081,13 @@
             },
             {
                 type: 'action',
+                action: 'openJournal',
+                text: '일지 탭을 눌러봐.'
+            },
+            {
+                type: 'action',
                 action: 'openAlbum',
-                text: '앨범 탭을 눌러봐.'
+                text: '이제 앨범 버튼을 눌러봐.'
             },
             {
                 type: 'dialog',
