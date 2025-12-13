@@ -5949,7 +5949,11 @@
                     attributeType: evolutionData.attributeType,
                     name: evolutionData.name,
                     icon: evolutionData.icon,
-                    desc: evolutionData.desc
+                    desc: evolutionData.desc,
+                    // 키워드 정보 (유전 및 앨범 표시용)
+                    statusKeywords: statusKeywords,
+                    inheritedKeywords: spirit.inheritedKeywords || [],
+                    allStatusKeywords: allStatusKeywords
                 });
                 
                 console.log('도감 등록:', encyclopediaKey, '카운트:', encyclopedia[encyclopediaKey]);
@@ -9122,7 +9126,11 @@
                         isFusion: detail.isFusion || false,
                         fusionRarity: detail.fusionRarity || null,
                         isRecovered: true,
-                        recoveredFromDetails: true // 상세 정보에서 복구됨
+                        recoveredFromDetails: true, // 상세 정보에서 복구됨
+                        // 키워드 정보 복구
+                        statusKeywords: detail.statusKeywords || [],
+                        inheritedKeywords: detail.inheritedKeywords || [],
+                        allStatusKeywords: detail.allStatusKeywords || []
                     };
                 }
             }
