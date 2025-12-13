@@ -3329,18 +3329,6 @@
             checkTutorialAction('getEgg');
         }
 
-        function showAppearance(spiritId) {
-            const spirit = spirits.find(s => s.id === spiritId);
-            if (!spirit) return;
-            
-            const appearance = getAppearanceDescription(spirit);
-            if (appearance) {
-                showNotification(`${spirit.name}의 모습: ${appearance}`);
-            } else {
-                showNotification(`${spirit.name}의 모습을 자세히 볼 수 없습니다.`);
-            }
-        }
-
         function changeName(spiritId) {
             currentSpiritId = spiritId;
             const spirit = spirits.find(s => s.id === spiritId);
@@ -6817,10 +6805,11 @@
                             `;
                         })()}
                         <div class="spirit-header">
-                            <div class="spirit-icon" onclick="showAppearance(${spirit.id})" style="cursor: pointer;">${icon}</div>
+                            <div class="spirit-icon">${icon}</div>
                             <div class="spirit-info">
                                 <div class="spirit-name" onclick="changeName(${spirit.id})">${spirit.name}</div>
                                 <div class="spirit-stage">${STAGE_NAMES[stage]}</div>
+                                ${appearance ? `<div style="font-size: 0.8rem; color: #666; margin-top: 6px; line-height: 1.4;">${appearance}</div>` : ''}
                             </div>
                         </div>
                         <div class="progress-bar">
