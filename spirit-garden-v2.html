@@ -15499,6 +15499,17 @@
             }
             
             localStorage.setItem('spiritGarden_tutorialSeen', 'true');
+            
+            // 최초 완료 시 보상 지급
+            if (!localStorage.getItem('spiritGarden_tutorialCompleted')) {
+                localStorage.setItem('spiritGarden_tutorialCompleted', 'true');
+                coins += 25;
+                saveGame();
+                updateCoinDisplay();
+                setTimeout(() => {
+                    showNotification('🎓 기본 튜토리얼 완료! +25💰');
+                }, 500);
+            }
         }
         
         // ===== 두 번째 튜토리얼 (첫 정령 완성 후) =====
@@ -15702,6 +15713,17 @@
             }
             
             localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
+            
+            // 최초 완료 시 보상 지급
+            if (!localStorage.getItem('spiritGarden_tutorial2Completed')) {
+                localStorage.setItem('spiritGarden_tutorial2Completed', 'true');
+                coins += 25;
+                saveGame();
+                updateCoinDisplay();
+                setTimeout(() => {
+                    showNotification('🎓 앨범 & 도감 튜토리얼 완료! +25💰');
+                }, 500);
+            }
         }
         
         // ===== 질병 튜토리얼 (첫 질병 발생 시) =====
@@ -16002,6 +16024,17 @@
             }
             
             localStorage.setItem('spiritGarden_sickTutorialSeen', 'true');
+            
+            // 최초 완료 시 보상 지급
+            if (!localStorage.getItem('spiritGarden_sickTutorialCompleted')) {
+                localStorage.setItem('spiritGarden_sickTutorialCompleted', 'true');
+                coins += 25;
+                saveGame();
+                updateCoinDisplay();
+                setTimeout(() => {
+                    showNotification('🎓 질병 튜토리얼 완료! +25💰');
+                }, 500);
+            }
         }
         
         // 질병 튜토리얼용 액션 체크
@@ -16439,6 +16472,17 @@
             }
             
             localStorage.setItem('spiritGarden_labTutorialSeen', 'true');
+            
+            // 최초 완료 시 보상 지급
+            if (!localStorage.getItem('spiritGarden_labTutorialCompleted')) {
+                localStorage.setItem('spiritGarden_labTutorialCompleted', 'true');
+                coins += 25;
+                saveGame();
+                updateCoinDisplay();
+                setTimeout(() => {
+                    showNotification('🎓 연구실 튜토리얼 완료! +25💰');
+                }, 500);
+            }
         }
         
         // 소지품 개수 체크 및 연구실 튜토리얼 시작
