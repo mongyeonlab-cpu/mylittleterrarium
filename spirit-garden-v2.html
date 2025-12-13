@@ -11497,6 +11497,251 @@
             checkLabTutorialAction('synthesize');
         }
         
+        // 합성 수량 선택 모달 열기
+        let currentSynthRecipeId = null;
+        let currentSynthMaxCount = 1;
+        
+        function openSynthesizeModal(recipeId, maxCount) {
+            currentSynthRecipeId = recipeId;
+            currentSynthMaxCount = maxCount;
+            
+            const recipe = RECIPES[recipeId];
+            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            
+            const modal = document.createElement('div');
+            modal.id = 'synthesizeModal';
+            const zIndex = getNextZIndex();
+            modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
+            modal.onclick = (e) => { if (e.target === modal) closeSynthesizeModal(); };
+            
+            modal.innerHTML = `
+                <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 350px; width: 90%; border: 2px solid var(--border);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <span style="font-size: 2.5rem;">${resultItem.icon}</span>
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; margin-top: 8px; font-size: 1.2rem;">${resultItem.name} 제작</h3>
+                        <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">1회 제작 시 ${recipe.result.count}개 획득</div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px;">
+                        <button onclick="setSynthCount(1)" style="padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); font-size: 0.85rem; cursor: pointer; border-radius: 4px;">최소</button>
+                        <button onclick="adjustSynthCount(-1)" style="width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--border); font-size: 1.4rem; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center;">−</button>
+                        <input type="number" id="synthCountInput" value="1" min="1" max="${maxCount}" 
+                               style="width: 70px; height: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; border: 2px solid #9b59b6; border-radius: 6px; background: var(--bg); color: var(--text);"
+                               onchange="validateSynthCount()">
+                        <button onclick="adjustSynthCount(1)" style="width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--border); font-size: 1.4rem; cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center;">+</button>
+                        <button onclick="setSynthCount(${maxCount})" style="padding: 8px 12px; background: #27ae60; color: white; border: none; font-size: 0.85rem; cursor: pointer; border-radius: 4px; font-weight: 600;">최대</button>
+                    </div>
+                    
+                    <div id="synthPreview" style="background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;">
+                        <!-- 미리보기 내용 -->
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="closeSynthesizeModal()" style="flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; border-radius: 6px;">취소</button>
+                        <button onclick="executeSynthesize()" style="flex: 1; padding: 12px; background: #9b59b6; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: 600;">🔮 제작</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            updateSynthPreview();
+        }
+        
+        function closeSynthesizeModal() {
+            const modal = document.getElementById('synthesizeModal');
+            if (modal) modal.remove();
+            currentSynthRecipeId = null;
+        }
+        
+        function adjustSynthCount(delta) {
+            const input = document.getElementById('synthCountInput');
+            let value = parseInt(input.value) || 1;
+            value = Math.max(1, Math.min(currentSynthMaxCount, value + delta));
+            input.value = value;
+            updateSynthPreview();
+        }
+        
+        function setSynthCount(value) {
+            const input = document.getElementById('synthCountInput');
+            input.value = Math.max(1, Math.min(currentSynthMaxCount, value));
+            updateSynthPreview();
+        }
+        
+        function validateSynthCount() {
+            const input = document.getElementById('synthCountInput');
+            let value = parseInt(input.value) || 1;
+            value = Math.max(1, Math.min(currentSynthMaxCount, value));
+            input.value = value;
+            updateSynthPreview();
+        }
+        
+        function updateSynthPreview() {
+            const preview = document.getElementById('synthPreview');
+            if (!preview || !currentSynthRecipeId) return;
+            
+            const recipe = RECIPES[currentSynthRecipeId];
+            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            const count = parseInt(document.getElementById('synthCountInput').value) || 1;
+            
+            const ing1 = recipe.ingredients[0];
+            const ing2 = recipe.ingredients[1];
+            const ing1Name = getItemName(ing1.type, ing1.category);
+            const ing2Name = getItemName(ing2.type, ing2.category);
+            
+            const totalResult = recipe.result.count * count;
+            const totalIng1 = ing1.count * count;
+            const totalIng2 = ing2.count * count;
+            
+            // 같은 재료인 경우 합쳐서 표시
+            let ingredientsHtml = '';
+            if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                // 같은 재료면 합산
+                ingredientsHtml = `<div>${ing1Name} ×${totalIng1 + totalIng2}</div>`;
+            } else {
+                // 다른 재료면 따로 표시
+                ingredientsHtml = `
+                    <div>${ing1Name} ×${totalIng1}</div>
+                    <div>${ing2Name} ×${totalIng2}</div>
+                `;
+            }
+            
+            preview.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #888;">소모 재료:</span>
+                </div>
+                <div style="margin-left: 10px; margin-bottom: 8px;">
+                    ${ingredientsHtml}
+                </div>
+                <div style="border-top: 1px solid var(--border); padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #888;">획득:</span>
+                    <span style="font-weight: 700; color: #9b59b6; font-size: 1.1rem;">${resultItem.icon} ${resultItem.name} ×${totalResult}</span>
+                </div>
+            `;
+        }
+        
+        function executeSynthesize() {
+            if (!currentSynthRecipeId) return;
+            
+            const count = parseInt(document.getElementById('synthCountInput').value) || 1;
+            quickSynthesize(currentSynthRecipeId, count);
+            closeSynthesizeModal();
+        }
+        
+        // n회 즉시 합성 (내부 함수)
+        function quickSynthesize(recipeId, times) {
+            const recipe = RECIPES[recipeId];
+            if (!recipe) {
+                showNotification('레시피를 찾을 수 없습니다');
+                return;
+            }
+            
+            const ing1 = recipe.ingredients[0];
+            const ing2 = recipe.ingredients[1];
+            
+            // 재료 보유량 체크
+            const ing1Count = countInventoryItem(ing1.type, ing1.category);
+            const ing2Count = countInventoryItem(ing2.type, ing2.category);
+            
+            // 최대 합성 가능 횟수 계산 (같은 재료인 경우 합산해서 계산)
+            let maxCraftCount;
+            if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                // 같은 재료: 총 필요량으로 계산
+                const totalNeeded = ing1.count + ing2.count;
+                maxCraftCount = Math.floor(ing1Count / totalNeeded);
+            } else {
+                // 다른 재료: 각각 계산
+                const maxCraft1 = Math.floor(ing1Count / ing1.count);
+                const maxCraft2 = Math.floor(ing2Count / ing2.count);
+                maxCraftCount = Math.min(maxCraft1, maxCraft2);
+            }
+            
+            // 실제 합성 횟수
+            const actualTimes = Math.min(times, maxCraftCount);
+            
+            if (actualTimes <= 0) {
+                showNotification('⚠️ 재료가 부족합니다');
+                return;
+            }
+            
+            // 재료 차감 (같은 재료인 경우 합산해서 차감)
+            if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                // 같은 재료: 합산해서 한 번에 차감
+                const totalToRemove = (ing1.count + ing2.count) * actualTimes;
+                if (ing1.category === 'food') {
+                    for (let i = 0; i < totalToRemove; i++) {
+                        const idx = inventory.food.indexOf(ing1.type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (ing1.category === 'decoration') {
+                    for (let i = 0; i < totalToRemove; i++) {
+                        const idx = inventory.decorations.indexOf(ing1.type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+            } else {
+                // 다른 재료: 각각 차감
+                const ing1Total = ing1.count * actualTimes;
+                const ing2Total = ing2.count * actualTimes;
+                
+                if (ing1.category === 'food') {
+                    for (let i = 0; i < ing1Total; i++) {
+                        const idx = inventory.food.indexOf(ing1.type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (ing1.category === 'decoration') {
+                    for (let i = 0; i < ing1Total; i++) {
+                        const idx = inventory.decorations.indexOf(ing1.type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+                
+                if (ing2.category === 'food') {
+                    for (let i = 0; i < ing2Total; i++) {
+                        const idx = inventory.food.indexOf(ing2.type);
+                        if (idx !== -1) inventory.food.splice(idx, 1);
+                    }
+                } else if (ing2.category === 'decoration') {
+                    for (let i = 0; i < ing2Total; i++) {
+                        const idx = inventory.decorations.indexOf(ing2.type);
+                        if (idx !== -1) inventory.decorations.splice(idx, 1);
+                    }
+                }
+            }
+            
+            // 결과물 추가
+            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            const totalResult = recipe.result.count * actualTimes;
+            
+            for (let i = 0; i < totalResult; i++) {
+                if (resultItem.type === 'food') {
+                    inventory.food.push(recipe.result.type);
+                } else if (resultItem.type === 'decoration') {
+                    inventory.decorations.push(recipe.result.type);
+                }
+            }
+            
+            // 레시피 발견 기록
+            if (!discoveredRecipes.includes(recipeId)) {
+                discoveredRecipes.push(recipeId);
+            }
+            
+            // 슬롯 초기화 (혹시 무언가 있을 경우)
+            labSlot1 = null;
+            labSlot2 = null;
+            
+            // UI 업데이트
+            updateLabUI();
+            checkRecipe();
+            renderInventory();
+            applyRecipeFilters(); // 현재 필터 유지하면서 레시피 목록 갱신
+            saveGame();
+            
+            showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${totalResult} 합성 성공! (${actualTimes}회)`);
+            
+            // 연구실 튜토리얼: 합성 액션 체크
+            checkLabTutorialAction('synthesize');
+        }
+        
         // 레시피 목록 렌더링
         function renderRecipeList(categoryFilter = 'all', attrFilter = 'all', qualityFilter = 'all') {
             const container = document.getElementById('recipeList');
@@ -11547,10 +11792,23 @@
                 const ing1Icon = getItemIcon(ing1.type, ing1.category);
                 const ing2Icon = getItemIcon(ing2.type, ing2.category);
                 
-                // 재료 보유량 체크
+                // 재료 보유량 체크 (같은 재료인 경우 합산해서 계산)
                 const ing1Count = countInventoryItem(ing1.type, ing1.category);
                 const ing2Count = countInventoryItem(ing2.type, ing2.category);
-                const canCraft = ing1Count >= ing1.count && ing2Count >= ing2.count;
+                
+                let canCraft, maxCraftCount;
+                if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                    // 같은 재료: 총 필요량으로 계산
+                    const totalNeeded = ing1.count + ing2.count;
+                    canCraft = ing1Count >= totalNeeded;
+                    maxCraftCount = Math.floor(ing1Count / totalNeeded);
+                } else {
+                    // 다른 재료: 각각 계산
+                    canCraft = ing1Count >= ing1.count && ing2Count >= ing2.count;
+                    const maxCraft1 = Math.floor(ing1Count / ing1.count);
+                    const maxCraft2 = Math.floor(ing2Count / ing2.count);
+                    maxCraftCount = Math.min(maxCraft1, maxCraft2);
+                }
                 
                 // 효과 텍스트
                 let effectText = '';
@@ -11572,13 +11830,35 @@
                     effectText = `${resultItem.attr} +${resultItem.power} (${resultItem.quality})`;
                 }
                 
-                // 재료 보유량 표시
-                const ing1Status = ing1Count >= ing1.count ? `<span style="color: #27ae60;">${ing1Count}</span>` : `<span style="color: #e74c3c;">${ing1Count}</span>`;
-                const ing2Status = ing2Count >= ing2.count ? `<span style="color: #27ae60;">${ing2Count}</span>` : `<span style="color: #e74c3c;">${ing2Count}</span>`;
+                // 재료 보유량 표시 (같은 재료인 경우 합쳐서 표시)
+                let ingredientDisplay;
+                if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                    // 같은 재료: 합산해서 표시
+                    const totalNeeded = ing1.count + ing2.count;
+                    const statusColor = ing1Count >= totalNeeded ? '#27ae60' : '#e74c3c';
+                    ingredientDisplay = `${ing1Icon} ${ing1Name} ×${totalNeeded} (<span style="color: ${statusColor};">${ing1Count}</span>)`;
+                } else {
+                    // 다른 재료: 따로 표시
+                    const ing1Status = ing1Count >= ing1.count ? `<span style="color: #27ae60;">${ing1Count}</span>` : `<span style="color: #e74c3c;">${ing1Count}</span>`;
+                    const ing2Status = ing2Count >= ing2.count ? `<span style="color: #27ae60;">${ing2Count}</span>` : `<span style="color: #e74c3c;">${ing2Count}</span>`;
+                    ingredientDisplay = `${ing1Icon} ${ing1Name} ×${ing1.count} (${ing1Status}) + ${ing2Icon} ${ing2Name} ×${ing2.count} (${ing2Status})`;
+                }
                 
                 // 결과물 보유량
                 const resultCategory = resultItem.type === 'decoration' ? 'decoration' : 'food';
                 const resultCount = countInventoryItem(recipe.result.type, resultCategory);
+                
+                // 제작 버튼 (제작 가능할 때만)
+                let craftButton = '';
+                if (canCraft) {
+                    craftButton = `
+                        <div style="margin-top: 8px;" onclick="event.stopPropagation();">
+                            <button onclick="openSynthesizeModal('${recipeId}', ${maxCraftCount})" style="width: 100%; padding: 8px; background: #9b59b6; color: white; border: none; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                                🔮 제작하기 (최대 ${maxCraftCount}회)
+                            </button>
+                        </div>
+                    `;
+                }
                 
                 html += `
                     <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
@@ -11592,14 +11872,13 @@
                             ${canCraft ? '<span style="margin-left: auto; font-size: 0.75rem; background: #27ae60; color: white; padding: 2px 6px;">제작 가능</span>' : ''}
                         </div>
                         <div style="font-size: 0.85rem; color: #888; margin-bottom: 5px;">
-                            ${ing1Icon} ${ing1Name} ×${ing1.count} (${ing1Status}) + ${ing2Icon} ${ing2Name} ×${ing2.count} (${ing2Status})
+                            ${ingredientDisplay}
                         </div>
                         <div style="font-size: 0.8rem; color: #9b59b6;">
                             효과: ${effectText}
                         </div>
-                        <div style="font-size: 0.75rem; color: #888; margin-top: 5px; text-align: center;">
-                            👆 클릭하여 자동 배치
-                        </div>
+                        ${craftButton}
+                        ${!canCraft ? `<div style="font-size: 0.75rem; color: #888; margin-top: 5px; text-align: center;">👆 클릭하여 자동 배치</div>` : ''}
                     </div>
                 `;
             });
@@ -11630,18 +11909,32 @@
             const ing1 = recipe.ingredients[0];
             const ing2 = recipe.ingredients[1];
             
-            // 재료 보유량 체크
+            // 재료 보유량 체크 (같은 재료인 경우 합산해서 계산)
             const ing1Count = countInventoryItem(ing1.type, ing1.category);
             const ing2Count = countInventoryItem(ing2.type, ing2.category);
             
-            if (ing1Count < ing1.count || ing2Count < ing2.count) {
-                const ing1Name = getItemName(ing1.type, ing1.category);
-                const ing2Name = getItemName(ing2.type, ing2.category);
-                let missing = [];
-                if (ing1Count < ing1.count) missing.push(`${ing1Name} ${ing1.count - ing1Count}개`);
-                if (ing2Count < ing2.count) missing.push(`${ing2Name} ${ing2.count - ing2Count}개`);
-                showNotification(`⚠️ 재료 부족: ${missing.join(', ')}`);
-                return;
+            let hasEnough;
+            if (ing1.type === ing2.type && ing1.category === ing2.category) {
+                // 같은 재료: 총 필요량으로 체크
+                const totalNeeded = ing1.count + ing2.count;
+                hasEnough = ing1Count >= totalNeeded;
+                if (!hasEnough) {
+                    const ing1Name = getItemName(ing1.type, ing1.category);
+                    showNotification(`⚠️ 재료 부족: ${ing1Name} ${totalNeeded - ing1Count}개`);
+                    return;
+                }
+            } else {
+                // 다른 재료: 각각 체크
+                hasEnough = ing1Count >= ing1.count && ing2Count >= ing2.count;
+                if (!hasEnough) {
+                    const ing1Name = getItemName(ing1.type, ing1.category);
+                    const ing2Name = getItemName(ing2.type, ing2.category);
+                    let missing = [];
+                    if (ing1Count < ing1.count) missing.push(`${ing1Name} ${ing1.count - ing1Count}개`);
+                    if (ing2Count < ing2.count) missing.push(`${ing2Name} ${ing2.count - ing2Count}개`);
+                    showNotification(`⚠️ 재료 부족: ${missing.join(', ')}`);
+                    return;
+                }
             }
             
             // 슬롯에 정보만 기록 (인벤토리 차감은 합성 시점에)
@@ -11656,8 +11949,7 @@
             applyRecipeFilters();
             saveGame();
             
-            const resultItem = SYNTH_ITEMS[recipe.result.type];
-            showNotification(`✨ ${resultItem.name} 레시피 자동 배치 완료!`);
+            // 팝업 없이 조용히 배치 (UI로 확인 가능)
         }
         
         // 레시피 필터 적용
