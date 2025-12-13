@@ -3309,6 +3309,7 @@
                 coins = data.coins || 0;
                 lastGatherTime = data.lastGatherTime || null;
                 currentTitle = data.currentTitle || 'none';
+                currentGatherLocation = data.currentGatherLocation || 'garden';
                 isPaused = data.isPaused || false;
                 darkModeLocked = data.darkModeLocked || false;
                 activatedEvents = data.activatedEvents || [];
@@ -8846,36 +8847,64 @@
                 return null;
             }
             
-            // 수식어 없는 정령 (nostat-{attr})
+            // 수식어 없는 정령 (nostat-{attr}-{wingType})
             if (encyclopediaKey.startsWith('nostat-')) {
-                const attrType = encyclopediaKey.replace('nostat-', '');
+                const keyParts = encyclopediaKey.replace('nostat-', '').split('-');
+                let attrType, wingType;
+                
+                if (keyParts.length >= 2) {
+                    // 새 형식: nostat-fire-butterfly
+                    wingType = keyParts.pop(); // 마지막은 wingType
+                    attrType = keyParts.join('-'); // 나머지는 속성 (복합속성 대응)
+                } else {
+                    // 구 형식: nostat-fire
+                    attrType = keyParts[0];
+                    wingType = 'butterfly'; // 기본값
+                }
+                
                 const attrData = ATTRIBUTE_NAMES[attrType];
                 if (attrData) {
+                    const attrIcon = typeof attrData.icon === 'object' ? attrData.icon[wingType] || attrData.icon.butterfly : attrData.icon;
                     return {
                         ...baseSpirit,
                         type: 'nostat',
                         attributeType: attrType,
-                        name: `${attrData.name} 정령`,
-                        icon: attrData.icon,
+                        name: `${attrData.name}`,
+                        icon: attrIcon,
                         desc: '(복구된 정령)',
+                        wingType: wingType,
                         parameters: { intelligence: 10, strength: 10, charm: 10, affection: 50 }
                     };
                 }
                 return null;
             }
             
-            // 일반 정령 (statType-level-attrType)
+            // 일반 정령 (statType-level-attrType-wingType)
             const parts = encyclopediaKey.split('-');
             if (parts.length >= 2) {
-                let statType, level, attrType;
+                let statType, level, attrType, wingType;
+                
+                // 마지막이 butterfly 또는 moth면 wingType
+                const lastPart = parts[parts.length - 1];
+                if (lastPart === 'butterfly' || lastPart === 'moth') {
+                    wingType = parts.pop();
+                } else {
+                    wingType = 'butterfly'; // 기본값
+                }
                 
                 if (parts.length === 3) {
                     // statType-level-attrType
                     [statType, level, attrType] = parts;
                 } else if (parts.length === 2) {
-                    // statType-attrType (레벨 없음)
-                    [statType, attrType] = parts;
-                    level = 'mid';
+                    // statType-attrType (레벨 없음) 또는 sage-attrType
+                    if (parts[0] === 'sage') {
+                        statType = 'sage';
+                        attrType = parts[1];
+                        level = null;
+                    } else {
+                        [statType, attrType] = parts;
+                        level = 'mid';
+                    }
                 } else if (parts.length === 4) {
                     // 복합 속성: statType-level-attr1-attr2
                     statType = parts[0];
@@ -8883,7 +8912,7 @@
                     attrType = `${parts[2]}-${parts[3]}`;
                 }
                 
-                const evolutionKey = `${statType}-${level}`;
+                const evolutionKey = level ? `${statType}-${level}` : statType;
                 const evolution = EVOLUTION_TYPES[evolutionKey];
                 const attrData = ATTRIBUTE_NAMES[attrType];
                 
@@ -8903,13 +8932,16 @@
                         params.charm = 100;
                     }
                     
+                    const attrIcon = typeof attrData.icon === 'object' ? attrData.icon[wingType] || attrData.icon.butterfly : attrData.icon;
+                    
                     return {
                         ...baseSpirit,
                         type: evolutionKey,
                         attributeType: attrType,
-                        name: `${evolution.prefix} ${attrData.name} 정령`,
-                        icon: evolution.icon,
+                        name: `${evolution.prefix} ${attrData.name}`,
+                        icon: `${evolution.icon}${attrIcon}`,
                         desc: '(복구된 정령)',
+                        wingType: wingType,
                         parameters: params
                     };
                 }
@@ -9725,8 +9757,10 @@
                     name: parent.name,
                     type: parentType,
                     attribute: parent.attribute,
+                    attributeType: parent.attributeType,
                     parameters: { ...parent.parameters },
                     attributes: { ...parent.attributes },
+                    wingType: parent.wingType || 'butterfly',
                     completedAt: new Date().toISOString(),
                     fusedAway: true // 합성으로 떠남 표시
                 });
@@ -12078,7 +12112,9 @@
                 activatedEvents: activatedEvents,
                 hasVisitedShop: hasVisitedShop,
                 currentTitle: currentTitle,
-                achievements: achievements
+                achievements: achievements,
+                lastGatherTime: lastGatherTime,
+                currentGatherLocation: currentGatherLocation
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
             };
             
@@ -12266,6 +12302,14 @@
             
             collection = gameData.collection || [];
             encyclopedia = gameData.encyclopedia || {};
+            
+            // 도감 데이터 형식 통일 (객체 → 숫자)
+            Object.keys(encyclopedia).forEach(key => {
+                if (typeof encyclopedia[key] === 'object' && encyclopedia[key] !== null) {
+                    encyclopedia[key] = encyclopedia[key].count || 1;
+                }
+            });
+            
             inventory = gameData.inventory || { food: [], music: [], decorations: [], medicine: [] };
             coins = gameData.coins || 0;
             terrarium = gameData.terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
@@ -12275,10 +12319,13 @@
             darkModeLocked = gameData.darkModeLocked || false;
             lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
             discoveredRecipes = gameData.discoveredRecipes || [];
-            lockedItems = gameData.lockedItems || { food: [], decorations: [] };
+            lockedItems = gameData.lockedItems || { food: [], decorations: [], music: [] };
+            if (!lockedItems.music) lockedItems.music = []; // 기존 세이브 호환
             encyclopediaDetails = gameData.encyclopediaDetails || {};
             activatedEvents = gameData.activatedEvents || [];
             hasVisitedShop = gameData.hasVisitedShop || false;
+            lastGatherTime = gameData.lastGatherTime || null;
+            currentGatherLocation = gameData.currentGatherLocation || 'garden';
             currentTitle = gameData.currentTitle || 'none';
             achievements = gameData.achievements || {};
             
