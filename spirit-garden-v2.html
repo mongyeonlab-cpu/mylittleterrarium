@@ -2110,7 +2110,8 @@
             jazz: { name: '재즈 🎷', icon: '🎷', effect: '매력 +10' },
             rock: { name: '록 🎸', icon: '🎸', effect: '체력 +10' },
             pop: { name: '팝 🎤', icon: '🎤', effect: '지력 +5, 매력 +5' },
-            ballad: { name: '발라드 🎹', icon: '🎹', effect: '체력 +5, 매력 +5' }
+            ballad: { name: '발라드 🎹', icon: '🎹', effect: '체력 +5, 매력 +5' },
+            edm: { name: 'EDM 🎧', icon: '🎧', effect: '지력 +5, 체력 +5' }
         };
 
         const DECORATION_TYPES = {
@@ -3121,7 +3122,7 @@
                 
                 // 잘못된 음악 키 제거 (quest, lullaby 등 → classic, jazz 등)
                 if (inventory.music) {
-                    const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                    const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
                     // 이벤트 음악도 유효한 키에 추가
                     const eventMusicKeys = Object.keys(EVENT_ITEMS).filter(key => EVENT_ITEMS[key].type === 'music');
                     const allValidMusicKeys = [...validMusicKeys, ...eventMusicKeys];
@@ -4138,7 +4139,7 @@
             const normalMusic = [];
             
             // 일반 음악 순서
-            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
             musicOrder.forEach(type => {
                 if (musicCounts[type]) {
                     normalMusic.push([type, musicCounts[type]]);
@@ -4270,6 +4271,9 @@
             } else if (musicType === 'ballad') {
                 spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus);
                 spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus);
+            } else if (musicType === 'edm') {
+                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus);
+                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus);
             }
 
             // 애정도 증가 (만족도 높으면 +1 보너스)
@@ -4960,7 +4964,7 @@
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
                 let musicHTML = musicOrder
                     .filter(type => musicCounts[type])
                     .map(type => `
@@ -7408,7 +7412,7 @@
                         musicCounts[m] = (musicCounts[m] || 0) + 1;
                     });
 
-                    const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad'];
+                    const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
                     musicOrder.filter(type => musicCounts[type]).forEach(type => {
                         const musicData = MUSIC_TYPES[type];
                         
@@ -7416,9 +7420,9 @@
                         if (sellFilter === 'all') {
                             // 전체 보기일 때는 필터링 안 함
                         } else if (sellFilter === 'intelligence') {
-                            if (!['classic', 'pop'].includes(type)) return;
+                            if (!['classic', 'pop', 'edm'].includes(type)) return;
                         } else if (sellFilter === 'strength') {
-                            if (!['rock', 'ballad'].includes(type)) return;
+                            if (!['rock', 'ballad', 'edm'].includes(type)) return;
                         } else if (sellFilter === 'charm') {
                             if (!['jazz', 'pop', 'ballad'].includes(type)) return;
                         } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) {
@@ -7710,8 +7714,8 @@
                 (buyFilter === 'all' || ['intelligence', 'strength', 'charm'].includes(buyFilter))) {
                 Object.keys(MUSIC_TYPES).forEach(type => {
                     // 스탯별 필터링 (복합 스탯 음악도 해당 필터에 표시)
-                    if (buyFilter === 'intelligence' && !['classic', 'pop'].includes(type)) return;
-                    if (buyFilter === 'strength' && !['rock', 'ballad'].includes(type)) return;
+                    if (buyFilter === 'intelligence' && !['classic', 'pop', 'edm'].includes(type)) return;
+                    if (buyFilter === 'strength' && !['rock', 'ballad', 'edm'].includes(type)) return;
                     if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
                     
                     const musicData = MUSIC_TYPES[type];
