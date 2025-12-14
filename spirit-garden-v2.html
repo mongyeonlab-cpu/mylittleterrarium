@@ -15653,6 +15653,11 @@
 
         // 1초마다 버튼 상태 및 정령 상태 체크
         setInterval(() => {
+            if (isPaused) {
+                // 일시정지 중에는 채집 버튼만 업데이트
+                updateGatherButton();
+                return;
+            }
             checkSpiritStatus();
             // garden 탭이 활성화된 경우에만 카드 업데이트
             if (currentTab === 'garden') {
@@ -15666,11 +15671,13 @@
 
         // 1분마다 성장도 증가
         setInterval(() => {
+            if (isPaused) return; // 이중 체크
             applyGrowth();
         }, 60000);  // 60000ms = 1분
 
         // 5분마다 테라리움 환경 효과 적용
         setInterval(() => {
+            if (isPaused) return; // 이중 체크
             applyTerrariumGrowth();
         }, 300000);  // 300000ms = 5분
 
@@ -16153,13 +16160,16 @@
         function toggleTutorialCollapse() {
             tutorialCollapsed = !tutorialCollapsed;
             const content = document.getElementById('tutorialContent');
+            const image = document.getElementById('tutorialImage');
             const toggleBtn = document.getElementById('tutorialToggleBtn');
             
             if (tutorialCollapsed) {
                 content.style.display = 'none';
+                if (image) image.style.display = 'none';
                 toggleBtn.textContent = '▼ 펼치기';
             } else {
                 content.style.display = 'block';
+                if (image) image.style.display = 'block';
                 toggleBtn.textContent = '▲ 접기';
             }
         }
@@ -16184,13 +16194,13 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img id="tutorialImage" src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #555;">선배</span>
                             <div style="display: flex; gap: 6px;">
                                 <button onclick="skipTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
-                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
                                     ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
                                 </button>
                             </div>
@@ -16232,13 +16242,13 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img id="tutorialImage" src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배</span>
                             <div style="display: flex; gap: 6px;">
                                 <button onclick="skipTutorial()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
-                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
                                     ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
                                 </button>
                             </div>
@@ -16482,13 +16492,13 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img id="tutorialImage" src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #555;">선배</span>
                             <div style="display: flex; gap: 6px;">
                                 <button onclick="skipTutorial2()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
-                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
                                     ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
                                 </button>
                             </div>
@@ -16529,13 +16539,13 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img id="tutorialImage" src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${tutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${tutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배</span>
                             <div style="display: flex; gap: 6px;">
                                 <button onclick="skipTutorial2()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">건너뛰기</button>
-                                <button onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                                <button id="tutorialToggleBtn" onclick="toggleTutorialCollapse()" style="padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
                                     ${tutorialCollapsed ? '▼ 펼치기' : '▲ 접기'}
                                 </button>
                             </div>
@@ -16723,7 +16733,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${sickTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배</span>
@@ -16770,7 +16780,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/NxGyLzK.png" alt="상점 주인" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/NxGyLzK.png" alt="상점 주인" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${sickTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #888;">상점 주인</span>
@@ -16817,7 +16827,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${sickTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${sickTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배</span>
@@ -17019,7 +17029,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${imbalanceTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${imbalanceTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #f39c12;">선배</span>
@@ -17238,7 +17248,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${labTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${labTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #555;">선배</span>
@@ -17285,7 +17295,7 @@
             
             modal.innerHTML = `
                 <div style="display: flex; gap: 15px; align-items: flex-start;">
-                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0;">
+                    <img src="https://i.imgur.com/KSl4CWY.png" alt="선배" style="width: 150px; height: 150px; object-fit: cover; flex-shrink: 0; display: ${labTutorialCollapsed ? 'none' : 'block'};">
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${labTutorialCollapsed ? '0' : '10px'};">
                             <span style="font-size: 1rem; font-weight: 600; color: #555;">선배</span>
