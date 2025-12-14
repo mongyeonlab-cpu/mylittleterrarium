@@ -1164,40 +1164,10 @@
             <!-- 튜토리얼 다시보기 -->
             <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">📖 튜토리얼 다시보기</h3>
-                <p style="font-size: 0.9rem; color: #888; margin-bottom: 16px;">게임 플레이에 도움이 되는 튜토리얼을 다시 볼 수 있습니다.</p>
+                <p style="font-size: 0.9rem; color: #888; margin-bottom: 16px;">게임 플레이에 도움이 되는 튜토리얼을 다시 볼 수 있습니다. 튜토리얼을 끝까지 완료하면 보상을 받을 수 있습니다.</p>
                 
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button onclick="replayTutorial('basic')" style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.5rem;">🥚</span>
-                        <div>
-                            <div>기본 튜토리얼</div>
-                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령 육성의 기초를 배웁니다</div>
-                        </div>
-                    </button>
-                    
-                    <button onclick="replayTutorial('album')" style="padding: 16px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.5rem;">💝</span>
-                        <div>
-                            <div>앨범 & 도감 튜토리얼</div>
-                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령 완성 후 앨범과 도감 사용법</div>
-                        </div>
-                    </button>
-                    
-                    <button onclick="replayTutorial('sick')" style="padding: 16px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.5rem;">💊</span>
-                        <div>
-                            <div>질병 튜토리얼</div>
-                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">정령이 아플 때 치료하는 방법</div>
-                        </div>
-                    </button>
-                    
-                    <button onclick="replayTutorial('lab')" style="padding: 16px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 1.5rem;">🔬</span>
-                        <div>
-                            <div>연구실 튜토리얼</div>
-                            <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">합성과 교배 시스템 사용법</div>
-                        </div>
-                    </button>
+                <div id="tutorialReplayList" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 동적으로 렌더링됨 -->
                 </div>
             </div>
         </div>
@@ -1234,7 +1204,7 @@
                     </button>
                     
                     <button onclick="repairBrokenSpirits()" style="padding: 14px; background: #9b59b6; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer;">
-                        교배 정령 관리
+                        연결 정령 관리
                     </button>
                 </div>
                 
@@ -2911,7 +2881,7 @@
             // 연모 관계
             const lover = getLover(spirit);
             if (lover) {
-                keywords.push({ text: `연모 : ${lover.name}`, color: '#e91e63', desc: `${lover.name}에게 연모의 감정을 느끼고 있습니다. 둘 다 성장을 마치면 교배알이 생길 수 있습니다.` });
+                keywords.push({ text: `연모 : ${lover.name}`, color: '#e91e63', desc: `${lover.name}에게 연모의 감정을 느끼고 있습니다. 둘 다 성장을 마치면 연결 알이 생길 수 있습니다.` });
             }
             
             // 앙숙 관계 (호감도 0 미만)
@@ -3026,7 +2996,7 @@
             'fusion-chaos-king': { name: '엔트로피아', icon: '🌪️👑', desc: '두 혼돈의 정령이 합쳐져 탄생한 무질서의 왕.', recipe: ['multi', 'multi'], rarity: 'legendary' },
             'fusion-balance-chaos': { name: '듀얼리티', icon: '⚖️🌪️', desc: '조화와 혼돈이 합쳐져 탄생한 이원성의 정령.', recipe: ['balanced', 'multi'], rarity: 'legendary' },
             
-            // 전설 정령 교배
+            // 전설 정령 연결
             'fusion-oblivion': { name: '오블리비온', icon: '🦋🌌', desc: '정령의 군주들 사이에서 태어난 망각의 정령.', recipe: ['titania', 'oberon'], rarity: 'mythic' }
         };
         
@@ -3609,6 +3579,8 @@
                 checkTutorialAction('openAlbum');
             } else if (tab === 'achievement') {
                 renderJournal();
+            } else if (tab === 'help') {
+                renderTutorialReplayList();
             }
         }
         
@@ -5345,7 +5317,7 @@
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
             
-            // 교배로 태어난 정령인 경우 코드 반환 옵션 제공
+            // 연결로 태어난 정령인 경우 코드 반환 옵션 제공
             if (spirit.isBred && spirit.breedCode) {
                 showBreedDeleteConfirm(spirit);
             } else {
@@ -5358,24 +5330,24 @@
         }
         
         async function showBreedDeleteConfirm(spirit) {
-            // 교배 정령 삭제 시 선택지 제공
+            // 연결 정령 삭제 시 선택지 제공
             const modal = document.createElement('div');
             modal.className = 'modal active';
             modal.id = 'breedDeleteModal';
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 400px;">
-                    <h3 style="margin-bottom: 16px;">🥚 교배 정령 보내기</h3>
-                    <p style="margin-bottom: 8px;">${spirit.name}은(는) 교배로 태어난 정령입니다.</p>
+                    <h3 style="margin-bottom: 16px;">🥚 연결 정령 보내기</h3>
+                    <p style="margin-bottom: 8px;">${spirit.name}은(는) 연결로 태어난 정령입니다.</p>
                     <p style="color: #888; font-size: 0.9rem; margin-bottom: 20px;">보내기 방식을 선택해주세요.</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <button onclick="deleteSpirit(${spirit.id}, false); closeBreedDeleteModal();" style="padding: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
                             🌿 그냥 보내기<br>
-                            <span style="font-size: 0.8rem; color: #888;">교배 코드는 사용된 상태로 유지</span>
+                            <span style="font-size: 0.8rem; color: #888;">연결 코드는 사용된 상태로 유지</span>
                         </button>
                         <button onclick="deleteSpirit(${spirit.id}, true); closeBreedDeleteModal();" style="padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; cursor: pointer;">
                             🔄 코드 반환하고 보내기<br>
-                            <span style="font-size: 0.85rem; opacity: 0.9;">교배 코드를 다시 사용 가능하게</span>
+                            <span style="font-size: 0.85rem; opacity: 0.9;">연결 코드를 다시 사용 가능하게</span>
                         </button>
                         <button onclick="closeBreedDeleteModal();" style="padding: 10px; background: transparent; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: #888;">
                             취소
@@ -5395,7 +5367,7 @@
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
             
-            // 교배 코드 반환 처리
+            // 연결 코드 반환 처리
             if (returnBreedCode && spirit.breedCode) {
                 // 앨범에서도 해당 코드 사용 기록 제거
                 if (collection) {
@@ -5405,7 +5377,7 @@
                         }
                     });
                 }
-                showNotification('🔄 교배 코드가 반환되었습니다. 다시 사용 가능합니다!');
+                showNotification('🔄 연결 코드가 반환되었습니다. 다시 사용 가능합니다!');
             }
             
             spirits = spirits.filter(s => s.id !== spiritId);
@@ -5627,7 +5599,7 @@
                 }
             }
             
-            // 교배 정령 전용 진화 (100% 확률)
+            // 연결 정령 전용 진화 (100% 확률)
             if (spirit.isBred && spirit.fusionType && FUSION_TYPES[spirit.fusionType]) {
                 const fusion = FUSION_TYPES[spirit.fusionType];
                 spirit.isCompleted = true;
@@ -5691,7 +5663,7 @@
                 // 앨범 추가 및 정령 제거를 위한 확인창
                 showConfirm(
                     '합성 정령 완성',
-                    `🧬 ${fusion.name}이(가) 완성되었습니다!\n교배의 힘이 발현되었어요!`,
+                    `🧬 ${fusion.name}이(가) 완성되었습니다!\n연결의 힘이 발현되었어요!`,
                     () => {
                         // 앨범에 추가
                         collection.push({
@@ -6460,21 +6432,21 @@
                 
                 ${keywordsHtml}
                 
-                <!-- 교배 섹션 -->
+                <!-- 연결 섹션 -->
                 <div id="breedSection" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 15px; border-radius: 8px; border: 1px solid rgba(102, 126, 234, 0.3);">
-                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🧬 교배</h3>
+                    <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--text);">🧬 연결</h3>
                     ${canBreed ? `
-                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유해 다른 정령과 교배할 수 있어요.</p>
+                        <p style="font-size: 0.85rem; color: #888; margin-bottom: 12px;">이 정령의 코드를 공유해 다른 정령과 연결할 수 있어요.</p>
                         <div style="display: flex; gap: 8px;">
                             <button onclick="openBreedCodeModal(${index})" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
                                 📤 코드 생성
                             </button>
                             <button onclick="openBreedWithCodeModal(${index})" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #11998e, #38ef7d); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
-                                📥 교배하기
+                                📥 연결하기
                             </button>
                         </div>
                     ` : `
-                        <p style="font-size: 0.85rem; color: #e74c3c;">❤️ 애정도 50 이상이어야 교배할 수 있습니다. (현재: ${affection})</p>
+                        <p style="font-size: 0.85rem; color: #e74c3c;">❤️ 애정도 50 이상이어야 연결할 수 있습니다. (현재: ${affection})</p>
                     `}
                 </div>
             `;
@@ -6482,7 +6454,7 @@
             modal.style.display = 'flex';
         }
         
-        // 교배 코드 생성 모달
+        // 연결 코드 생성 모달
         function openBreedCodeModal(albumIndex) {
             const item = collection[albumIndex];
             if (!item) return;
@@ -6492,7 +6464,7 @@
                 ...item,
                 id: item.id || `album-${albumIndex}`,
                 attributes: item.hiddenAttributes || {},
-                albumIndex: albumIndex  // 자기 자신 교배 방지용
+                albumIndex: albumIndex  // 자기 자신 연결 방지용
             };
             
             const code = encodeSpiritData(spiritForCode);
@@ -6503,7 +6475,7 @@
             modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
             modal.innerHTML = `
                 <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 400px; width: 90%; border: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 16px;">📤 교배 코드 생성</h3>
+                    <h3 style="margin-bottom: 16px;">📤 연결 코드 생성</h3>
                     <div style="text-align: center; margin-bottom: 16px;">
                         <div style="font-size: 2.5rem;">${item.icon}</div>
                         <div style="font-weight: 700;">${item.name}</div>
@@ -6535,7 +6507,7 @@
             if (modal) modal.remove();
         }
         
-        // 교배하기 모달
+        // 연결하기 모달
         function openBreedWithCodeModal(albumIndex) {
             const item = collection[albumIndex];
             if (!item) return;
@@ -6546,7 +6518,7 @@
             modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: ${zIndex}; display: flex; justify-content: center; align-items: center;`;
             modal.innerHTML = `
                 <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 450px; width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border);">
-                    <h3 style="margin-bottom: 16px;">정령 코드로 교배</h3>
+                    <h3 style="margin-bottom: 16px;">정령 코드로 연결</h3>
                     <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 16px;">
                         <div style="font-size: 2rem;">${item.icon}</div>
                         <div>
@@ -6560,7 +6532,7 @@
                     <div id="friendBreedPreview" style="display: none; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;"></div>
                     <div id="breedResultPreview" style="display: none; padding: 12px; background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0.05)); border-radius: 8px; margin-bottom: 12px; text-align: center;"></div>
                     <button onclick="executeBreedFromAlbum(${albumIndex})" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; margin-bottom: 8px;">
-                        🧬 교배하기 (50💰)
+                        🧬 연결하기 (50💰)
                     </button>
                     <p style="font-size: 0.8rem; color: #888; text-align: center; margin-bottom: 12px;">내 정령은 유지되고, 새로운 알이 태어납니다!</p>
                     <button onclick="closeBreedWithCodeModal()" style="width: 100%; padding: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
@@ -6622,7 +6594,7 @@
             };
             
             if (isSameSpirit(item, friendData)) {
-                friendPreview.innerHTML = '❌ 자기 자신과는 교배할 수 없습니다.';
+                friendPreview.innerHTML = '❌ 자기 자신과는 연결할 수 없습니다.';
                 friendPreview.style.display = 'block';
                 friendPreview.style.color = '#e74c3c';
                 resultPreview.style.display = 'none';
@@ -6717,7 +6689,7 @@
                 return;
             }
             
-            // 자기 자신과 교배 방지 - 고유 ID 비교
+            // 자기 자신과 연결 방지 - 고유 ID 비교
             const isSameSpirit = (myItem, friend) => {
                 // 둘 다 ID가 있으면 ID로 비교
                 if (myItem.id && friend.id) {
@@ -6733,7 +6705,7 @@
             };
             
             if (isSameSpirit(item, friendData)) {
-                showNotification('❌ 자기 자신과는 교배할 수 없습니다!');
+                showNotification('❌ 자기 자신과는 연결할 수 없습니다!');
                 return;
             }
             
@@ -6752,12 +6724,12 @@
             closeBreedWithCodeModal();
             closeAlbumDetail();
             
-            const confirmed = await showConfirm('교배 확인',
-                `${item.name}와(과) ${friendData.name}을(를) 교배하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
+            const confirmed = await showConfirm('연결 확인',
+                `${item.name}와(과) ${friendData.name}을(를) 연결하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
             
             if (!confirmed) return;
             
-            // 교배 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
+            // 연결 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
             const newParams = {
                 intelligence: Math.floor(((item.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 4),
                 strength: Math.floor(((item.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 4),
@@ -6790,7 +6762,7 @@
             let newSpirit;
             
             if (isEventResult) {
-                // 이벤트 정령 교배 결과
+                // 이벤트 정령 연결 결과
                 const event = EVENT_TYPES[prediction.eventType];
                 newSpirit = {
                     id: Date.now(),
@@ -6810,7 +6782,7 @@
                     status: '특별한 알이 빛나고 있습니다...',
                     birthTime: Date.now(),
                     logs: [
-                        { time: timestamp, message: `🎄 ${item.name}와(과) ${friendData.name}의 교배로 특별한 알이 태어났습니다!` },
+                        { time: timestamp, message: `🎄 ${item.name}와(과) ${friendData.name}의 연결로 특별한 알이 태어났습니다!` },
                         { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')}` }
                     ],
                     lightTime: 0,
@@ -6824,7 +6796,7 @@
                     eventType: prediction.eventType
                 };
             } else {
-                // 일반 교배 결과
+                // 일반 연결 결과
                 newSpirit = {
                     id: Date.now(),
                     name: isFusionType ? prediction.name : generateSpiritName(),
@@ -6848,7 +6820,7 @@
                     status: '알이 따뜻합니다...',
                     birthTime: Date.now(),
                     logs: [
-                        { time: timestamp, message: `🔗 ${item.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
+                        { time: timestamp, message: `🔗 ${item.name}와(과) ${friendData.name}의 연결로 태어났습니다.` },
                         { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
                     ],
                     lightTime: 0,
@@ -6869,7 +6841,7 @@
             if (isFusionType && prediction.key) {
                 if (!encyclopedia[prediction.key]) {
                     encyclopedia[prediction.key] = 1;
-                    showNotification(`🎉 새로운 교배 정령 "${prediction.name}" 도감 등록!`);
+                    showNotification(`🎉 새로운 연결 정령 "${prediction.name}" 도감 등록!`);
                 } else {
                     encyclopedia[prediction.key]++;
                 }
@@ -6879,7 +6851,7 @@
             renderSpirits();
             updateCoinDisplay();
             
-            showNotification(`🎉 교배 성공! ${newSpirit.name}이(가) 태어났습니다!`);
+            showNotification(`🎉 연결 성공! ${newSpirit.name}이(가) 태어났습니다!`);
             switchTab('garden');
         }
         
@@ -6890,6 +6862,7 @@
 
         function applyGrowth() {
             if (isPaused) return; // 일시정지 중이면 성장 안 함
+            if (tutorialActive) return; // 첫 튜토리얼 중이면 성장 안 함
             
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
@@ -6918,6 +6891,7 @@
 
         function applyTerrariumGrowth() {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
+            if (tutorialActive) return; // 첫 튜토리얼 중이면 실행 안 함
             
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;  // 죽었거나 완성된 정령 제외
@@ -7284,6 +7258,9 @@
         }
 
         function checkSpiritStatus() {
+            // 첫 튜토리얼 중에는 상태 체크 안 함
+            if (tutorialActive) return;
+            
             const now = Date.now();
             spirits.forEach(spirit => {
                 if (!spirit.lastFed) {
@@ -7762,14 +7739,17 @@
             let dialogue = '';
             let gaveGift = false;
             
+            // 실제로 상점 탭에 있을 때만 대사 및 선물 처리
+            const isInShopTab = currentTab === 'shop';
+            
             // 우선순위 대사 체크
-            if (!hasVisitedShop) {
-                // 첫 방문
+            if (!hasVisitedShop && isInShopTab) {
+                // 첫 방문 (상점 탭에 있을 때만)
                 dialogue = '처음 보는 얼굴이네요...';
                 hasVisitedShop = true;
                 saveGame();
-            } else if (coins === 0) {
-                // 0코인일 때 선물
+            } else if (coins === 0 && isInShopTab) {
+                // 0코인일 때 선물 (상점 탭에 있을 때만)
                 dialogue = '...이거라도 가져가요.';
                 coins += 10;
                 gaveGift = true;
@@ -9288,7 +9268,7 @@
                     // 수식어 없는 정령 (wingType 포함)
                     encyclopediaKey = `nostat-${spirit.attributeType}-${wingType}`;
                 } else if (spirit.type && spirit.type.startsWith('fusion-')) {
-                    // 교배 정령은 타입 그대로 사용
+                    // 연결 정령은 타입 그대로 사용
                     encyclopediaKey = spirit.type;
                 } else if (spirit.type && spirit.type.startsWith('event_')) {
                     // 이벤트 정령은 타입 그대로 사용
@@ -9475,7 +9455,7 @@
                 };
             }
             
-            // 합성/교배 정령
+            // 합성/연결 정령
             if (FUSION_TYPES[encyclopediaKey]) {
                 const fusion = FUSION_TYPES[encyclopediaKey];
                 return {
@@ -9860,24 +9840,24 @@
             input.click();
         }
         
-        // 교배 정령 관리 기능
+        // 연결 정령 관리 기능
         async function repairBrokenSpirits() {
-            // 교배로 태어난 정령 찾기
+            // 연결로 태어난 정령 찾기
             const bredSpirits = spirits.filter(spirit => spirit.isBred || spirit.breedCode);
             
             if (bredSpirits.length === 0) {
-                showNotification('교배로 태어난 정령이 없습니다.');
+                showNotification('연결로 태어난 정령이 없습니다.');
                 return;
             }
             
-            // 교배 정령 목록 표시
+            // 연결 정령 목록 표시
             const modal = document.createElement('div');
             modal.className = 'modal active';
             modal.id = 'repairModal';
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 500px; max-height: 80vh; overflow-y: auto;">
-                    <h3 style="margin-bottom: 16px;">🔧 교배 정령 관리</h3>
-                    <p style="margin-bottom: 16px; color: #888;">교배로 태어난 정령: ${bredSpirits.length}마리</p>
+                    <h3 style="margin-bottom: 16px;">🔧 연결 정령 관리</h3>
+                    <p style="margin-bottom: 16px; color: #888;">연결로 태어난 정령: ${bredSpirits.length}마리</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
                         ${bredSpirits.map(spirit => {
@@ -9892,7 +9872,7 @@
                                     </div>
                                 </div>
                                 <div style="font-size: 0.85rem; color: #888; margin-bottom: 8px;">
-                                    🔗 ${spirit.bredWith || '알 수 없음'}의 코드로 교배
+                                    🔗 ${spirit.bredWith || '알 수 없음'}의 코드로 연결
                                 </div>
                                 <div style="display: flex; gap: 8px;">
                                     <button onclick="repairSpirit(${spirit.id})" style="flex: 1; padding: 8px; background: var(--water); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
@@ -10038,7 +10018,7 @@
                         }
                     });
                 }
-                showNotification('🔄 교배 코드가 반환되었습니다!');
+                showNotification('🔄 연결 코드가 반환되었습니다!');
             }
             
             spirits = spirits.filter(s => String(s.id) !== String(spiritId));
@@ -10090,7 +10070,7 @@
         }
         
         function getCompletedSpiritsForBreeding() {
-            // 교배용: 현재 육성 중인 완성 정령 + 앨범 정령 (합성으로 떠난 정령 제외)
+            // 연결용: 현재 육성 중인 완성 정령 + 앨범 정령 (합성으로 떠난 정령 제외)
             const currentCompleted = spirits.filter(s => s.isCompleted && !s.isDead);
             
             const albumSpirits = (collection || [])
@@ -10536,7 +10516,7 @@
             container.innerHTML = entries.join('');
         }
         
-        // ========== 교배 코드 공유 시스템 ==========
+        // ========== 연결 코드 공유 시스템 ==========
         
         function updateShareSpiritList() {
             const select1 = document.getElementById('shareSpritSelect');
@@ -10574,7 +10554,7 @@
                 ev: spirit.isEventSpirit ? spirit.eventType : null
             };
             
-            console.log('교배 코드 생성:', { spiritType, spirit: spirit.name }); // 디버깅용
+            console.log('연결 코드 생성:', { spiritType, spirit: spirit.name }); // 디버깅용
             
             try {
                 const json = JSON.stringify(data);
@@ -10726,7 +10706,7 @@
             const allSpiritsAndAlbum = [...spirits, ...(collection || [])];
             const usedCode = allSpiritsAndAlbum.find(s => s.breedCode === breedCode);
             if (usedCode) {
-                showNotification('❌ 이미 사용된 교배 코드입니다!');
+                showNotification('❌ 이미 사용된 연결 코드입니다!');
                 return;
             }
             
@@ -10759,12 +10739,12 @@
             // 결과 예측
             const prediction = predictBreedResult(mySpirit, friendData);
             
-            const confirm = await showConfirm('교배 확인',
-                `${mySpirit.name}와(과) ${friendData.name}(친구 정령)을(를) 교배하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n내 정령은 유지되고 새 알이 태어납니다.\n비용: ${BREED_COST}💰`);
+            const confirm = await showConfirm('연결 확인',
+                `${mySpirit.name}와(과) ${friendData.name}(친구 정령)을(를) 연결하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n내 정령은 유지되고 새 알이 태어납니다.\n비용: ${BREED_COST}💰`);
             
             if (!confirm) return;
             
-            // 교배 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
+            // 연결 결과 계산 (부모 스탯의 25%씩 = 총 50% 상속)
             const newParams = {
                 intelligence: Math.floor(((mySpirit.parameters?.intelligence || 0) + (friendData.parameters?.intelligence || 0)) / 4),
                 strength: Math.floor(((mySpirit.parameters?.strength || 0) + (friendData.parameters?.strength || 0)) / 4),
@@ -10825,14 +10805,14 @@
                 status: '알이 따뜻합니다...',
                 birthTime: Date.now(),
                 logs: [
-                    { time: timestamp, message: `🔗 ${mySpirit.name}와(과) ${friendData.name}의 교배로 태어났습니다.` },
+                    { time: timestamp, message: `🔗 ${mySpirit.name}와(과) ${friendData.name}의 연결로 태어났습니다.` },
                     { time: timestamp, message: `📊 부모에게서 물려받은 능력: ${inheritInfo.join(' ')} ${attrInfo}` }
                 ],
                 lightTime: 0,
                 darkTime: 0,
                 musicListened: 0,
                 feedCount: 0,
-                // 교배 관련 정보
+                // 연결 관련 정보
                 bredWith: friendData.name,
                 breedCode: breedCode,
                 fusionType: prediction.key || null,
@@ -10850,7 +10830,7 @@
             if (isFusionType && prediction.key) {
                 if (!encyclopedia[prediction.key]) {
                     encyclopedia[prediction.key] = 1;
-                    showNotification(`🎉 새로운 교배 정령 "${prediction.name}" 도감 등록!`);
+                    showNotification(`🎉 새로운 연결 정령 "${prediction.name}" 도감 등록!`);
                 } else {
                     encyclopedia[prediction.key]++;
                 }
@@ -10861,7 +10841,7 @@
             updateCoinDisplay();
             renderFusionEncyclopedia();
             
-            showNotification(`🎉 교배 성공! ${isFusionType ? prediction.name : newSpirit.name}이(가) 태어났습니다!`);
+            showNotification(`🎉 연결 성공! ${isFusionType ? prediction.name : newSpirit.name}이(가) 태어났습니다!`);
             
             // 입력 초기화
             codeInput.value = '';
@@ -10926,7 +10906,7 @@
             const myInfo = getSpiritTypeInfo(mySpirit);
             const friendInfo = getSpiritTypeInfo(friendData);
             
-            console.log('교배 타입 체크:', { 
+            console.log('연결 타입 체크:', { 
                 myName: mySpirit.name, 
                 friendName: friendData.name,
                 myInfo, 
@@ -10951,7 +10931,7 @@
                 return { ...FUSION_TYPES['fusion-balance-chaos'], key: 'fusion-balance-chaos' };
             }
             
-            // 3. 이벤트 정령 교배
+            // 3. 이벤트 정령 연결
             const myEventType = mySpirit.isEventSpirit ? mySpirit.eventType : null;
             const friendEventType = friendData.isEventSpirit ? friendData.eventType : null;
             
@@ -11398,10 +11378,10 @@
                 }
             });
             
-            // 교배 정령 섹션
+            // 연결 정령 섹션
             html += '<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">' +
                 '<h2 style="font-family: \'Nanum Myeongjo\', serif; font-size: 1.5rem; color: #9b59b6; border-bottom: 3px solid #9b59b6; padding-bottom: 10px;">' +
-                    '💜 교배 정령' +
+                    '💜 연결 정령' +
                 '</h2>' +
             '</div>';
             
@@ -11460,7 +11440,7 @@
                         '<div class="encyclopedia-icon" style="font-size: 2.5rem;">' + (isUnlocked ? fusion.icon : '?') + '</div>' +
                         '<div class="encyclopedia-name" style="font-size: 0.9rem; font-weight: 700; color: ' + borderColor + ';">' + (isUnlocked ? fusion.name : '???') + '</div>' +
                         '<div class="encyclopedia-count" style="font-size: 0.75rem;">' + (isUnlocked ? fusionCount + '회' : '미달성') + '</div>' +
-                        '<div style="font-size: 0.7rem; color: #888; margin-top: 5px;">' + (isUnlocked ? fusion.desc : '교배: ' + recipeHint) + '</div>' +
+                        '<div style="font-size: 0.7rem; color: #888; margin-top: 5px;">' + (isUnlocked ? fusion.desc : '연결: ' + recipeHint) + '</div>' +
                     '</div>';
                 });
             });
@@ -11515,7 +11495,7 @@
                 const originalCloseBtnDisplay = closeBtn.style.display;
                 closeBtn.style.display = 'none';
                 
-                // 교배 섹션 임시 숨기기
+                // 연결 섹션 임시 숨기기
                 const breedSection = document.getElementById('breedSection');
                 const originalBreedDisplay = breedSection ? breedSection.style.display : '';
                 if (breedSection) breedSection.style.display = 'none';
@@ -14439,6 +14419,7 @@
         // 5분 방치 체크 (애정도 감소)
         function checkNeglect() {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
+            if (tutorialActive) return; // 첫 튜토리얼 중이면 실행 안 함
             
             const now = Date.now();
             spirits.forEach(spirit => {
@@ -15457,6 +15438,7 @@
         // 만족도 업데이트 (1분마다)
         setInterval(() => {
             if (isPaused) return; // 일시정지 중이면 실행 안 함
+            if (tutorialActive) return; // 첫 튜토리얼 중이면 실행 안 함
             
             spirits.forEach(spirit => {
                 if (spirit.isDead || spirit.isCompleted) return;
@@ -15585,11 +15567,11 @@
         const TUTORIAL_STEPS = [
             {
                 type: 'dialog',
-                text: '어, 새로 온 수습 테라리움 키퍼구나? 환영해! 나는 이 테라리움을 관리하는 선배야.'
+                text: '아, 새로 온 수습이 너구나? 어서와! 나는 이 연구소를 관리하는 테라리움 키퍼고 앞으로 널 책임질 선배야.'
             },
             {
                 type: 'dialog',
-                text: '여기가 처음이라면 기본적인 것들을 알려줄게. 잘 들어둬.'
+                text: '일을 하는건 처음이니 기본적인 것들을 알려줄게. 잘 들어둬.'
             },
             {
                 type: 'action',
@@ -15598,25 +15580,25 @@
             },
             {
                 type: 'dialog',
-                text: '잘했어! 정령들의 알은 정령나무의 열매야. 이 알들은 기본적으로 무속성이지.'
+                text: '잘하는데? 정령들의 알은 정령나무의 열매라는거 알지? 이 알들은 기본적으로 무속성이야.'
             },
             {
                 type: 'dialog',
-                text: '먹이와 테라리움 관리로 속성이 있는 정령으로 자랄 수 있게 관리하는 게 우리 테라리움 키퍼들의 임무야.'
+                text: '그리고 먹이와 테라리움을 꾸며 속성을 가진 정령으로 자랄 수 있게 관리하는 게 우리 테라리움 키퍼들의 임무지.'
             },
             {
                 type: 'action',
                 action: 'feed',
-                text: '알이 배고파하는 것 같은데? "먹이주기" 버튼을 눌러서 먹이를 줘봐.'
+                text: '아차, 말이 너무 길어졌네. 알이 배고파하는 것 같은데? "먹이주기" 버튼을 눌러서 먹이를 줘봐.'
             },
             {
                 type: 'dialog',
-                text: '좋아! 먹이마다 다른 속성이 있어서, 어떤 먹이를 주느냐에 따라 정령의 속성이 달라져.'
+                text: '먹이마다 다른 속성이 있어서, 어떤 먹이를 주느냐에 따라 정령의 속성치가 달라져.'
             },
             {
                 type: 'action',
                 action: 'music',
-                text: '그리고 정령들의 언어가 노래라는 건 알고 있지? 정령들은 노래를 들으며 세상의 지식을 흡수해. "음악 듣기"를 눌러봐.'
+                text: '그리고 정령들의 언어가 노래라는 것도 학원에서 배웠겠지? 정령들은 노래를 들으며 세상의 지식을 흡수해. "음악 듣기"를 눌러봐.'
             },
             {
                 type: 'dialog',
@@ -15625,17 +15607,17 @@
             {
                 type: 'action',
                 action: 'pat',
-                text: '어차피 떠나보내야 한다고 먹이만 주는 녀석들도 있지만... 정령과 교감하는 것도 중요해. "쓰다듬기"를 눌러봐.'
+                text: '어차피 떠나보내야 한다고 먹이만 주는 녀석들도 있지만... 우리 연구소는 정령과 교감하는 것도 중요하다고 생각해. "쓰다듬기"를 눌러봐.'
             },
             {
                 type: 'action',
                 action: 'clickName',
-                text: '그리고 정령에게 이름을 지어줄 수도 있어. 정령 카드에서 노란색으로 강조된 이름 부분을 눌러봐!'
+                text: '그리고 정령에게 이름을 지어줄 수도 있어. 정령 카드에서 노란색으로 강조된 이름 부분을 눌러봐.'
             },
             {
                 type: 'action',
                 action: 'rename',
-                text: '자, 입력창에 새 이름을 지어주고 확인을 눌러!'
+                text: '자, 입력창에 새 이름을 지어주고 확인을 누르면 돼.'
             },
             {
                 type: 'dialog',
@@ -15647,11 +15629,11 @@
             },
             {
                 type: 'dialog',
-                text: '아까 속성 이야기를 했지? 이미 알고 있겠지만 복습해보자.'
+                text: '아까 속성 이야기를 잠깐 했지? 이미 알고 있겠지만 복습할 겸 다시 이야기하자면.'
             },
             {
                 type: 'dialog',
-                text: '속성에는 불, 물, 땅, 바람 기본 4대원소와 희귀원소인 빛, 어둠이 있어.'
+                text: '속성에는 <span style="color:#e74c3c;font-weight:bold;">불</span>, <span style="color:#3498db;font-weight:bold;">물</span>, <span style="color:#27ae60;font-weight:bold;">땅</span>, <span style="color:#1abc9c;font-weight:bold;">바람</span> 기본 4대원소와 희귀원소인 <span style="color:#f1c40f;font-weight:bold;">빛</span>, <span style="color:#9b59b6;font-weight:bold;">어둠</span>이 있어.'
             },
             {
                 type: 'dialog',
@@ -15663,7 +15645,7 @@
             },
             {
                 type: 'dialog',
-                text: '그리고 다른 속성이 두 개 더 있는데... 그건 바로 태양과 달이야.'
+                text: '그리고 다른 속성이 두 개 더 있는데... 그건 바로 <span style="color:#f39c12;font-weight:bold;">태양</span>과 <span style="color:#95a5a6;font-weight:bold;">달</span>이야.'
             },
             {
                 type: 'action',
@@ -15672,7 +15654,7 @@
             },
             {
                 type: 'dialog',
-                text: '그 버튼으로 테라리움의 조도를 설정할 수 있어. 조도의 양에 따라 달의 정령이 되는지 태양의 정령이 되는지 달라지니까 이것도 신경쓰는 게 좋아.'
+                text: '그 버튼으로 테라리움의 조도를 설정할 수 있어. 조도의 양에 따라 <span style="color:#95a5a6;font-weight:bold;">달</span>의 정령이 되는지 <span style="color:#f39c12;font-weight:bold;">태양</span>의 정령이 되는지 달라지니까 이것도 신경쓰는 게 좋아.'
             },
             {
                 type: 'dialog',
@@ -15684,13 +15666,150 @@
             },
             {
                 type: 'dialog',
-                text: '너무 쪼들린다면 아르바이트도 해야 하니까 각오해. 유아기 정령들은 쉼없이 먹어대고 까다롭다고.'
+                text: '너무 쪼들린다면 아르바이트도 해야 하니까 각오해. 전세계 모든 테라리움 관리 연구소가 그렇지만 연구비가 넉넉치 않거든.'
             },
             {
                 type: 'dialog',
-                text: '자, 그럼 내가 선배로서 설명해줄 건 여기까지야. 나머지는 직접 부딪혀 가면서 배우도록 해. 그럼 이만!'
+                text: '자, 그럼 선배로서 설명해줄 건 여기까지야. 나머지는 직접 부딪혀 가면서 배우도록 해. 그럼 이만!'
             }
         ];
+        
+        // 튜토리얼 다시보기 목록 렌더링
+        function renderTutorialReplayList() {
+            const container = document.getElementById('tutorialReplayList');
+            if (!container) return;
+            
+            const tutorials = [
+                {
+                    id: 'basic',
+                    name: '기본 튜토리얼',
+                    desc: '정령 육성의 기초를 배웁니다',
+                    icon: '🥚',
+                    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    seenKey: 'spiritGarden_tutorialSeen',
+                    completedKey: 'spiritGarden_tutorialCompleted',
+                    reward: 25,
+                    alwaysUnlocked: true // 기본 튜토리얼은 항상 열려있음
+                },
+                {
+                    id: 'album',
+                    name: '앨범 & 도감 튜토리얼',
+                    desc: '정령 완성 후 앨범과 도감 사용법',
+                    icon: '💝',
+                    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    seenKey: 'spiritGarden_tutorial2Seen',
+                    completedKey: 'spiritGarden_tutorial2Completed',
+                    reward: 25,
+                    unlockCondition: () => collection.length > 0 // 앨범에 정령이 있어야 해금
+                },
+                {
+                    id: 'sick',
+                    name: '질병 튜토리얼',
+                    desc: '정령이 아플 때 치료하는 방법',
+                    icon: '💊',
+                    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    seenKey: 'spiritGarden_sickTutorialSeen',
+                    completedKey: 'spiritGarden_sickTutorialCompleted',
+                    reward: 25,
+                    unlockCondition: () => localStorage.getItem('spiritGarden_tutorialSeen') // 기본 튜토리얼 완료 후
+                },
+                {
+                    id: 'lab',
+                    name: '연구실 튜토리얼',
+                    desc: '합성과 연결 시스템 사용법',
+                    icon: '🔬',
+                    gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                    seenKey: 'spiritGarden_labTutorialSeen',
+                    completedKey: 'spiritGarden_labTutorialCompleted',
+                    reward: 25,
+                    unlockCondition: () => collection.length >= 2 // 앨범에 정령 2마리 이상
+                }
+            ];
+            
+            let html = '';
+            
+            tutorials.forEach(tutorial => {
+                const seen = localStorage.getItem(tutorial.seenKey);
+                const completed = localStorage.getItem(tutorial.completedKey);
+                const isUnlocked = tutorial.alwaysUnlocked || (tutorial.unlockCondition && tutorial.unlockCondition());
+                
+                if (!isUnlocked) {
+                    // 잠긴 튜토리얼
+                    html += `
+                        <div style="padding: 16px; background: #333; color: #666; border: none; border-radius: 10px; font-size: 1rem; display: flex; align-items: center; gap: 12px; opacity: 0.6;">
+                            <span style="font-size: 1.5rem;">🔒</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">${tutorial.name}</div>
+                                <div style="font-size: 0.8rem; margin-top: 4px;">조건을 달성하면 해금됩니다</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 해금된 튜토리얼
+                    html += `
+                        <div style="display: flex; gap: 10px; align-items: stretch;">
+                            <button onclick="replayTutorial('${tutorial.id}')" style="flex: 1; padding: 16px; background: ${tutorial.gradient}; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 1.5rem;">${tutorial.icon}</span>
+                                <div>
+                                    <div>${tutorial.name}</div>
+                                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 4px;">${tutorial.desc}</div>
+                                </div>
+                            </button>
+                            ${completed ? 
+                                `<div style="padding: 16px; background: #2d5a2d; color: #7fbf7f; border-radius: 10px; display: flex; align-items: center; justify-content: center; min-width: 90px; font-weight: 600;">
+                                    ✓ 완료
+                                </div>` :
+                                (seen ?
+                                    `<button onclick="claimTutorialReward('${tutorial.id}')" style="padding: 16px; background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: #333; border: none; border-radius: 10px; cursor: pointer; min-width: 90px; font-weight: 700; font-size: 0.9rem;">
+                                        💰 +${tutorial.reward}
+                                    </button>` :
+                                    `<div style="padding: 16px; background: #444; color: #888; border-radius: 10px; display: flex; align-items: center; justify-content: center; min-width: 90px; font-size: 0.85rem;">
+                                        미완료
+                                    </div>`
+                                )
+                            }
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 튜토리얼 보상 받기
+        function claimTutorialReward(tutorialId) {
+            const rewardMap = {
+                'basic': { completedKey: 'spiritGarden_tutorialCompleted', seenKey: 'spiritGarden_tutorialSeen', reward: 25, name: '기본 튜토리얼' },
+                'album': { completedKey: 'spiritGarden_tutorial2Completed', seenKey: 'spiritGarden_tutorial2Seen', reward: 25, name: '앨범 & 도감 튜토리얼' },
+                'sick': { completedKey: 'spiritGarden_sickTutorialCompleted', seenKey: 'spiritGarden_sickTutorialSeen', reward: 25, name: '질병 튜토리얼' },
+                'lab': { completedKey: 'spiritGarden_labTutorialCompleted', seenKey: 'spiritGarden_labTutorialSeen', reward: 25, name: '연구실 튜토리얼' }
+            };
+            
+            const info = rewardMap[tutorialId];
+            if (!info) return;
+            
+            // 이미 보상을 받았는지 확인
+            if (localStorage.getItem(info.completedKey)) {
+                showNotification('⚠️ 이미 보상을 받았습니다');
+                return;
+            }
+            
+            // 튜토리얼을 완료했는지 확인
+            if (!localStorage.getItem(info.seenKey)) {
+                showNotification('⚠️ 튜토리얼을 먼저 완료해주세요');
+                return;
+            }
+            
+            // 보상 지급
+            localStorage.setItem(info.completedKey, 'true');
+            coins += info.reward;
+            saveGame();
+            updateCoinDisplay();
+            showNotification(`🎓 ${info.name} 보상! +${info.reward}💰`);
+            
+            // UI 업데이트
+            renderTutorialReplayList();
+        }
         
         // 튜토리얼 다시보기 함수
         function replayTutorial(type) {
@@ -15773,7 +15892,9 @@
         }
         
         function showTutorialStep() {
+            console.log('showTutorialStep 호출됨, tutorialStep:', tutorialStep, '/ 전체:', TUTORIAL_STEPS.length);
             if (tutorialStep >= TUTORIAL_STEPS.length) {
+                console.log('튜토리얼 완료 조건 충족, endTutorial 호출');
                 endTutorial();
                 return;
             }
@@ -15998,6 +16119,7 @@
         }
         
         function endTutorial() {
+            console.log('endTutorial 호출됨');
             tutorialActive = false;
             window.tutorialWaitingFor = null;
             clearTutorialHighlight();
@@ -16011,14 +16133,11 @@
             
             localStorage.setItem('spiritGarden_tutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
-            if (!localStorage.getItem('spiritGarden_tutorialCompleted')) {
-                localStorage.setItem('spiritGarden_tutorialCompleted', 'true');
-                coins += 25;
-                saveGame();
-                updateCoinDisplay();
+            // 보상 미수령 상태면 안내
+            const alreadyCompleted = localStorage.getItem('spiritGarden_tutorialCompleted');
+            if (!alreadyCompleted) {
                 setTimeout(() => {
-                    showNotification('🎓 기본 튜토리얼 완료! +25💰');
+                    showNotification('🎓 튜토리얼 완료! 일지→도움말에서 보상을 받으세요');
                 }, 500);
             }
         }
@@ -16052,7 +16171,7 @@
             },
             {
                 type: 'dialog',
-                text: '그리고 정령 간의 교배도 가능하지.'
+                text: '그리고 정령 간의 연결도 가능하지.'
             },
             {
                 type: 'action',
@@ -16061,7 +16180,7 @@
             },
             {
                 type: 'dialog',
-                text: '아래에 보면 코드 생성과 교배하기가 있지? 정령의 코드를 복사해 다른 정령과 교배가 가능해.'
+                text: '아래에 보면 코드 생성과 연결하기가 있지? 정령의 코드를 복사해 다른 정령과 연결이 가능해.'
             },
             {
                 type: 'dialog',
@@ -16238,14 +16357,10 @@
             
             localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
             
-            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
+            // 보상 미수령 상태면 안내
             if (!localStorage.getItem('spiritGarden_tutorial2Completed')) {
-                localStorage.setItem('spiritGarden_tutorial2Completed', 'true');
-                coins += 25;
-                saveGame();
-                updateCoinDisplay();
                 setTimeout(() => {
-                    showNotification('🎓 앨범 & 도감 튜토리얼 완료! +25💰');
+                    showNotification('🎓 튜토리얼 완료! 일지→도움말에서 보상을 받으세요');
                 }, 500);
             }
         }
@@ -16562,14 +16677,10 @@
             
             localStorage.setItem('spiritGarden_sickTutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
+            // 보상 미수령 상태면 안내
             if (!localStorage.getItem('spiritGarden_sickTutorialCompleted')) {
-                localStorage.setItem('spiritGarden_sickTutorialCompleted', 'true');
-                coins += 25;
-                saveGame();
-                updateCoinDisplay();
                 setTimeout(() => {
-                    showNotification('🎓 질병 튜토리얼 완료! +25💰');
+                    showNotification('🎓 튜토리얼 완료! 일지→도움말에서 보상을 받으세요');
                 }, 500);
             }
         }
@@ -17034,14 +17145,10 @@
             
             localStorage.setItem('spiritGarden_labTutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
+            // 보상 미수령 상태면 안내
             if (!localStorage.getItem('spiritGarden_labTutorialCompleted')) {
-                localStorage.setItem('spiritGarden_labTutorialCompleted', 'true');
-                coins += 25;
-                saveGame();
-                updateCoinDisplay();
                 setTimeout(() => {
-                    showNotification('🎓 연구실 튜토리얼 완료! +25💰');
+                    showNotification('🎓 튜토리얼 완료! 일지→도움말에서 보상을 받으세요');
                 }, 500);
             }
         }
