@@ -11415,12 +11415,17 @@
             let html = '';
             
             // 전설적 존재 (티타니아/오베론) - 맨 위에 특별 표시
+            const legendaryFolded = encyclopediaFoldState['legendary'] || false;
             html += `<div style="grid-column: 1 / -1; margin-top: 10px; margin-bottom: 15px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); border-bottom: 3px solid gold; padding-bottom: 10px;">
-                    전설적 존재
-                </h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid gold; padding-bottom: 10px; cursor: pointer;" onclick="toggleEncyclopediaGroup('legendary')">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); margin: 0;">
+                        전설적 존재
+                    </h2>
+                    <span style="font-size: 1rem; color: var(--text-muted);">${legendaryFolded ? '▼ 펼치기' : '▲ 접기'}</span>
+                </div>
             </div>`;
             
+            if (!legendaryFolded) {
             // 정령왕
             const spiritkingCount = getEncyclopediaCount('spiritking');
             const spiritkingUnlocked = spiritkingCount > 0;
@@ -11468,6 +11473,7 @@
                     <div style="font-size: 0.7rem; color: ${oblivionUnlocked ? '#ff00ff' : '#888'}; margin-top: 5px;">${oblivionUnlocked ? '정령의 군주들 사이에서 태어난 망각의 정령.' : '군주들의 후예.'}</div>
                 </div>
             `;
+            }
             
             attributeGroups.forEach((group, groupIndex) => {
                 const groupId = `encycGroup_${groupIndex}`;
@@ -11624,12 +11630,17 @@
             });
             
             // 이벤트 정령 섹션
+            const eventFolded = encyclopediaFoldState['event'] || false;
             html += `<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">
-                <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: #c41e3a; border-bottom: 3px solid #c41e3a; padding-bottom: 10px;">
-                    🎄 이벤트 정령
-                </h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #c41e3a; padding-bottom: 10px; cursor: pointer;" onclick="toggleEncyclopediaGroup('event')">
+                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: #c41e3a; margin: 0;">
+                        🎄 이벤트 정령
+                    </h2>
+                    <span style="font-size: 1rem; color: var(--text-muted);">${eventFolded ? '▼ 펼치기' : '▲ 접기'}</span>
+                </div>
             </div>`;
             
+            if (!eventFolded) {
             Object.entries(EVENT_TYPES).forEach(([eventKey, event]) => {
                 // 일반 이벤트 정령
                 const eventEncKey = `event_${eventKey}`;
@@ -11661,14 +11672,20 @@
                     `;
                 }
             });
+            }
             
             // 연결 정령 섹션
+            const fusionFolded = encyclopediaFoldState['fusion'] || false;
             html += '<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">' +
-                '<h2 style="font-family: \'Nanum Myeongjo\', serif; font-size: 1.5rem; color: #9b59b6; border-bottom: 3px solid #9b59b6; padding-bottom: 10px;">' +
-                    '💜 연결 정령' +
-                '</h2>' +
+                '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #9b59b6; padding-bottom: 10px; cursor: pointer;" onclick="toggleEncyclopediaGroup(\'fusion\')">' +
+                    '<h2 style="font-family: \'Nanum Myeongjo\', serif; font-size: 1.5rem; color: #9b59b6; margin: 0;">' +
+                        '💜 연결 정령' +
+                    '</h2>' +
+                    '<span style="font-size: 1rem; color: var(--text-muted);">' + (fusionFolded ? '▼ 펼치기' : '▲ 접기') + '</span>' +
+                '</div>' +
             '</div>';
             
+            if (!fusionFolded) {
             // 레어리티별 그룹화
             const fusionGroups = {
                 'rare': { title: '💎 희귀', entries: [] },
@@ -11728,6 +11745,7 @@
                     '</div>';
                 });
             });
+            }
             
             grid.innerHTML = html;
             } catch (error) {
