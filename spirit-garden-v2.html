@@ -146,6 +146,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            border-radius: 4px;
         }
 
         .spirits-grid {
@@ -1644,6 +1645,7 @@
         let activatedEvents = []; // 활성화된 이벤트 목록
         let lowSatisfactionStartTime = {}; // 정령별 불만 상태 시작 시간
         let achievements = {}; // 달성한 업적 목록 { achievementId: timestamp }
+        let claimedAchievementRewards = []; // 보상 수령한 업적 목록
 
         // 업적 정의
         const ACHIEVEMENTS = {
@@ -2708,7 +2710,7 @@
             'titania': '나비를 거느리는 정령들의 군주.',
             'oberon': '나방을 거느리는 정령들의 군주.',
             
-            // nostat (타이틀 없음) - 속성 이름만
+            // nostat (타이틀 없음) - 기본 속성
             'nostat-normal': '아무 속성도 깃들지 않은 정령.',
             'nostat-fire': '불의 기운을 품은 정령.',
             'nostat-water': '물의 기운을 품은 정령.',
@@ -2718,8 +2720,24 @@
             'nostat-dark': '어둠의 기운을 품은 정령.',
             'nostat-balanced': '모든 속성을 품은 조화 정령.',
             'nostat-multi': '여러 속성이 뒤섞인 혼돈의 정령.',
+            // nostat - 2속성 조합
+            'nostat-fire-water': '불과 물이 만나 피어오른 증기의 정령.',
+            'nostat-fire-wind': '불과 바람이 만나 만들어진 뜨거운 폭풍의 정령.',
+            'nostat-earth-fire': '불과 대지가 만나 빚어낸 용암의 정령.',
+            'nostat-fire-light': '불과 빛이 만나 찬란히 빛나는 태양의 정령.',
+            'nostat-dark-fire': '불과 어둠이 만나 피어나는 연기의 정령.',
+            'nostat-water-wind': '물과 바람이 만나 형성된 구름의 정령.',
+            'nostat-earth-water': '물과 대지가 만나 뭉쳐진 진흙의 정령.',
+            'nostat-light-water': '물과 빛이 만나 이어진 무지개의 정령.',
+            'nostat-dark-water': '물과 어둠이 만나 눈앞을 가리는 안개의 정령.',
+            'nostat-earth-wind': '바람과 대지가 만나 흩날리는 모래의 정령.',
+            'nostat-light-wind': '바람과 빛이 만나 하늘을 메우는 오로라의 정령.',
+            'nostat-dark-wind': '바람과 어둠이 만나 춤추는 회오리의 정령.',
+            'nostat-earth-light': '대지와 빛이 만나 돌에 갇힌 빛, 수정의 정령.',
+            'nostat-dark-earth': '대지와 어둠이 만나 서늘한 그림자, 그늘의 정령.',
+            'nostat-dark-light': '빛과 어둠이 만나 현혹시키는 환영의 정령.',
             
-            // intelligent (지식의 씨앗) - 지력 100
+            // intelligent (지식의 씨앗) - 기본 속성
             'intelligent-normal': '아무 속성도 깃들지 않은 정령.',
             'intelligent-fire': '불의 기운을 품은 정령.',
             'intelligent-water': '물의 기운을 품은 정령.',
@@ -2729,8 +2747,24 @@
             'intelligent-dark': '어둠의 기운을 품은 정령.',
             'intelligent-balanced': '모든 속성을 품은 조화 정령.',
             'intelligent-multi': '여러 속성이 뒤섞인 혼돈의 정령.',
+            // intelligent - 2속성 조합
+            'intelligent-fire-water': '불과 물이 만나 피어오른 증기의 정령.',
+            'intelligent-fire-wind': '불과 바람이 만나 만들어진 뜨거운 폭풍의 정령.',
+            'intelligent-earth-fire': '불과 대지가 만나 빚어낸 용암의 정령.',
+            'intelligent-fire-light': '불과 빛이 만나 찬란히 빛나는 태양의 정령.',
+            'intelligent-dark-fire': '불과 어둠이 만나 피어나는 연기의 정령.',
+            'intelligent-water-wind': '물과 바람이 만나 형성된 구름의 정령.',
+            'intelligent-earth-water': '물과 대지가 만나 뭉쳐진 진흙의 정령.',
+            'intelligent-light-water': '물과 빛이 만나 이어진 무지개의 정령.',
+            'intelligent-dark-water': '물과 어둠이 만나 눈앞을 가리는 안개의 정령.',
+            'intelligent-earth-wind': '바람과 대지가 만나 흩날리는 모래의 정령.',
+            'intelligent-light-wind': '바람과 빛이 만나 하늘을 메우는 오로라의 정령.',
+            'intelligent-dark-wind': '바람과 어둠이 만나 춤추는 회오리의 정령.',
+            'intelligent-earth-light': '대지와 빛이 만나 돌에 갇힌 빛, 수정의 정령.',
+            'intelligent-dark-earth': '대지와 어둠이 만나 서늘한 그림자, 그늘의 정령.',
+            'intelligent-dark-light': '빛과 어둠이 만나 현혹시키는 환영의 정령.',
             
-            // strong (불굴의 기사) - 체력 100
+            // strong (불굴의 기사) - 기본 속성
             'strong-normal': '아무 속성도 깃들지 않은 정령.',
             'strong-fire': '불의 기운을 품은 정령.',
             'strong-water': '물의 기운을 품은 정령.',
@@ -2740,8 +2774,24 @@
             'strong-dark': '어둠의 기운을 품은 정령.',
             'strong-balanced': '모든 속성을 품은 조화 정령.',
             'strong-multi': '여러 속성이 뒤섞인 혼돈의 정령.',
+            // strong - 2속성 조합
+            'strong-fire-water': '불과 물이 만나 피어오른 증기의 정령.',
+            'strong-fire-wind': '불과 바람이 만나 만들어진 뜨거운 폭풍의 정령.',
+            'strong-earth-fire': '불과 대지가 만나 빚어낸 용암의 정령.',
+            'strong-fire-light': '불과 빛이 만나 찬란히 빛나는 태양의 정령.',
+            'strong-dark-fire': '불과 어둠이 만나 피어나는 연기의 정령.',
+            'strong-water-wind': '물과 바람이 만나 형성된 구름의 정령.',
+            'strong-earth-water': '물과 대지가 만나 뭉쳐진 진흙의 정령.',
+            'strong-light-water': '물과 빛이 만나 이어진 무지개의 정령.',
+            'strong-dark-water': '물과 어둠이 만나 눈앞을 가리는 안개의 정령.',
+            'strong-earth-wind': '바람과 대지가 만나 흩날리는 모래의 정령.',
+            'strong-light-wind': '바람과 빛이 만나 하늘을 메우는 오로라의 정령.',
+            'strong-dark-wind': '바람과 어둠이 만나 춤추는 회오리의 정령.',
+            'strong-earth-light': '대지와 빛이 만나 돌에 갇힌 빛, 수정의 정령.',
+            'strong-dark-earth': '대지와 어둠이 만나 서늘한 그림자, 그늘의 정령.',
+            'strong-dark-light': '빛과 어둠이 만나 현혹시키는 환영의 정령.',
             
-            // beautiful (달콤한 향기) - 매력 100
+            // beautiful (달콤한 향기) - 기본 속성
             'beautiful-normal': '아무 속성도 깃들지 않은 정령.',
             'beautiful-fire': '불의 기운을 품은 정령.',
             'beautiful-water': '물의 기운을 품은 정령.',
@@ -2751,8 +2801,24 @@
             'beautiful-dark': '어둠의 기운을 품은 정령.',
             'beautiful-balanced': '모든 속성을 품은 조화 정령.',
             'beautiful-multi': '여러 속성이 뒤섞인 혼돈의 정령.',
+            // beautiful - 2속성 조합
+            'beautiful-fire-water': '불과 물이 만나 피어오른 증기의 정령.',
+            'beautiful-fire-wind': '불과 바람이 만나 만들어진 뜨거운 폭풍의 정령.',
+            'beautiful-earth-fire': '불과 대지가 만나 빚어낸 용암의 정령.',
+            'beautiful-fire-light': '불과 빛이 만나 찬란히 빛나는 태양의 정령.',
+            'beautiful-dark-fire': '불과 어둠이 만나 피어나는 연기의 정령.',
+            'beautiful-water-wind': '물과 바람이 만나 형성된 구름의 정령.',
+            'beautiful-earth-water': '물과 대지가 만나 뭉쳐진 진흙의 정령.',
+            'beautiful-light-water': '물과 빛이 만나 이어진 무지개의 정령.',
+            'beautiful-dark-water': '물과 어둠이 만나 눈앞을 가리는 안개의 정령.',
+            'beautiful-earth-wind': '바람과 대지가 만나 흩날리는 모래의 정령.',
+            'beautiful-light-wind': '바람과 빛이 만나 하늘을 메우는 오로라의 정령.',
+            'beautiful-dark-wind': '바람과 어둠이 만나 춤추는 회오리의 정령.',
+            'beautiful-earth-light': '대지와 빛이 만나 돌에 갇힌 빛, 수정의 정령.',
+            'beautiful-dark-earth': '대지와 어둠이 만나 서늘한 그림자, 그늘의 정령.',
+            'beautiful-dark-light': '빛과 어둠이 만나 현혹시키는 환영의 정령.',
             
-            // sage (정령왕의 부름을 받은) - 모든 스탯 100
+            // sage (정령왕의 부름을 받은) - 기본 속성
             'sage-normal': '정령왕의 부름을 받은 백의 정령.',
             'sage-fire': '정령왕의 부름을 받은 불꽃의 정령.',
             'sage-water': '정령왕의 부름을 받은 물결의 정령.',
@@ -2761,7 +2827,23 @@
             'sage-light': '정령왕의 부름을 받은 광명의 정령.',
             'sage-dark': '정령왕의 부름을 받은 암흑의 정령.',
             'sage-balanced': '정령왕의 부름을 받은 조화의 정령.',
-            'sage-multi': '정령왕의 부름을 받은 혼돈의 정령.'
+            'sage-multi': '정령왕의 부름을 받은 혼돈의 정령.',
+            // sage - 2속성 조합
+            'sage-fire-water': '정령왕의 부름을 받은 증기의 정령.',
+            'sage-fire-wind': '정령왕의 부름을 받은 폭풍의 정령.',
+            'sage-earth-fire': '정령왕의 부름을 받은 용암의 정령.',
+            'sage-fire-light': '정령왕의 부름을 받은 태양의 정령.',
+            'sage-dark-fire': '정령왕의 부름을 받은 연기의 정령.',
+            'sage-water-wind': '정령왕의 부름을 받은 구름의 정령.',
+            'sage-earth-water': '정령왕의 부름을 받은 진흙의 정령.',
+            'sage-light-water': '정령왕의 부름을 받은 무지개의 정령.',
+            'sage-dark-water': '정령왕의 부름을 받은 안개의 정령.',
+            'sage-earth-wind': '정령왕의 부름을 받은 모래의 정령.',
+            'sage-light-wind': '정령왕의 부름을 받은 오로라의 정령.',
+            'sage-dark-wind': '정령왕의 부름을 받은 회오리의 정령.',
+            'sage-earth-light': '정령왕의 부름을 받은 수정의 정령.',
+            'sage-dark-earth': '정령왕의 부름을 받은 그늘의 정령.',
+            'sage-dark-light': '정령왕의 부름을 받은 환영의 정령.'
         };
 
         // 상태 키워드 시스템
@@ -3007,7 +3089,7 @@
                 name: '기프티',
                 icon: '🎄',
                 attribute: 'event_christmas',
-                desc: '크리스마스의 기적을 품은 정령.',
+                desc: '산타 할아버지가 크리스마스 선물과 함께 특별한 정령의 알을 선물했어요!',
                 validUntil: '2026-01-31',
                 stages: {
                     egg: '<img src="https://i.imgur.com/I7hgZOP.png" style="width:150px;height:150px;vertical-align:middle;">',
@@ -3051,7 +3133,7 @@
                 event: 'christmas2025',
                 quality: 'legendary',
                 effects: { fire: 5, water: 5, wind: 5, earth: 5, light: 10, dark: 0 },
-                desc: '크리스마스 정령에게서 받은 특별한 트리. 모든 속성을 높여줍니다.'
+                desc: '특별한 크리스마스 선물. 모든 속성을 높여줍니다.'
             },
             // 크리스마스 선물상자
             'christmas_gift': {
@@ -3061,7 +3143,7 @@
                 event: 'christmas2025',
                 quality: 'legendary',
                 effects: { fire: 3, water: 3, wind: 3, earth: 3, light: 5, dark: 5 },
-                desc: '크리스마스 정령에게서 받은 선물 상자. 무엇이 들어있을까요?'
+                desc: '특별한 크리스마스 선물. 무엇이 들어있을까요?'
             },
             // 크리스마스 먹이
             'christmas_cookie': {
@@ -3070,7 +3152,7 @@
                 type: 'food',
                 event: 'christmas2025',
                 effects: { intelligence: 5, strength: 5, charm: 5, growth: 10 },
-                desc: '크리스마스 정령에게서 받은 특별한 쿠키. 모든 스탯을 크게 올려줍니다.'
+                desc: '특별한 크리스마스 선물. 모든 스탯을 크게 올려줍니다.'
             },
             // 크리스마스 음악
             'christmas_carol': {
@@ -3079,7 +3161,7 @@
                 type: 'music',
                 event: 'christmas2025',
                 effects: { affection: 10, charm: 5 },
-                desc: '크리스마스 정령에게서 받은 특별한 캐롤. 애정도를 크게 올려줍니다.'
+                desc: '특별한 크리스마스 선물. 애정도를 크게 올려줍니다.'
             }
         };
         
@@ -3393,6 +3475,7 @@
                 }
                 
                 achievements = data.achievements || {};
+                claimedAchievementRewards = data.claimedAchievementRewards || [];
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
                 
@@ -3466,6 +3549,7 @@
                 purchasedRecipeBooks,
                 selfDiscoveredRecipes,
                 achievements,
+                claimedAchievementRewards,
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
                 lockedItems
             }));
@@ -3601,6 +3685,7 @@
             const encyclopediaCount = Object.keys(encyclopedia).length;
             const totalAchievements = Object.keys(ACHIEVEMENTS).length;
             const completedAchievements = Object.keys(achievements).length;
+            const unclaimedRewards = Object.keys(achievements).filter(id => !claimedAchievementRewards.includes(id)).length;
             
             // 업적 요약
             const summaryDiv = document.getElementById('achievementSummary');
@@ -3611,10 +3696,10 @@
                         <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${completedAchievements} / ${totalAchievements}</div>
                         <div style="font-size: 0.85rem; color: #888;">달성한 업적</div>
                     </div>
-                    <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
-                        <div style="font-size: 2rem; margin-bottom: 4px;">🦋</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${albumCount}</div>
-                        <div style="font-size: 0.85rem; color: #888;">키운 정령</div>
+                    <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px; ${unclaimedRewards > 0 ? 'border: 2px solid #ffd700;' : ''}">
+                        <div style="font-size: 2rem; margin-bottom: 4px;">💰</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: ${unclaimedRewards > 0 ? '#ffd700' : 'var(--text)'};">${unclaimedRewards > 0 ? unclaimedRewards * 25 : 0}</div>
+                        <div style="font-size: 0.85rem; color: #888;">${unclaimedRewards > 0 ? `수령 가능 (${unclaimedRewards}개)` : '수령 완료'}</div>
                     </div>
                     <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
                         <div style="font-size: 2rem; margin-bottom: 4px;">📚</div>
@@ -3648,9 +3733,18 @@
                 const albumAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'album').sort((a, b) => a.requirement - b.requirement);
                 albumAchievementsDiv.innerHTML = albumAchievements.map(achievement => {
                     const isCompleted = achievements[achievement.id];
+                    const isRewardClaimed = claimedAchievementRewards.includes(achievement.id);
                     const progress = Math.min(albumCount, achievement.requirement);
                     const progressPercent = (progress / achievement.requirement) * 100;
                     const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    // 보상 버튼/상태 표시
+                    let rewardDisplay = '';
+                    if (isCompleted && !isRewardClaimed) {
+                        rewardDisplay = `<button onclick="claimAchievementReward('${achievement.id}')" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ffed4a); color: #333; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">💰 25코인 받기</button>`;
+                    } else if (isCompleted && isRewardClaimed) {
+                        rewardDisplay = '<span style="color: #27ae60; font-size: 0.8rem; font-weight: 600;">✓ 수령완료</span>';
+                    }
                     
                     return `
                         <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
@@ -3665,9 +3759,12 @@
                             <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
                                 <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : 'var(--water)'}; transition: width 0.3s;"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; color: #888;">
                                 <span>${progress} / ${achievement.requirement}마리</span>
-                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                    ${rewardDisplay}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -3680,9 +3777,18 @@
                 const encyclopediaAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'encyclopedia').sort((a, b) => a.requirement - b.requirement);
                 encyclopediaAchievementsDiv.innerHTML = encyclopediaAchievements.map(achievement => {
                     const isCompleted = achievements[achievement.id];
+                    const isRewardClaimed = claimedAchievementRewards.includes(achievement.id);
                     const progress = Math.min(encyclopediaCount, achievement.requirement);
                     const progressPercent = (progress / achievement.requirement) * 100;
                     const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    // 보상 버튼/상태 표시
+                    let rewardDisplay = '';
+                    if (isCompleted && !isRewardClaimed) {
+                        rewardDisplay = `<button onclick="claimAchievementReward('${achievement.id}')" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ffed4a); color: #333; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">💰 25코인 받기</button>`;
+                    } else if (isCompleted && isRewardClaimed) {
+                        rewardDisplay = '<span style="color: #27ae60; font-size: 0.8rem; font-weight: 600;">✓ 수령완료</span>';
+                    }
                     
                     return `
                         <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
@@ -3697,9 +3803,12 @@
                             <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
                                 <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : 'var(--earth)'}; transition: width 0.3s;"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; color: #888;">
                                 <span>${progress} / ${achievement.requirement}종</span>
-                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                    ${rewardDisplay}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -3713,9 +3822,18 @@
                 const recipeAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe').sort((a, b) => a.requirement - b.requirement);
                 recipeAchievementsDiv.innerHTML = recipeAchievements.map(achievement => {
                     const isCompleted = achievements[achievement.id];
+                    const isRewardClaimed = claimedAchievementRewards.includes(achievement.id);
                     const progress = Math.min(recipeCount, achievement.requirement);
                     const progressPercent = (progress / achievement.requirement) * 100;
                     const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    // 보상 버튼/상태 표시
+                    let rewardDisplay = '';
+                    if (isCompleted && !isRewardClaimed) {
+                        rewardDisplay = `<button onclick="claimAchievementReward('${achievement.id}')" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ffed4a); color: #333; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">💰 25코인 받기</button>`;
+                    } else if (isCompleted && isRewardClaimed) {
+                        rewardDisplay = '<span style="color: #27ae60; font-size: 0.8rem; font-weight: 600;">✓ 수령완료</span>';
+                    }
                     
                     return `
                         <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
@@ -3730,9 +3848,12 @@
                             <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
                                 <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : '#9b59b6'}; transition: width 0.3s;"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; color: #888;">
                                 <span>${progress} / ${achievement.requirement}개</span>
-                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                    ${rewardDisplay}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -3746,6 +3867,7 @@
                 const specialAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe_special').sort((a, b) => a.requirement - b.requirement);
                 specialAchievementsDiv.innerHTML = specialAchievements.map(achievement => {
                     const isCompleted = achievements[achievement.id];
+                    const isRewardClaimed = claimedAchievementRewards.includes(achievement.id);
                     const progress = Math.min(selfDiscoveredCount, achievement.requirement);
                     const progressPercent = (progress / achievement.requirement) * 100;
                     const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
@@ -3755,6 +3877,14 @@
                     const warningMsg = hasBookPurchased && !isCompleted
                         ? '<div style="font-size: 0.75rem; color: #e74c3c; margin-top: 8px;">⚠️ 레시피북을 구매하여 이 업적을 달성할 수 없습니다.</div>'
                         : '';
+                    
+                    // 보상 버튼/상태 표시
+                    let rewardDisplay = '';
+                    if (isCompleted && !isRewardClaimed) {
+                        rewardDisplay = `<button onclick="claimAchievementReward('${achievement.id}')" style="padding: 6px 12px; background: linear-gradient(135deg, #ffd700, #ffed4a); color: #333; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.8rem;">💰 25코인 받기</button>`;
+                    } else if (isCompleted && isRewardClaimed) {
+                        rewardDisplay = '<span style="color: #27ae60; font-size: 0.8rem; font-weight: 600;">✓ 수령완료</span>';
+                    }
                     
                     return `
                         <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 2px solid ${isCompleted ? '#ffd700' : hasBookPurchased ? '#e74c3c' : 'var(--border)'};">
@@ -3769,15 +3899,47 @@
                             <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
                                 <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : '#27ae60'}; transition: width 0.3s;"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.8rem; color: #888;">
                                 <span>직접 발견: ${progress} / ${achievement.requirement}개</span>
-                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                                    ${rewardDisplay}
+                                </div>
                             </div>
                             ${warningMsg}
                         </div>
                     `;
                 }).join('');
             }
+        }
+        
+        // 업적 보상 수령 함수
+        function claimAchievementReward(achievementId) {
+            // 이미 수령했는지 확인
+            if (claimedAchievementRewards.includes(achievementId)) {
+                showNotification('이미 보상을 수령했습니다.');
+                return;
+            }
+            
+            // 달성했는지 확인
+            if (!achievements[achievementId]) {
+                showNotification('아직 달성하지 않은 업적입니다.');
+                return;
+            }
+            
+            // 보상 지급
+            coins += 25;
+            claimedAchievementRewards.push(achievementId);
+            
+            // 업적 정보 가져오기
+            const achievement = ACHIEVEMENTS[achievementId];
+            const achievementTitle = achievement ? achievement.title : '업적';
+            
+            saveGame();
+            renderJournal();
+            updateCoinDisplay();
+            
+            showNotification(`🎉 "${achievementTitle}" 보상 25코인을 받았습니다!`);
         }
 
         function createNewSpirit() {
@@ -5533,9 +5695,19 @@
                     // 이벤트 미니어처 체크
                     const eventItem = EVENT_ITEMS[key];
                     if (eventItem && eventItem.type === 'decoration') {
+                        const qualityLabel = eventItem.quality === 'legendary' ? '👑' : eventItem.quality === 'epic' ? '⭐' : eventItem.quality === 'rare' ? '💎' : '';
+                        const qualityBorderColor = eventItem.quality === 'legendary' ? '#ffd700' : eventItem.quality === 'epic' ? '#9b59b6' : eventItem.quality === 'rare' ? '#3498db' : '#c41e3a';
+                        // 효과 정보 생성
+                        const effectsInfo = eventItem.effects ? Object.entries(eventItem.effects)
+                            .filter(([k, v]) => v > 0)
+                            .map(([k, v]) => {
+                                const attrNames = { fire: '🔥', water: '💧', wind: '🌪️', earth: '🌱', light: '✨', dark: '🌙' };
+                                return `${attrNames[k] || k}+${v}`;
+                            }).join(' ') : '';
                         return `
-                            <div class="inventory-item" title="${eventItem.name}" style="border: 2px solid #c41e3a;">
-                                ${eventItem.icon} ×${decorCounts[key]}
+                            <div class="inventory-item" title="${eventItem.name}" style="border: 2px solid ${qualityBorderColor};">
+                                ${qualityLabel}${eventItem.icon} ×${decorCounts[key]}
+                                <span style="font-size: 0.7rem; color: #888;">${effectsInfo}</span>
                             </div>
                         `;
                     }
@@ -8456,12 +8628,13 @@
                         }
                         
                         const itemHtml = `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${item.quality === 'legendary' ? '#ffd700' : item.quality === 'epic' ? '#9b59b6' : '#c41e3a'}; border-radius: 8px; margin-bottom: 10px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span style="font-size: 1.5rem;">${item.icon}</span>
+                                    <span style="font-size: 1.5rem;">${item.quality === 'legendary' ? '👑' : ''}${item.icon}</span>
                                     <div>
-                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #c41e3a;">🎄한정</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                        <div style="font-size: 0.85rem; color: #888;">가격: ${price}💰</div>
+                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #ffd700;">🎄${item.quality === 'legendary' ? '전설' : '한정'}</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
+                                        <div style="font-size: 0.8rem; color: #888;">${item.desc}</div>
+                                        <div style="font-size: 0.85rem; color: #ffd700;">가격: ${price}💰</div>
                                     </div>
                                 </div>
                                 <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
@@ -8529,41 +8702,45 @@
                     </div>
                 `);
                 
-                // 레시피북 (먹이)
-                const foodBookPurchased = purchasedRecipeBooks.includes('food');
-                etcItems.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${foodBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                            <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.food.icon}</span>
-                            <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${RECIPE_BOOKS.food.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
-                                <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.food.desc} (${RECIPE_BOOKS.food.recipes.length}개)</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.food.price}💰</div>
+                // 레시피북 (연구실 튜토리얼 완료 또는 건너뛰기 후 표시)
+                const labTutorialSeen = localStorage.getItem('spiritGarden_labTutorialSeen');
+                if (labTutorialSeen) {
+                    // 레시피북 (먹이)
+                    const foodBookPurchased = purchasedRecipeBooks.includes('food');
+                    etcItems.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${foodBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.food.icon}</span>
+                                <div style="min-width: 0;">
+                                    <div style="font-weight: 700;">${RECIPE_BOOKS.food.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
+                                    <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.food.desc} (${RECIPE_BOOKS.food.recipes.length}개)</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.food.price}💰</div>
+                                </div>
                             </div>
+                            ${foodBookPurchased 
+                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
+                                : `<button onclick="buyRecipeBook('food')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
                         </div>
-                        ${foodBookPurchased 
-                            ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
-                            : `<button onclick="buyRecipeBook('food')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
-                    </div>
-                `);
-                
-                // 레시피북 (미니어처)
-                const decoBookPurchased = purchasedRecipeBooks.includes('decoration');
-                etcItems.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${decoBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                            <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.decoration.icon}</span>
-                            <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${RECIPE_BOOKS.decoration.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
-                                <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.decoration.desc} (${RECIPE_BOOKS.decoration.recipes.length}개)</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.decoration.price}💰</div>
+                    `);
+                    
+                    // 레시피북 (미니어처)
+                    const decoBookPurchased = purchasedRecipeBooks.includes('decoration');
+                    etcItems.push(`
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${decoBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                                <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.decoration.icon}</span>
+                                <div style="min-width: 0;">
+                                    <div style="font-weight: 700;">${RECIPE_BOOKS.decoration.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
+                                    <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.decoration.desc} (${RECIPE_BOOKS.decoration.recipes.length}개)</div>
+                                    <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.decoration.price}💰</div>
+                                </div>
                             </div>
+                            ${decoBookPurchased 
+                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
+                                : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
                         </div>
-                        ${decoBookPurchased 
-                            ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
-                            : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
-                    </div>
-                `);
+                    `);
+                }
             }
             
             // 먹이 구매 (카테고리가 all 또는 food, 속성 필터만 적용)
@@ -12918,6 +13095,7 @@
                 encyclopediaDetails: encyclopediaDetails,
                 inventory: inventory,
                 coins: coins,
+                totalEggsCreated: totalEggsCreated,
                 terrarium: terrarium,
                 installedDecorations: installedDecorations,
                 lightMode: lightMode,
@@ -12932,6 +13110,7 @@
                 hasVisitedShop: hasVisitedShop,
                 currentTitle: currentTitle,
                 achievements: achievements,
+                claimedAchievementRewards: claimedAchievementRewards,
                 lastGatherTime: lastGatherTime,
                 currentGatherLocation: currentGatherLocation
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
@@ -13168,6 +13347,13 @@
             
             inventory = gameData.inventory || { food: [], music: [], decorations: [], medicine: [] };
             coins = gameData.coins || 0;
+            totalEggsCreated = gameData.totalEggsCreated || 0;
+            
+            // 기존 데이터 호환: totalEggsCreated가 없으면 앨범+현재정령 수로 추정
+            if (gameData.totalEggsCreated === undefined) {
+                totalEggsCreated = (collection.length || 0) + (spirits.length || 0);
+            }
+            
             terrarium = gameData.terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             installedDecorations = gameData.installedDecorations || [];
             lightMode = gameData.lightMode !== undefined ? gameData.lightMode : true;
@@ -13193,6 +13379,7 @@
             currentGatherLocation = gameData.currentGatherLocation || 'garden';
             currentTitle = gameData.currentTitle || 'none';
             achievements = gameData.achievements || {};
+            claimedAchievementRewards = gameData.claimedAchievementRewards || [];
             
             // 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
             labSlot1 = null;
@@ -13486,6 +13673,7 @@
             purchasedRecipeBooks = [];
             selfDiscoveredRecipes = [];
             achievements = {};
+            claimedAchievementRewards = [];
             labSlot1 = null;
             labSlot2 = null;
             lockedItems = { food: [], decorations: [], music: [] };
@@ -13652,20 +13840,22 @@
                             // 이벤트 미니어처 체크
                             const eventItem = EVENT_ITEMS[key];
                             if (eventItem && eventItem.type === 'decoration') {
-                                // 간소화된 효과 텍스트
-                                let effectsText = '모든 속성 +5';
-                                if (key === 'christmas_tree') {
-                                    effectsText = '모든 속성 +5, 빛 +10';
-                                } else if (key === 'christmas_gift') {
-                                    effectsText = '모든 속성 +3, 빛/암 +5';
-                                }
+                                const qualityLabel = eventItem.quality === 'legendary' ? '👑' : eventItem.quality === 'epic' ? '⭐' : eventItem.quality === 'rare' ? '💎' : '';
+                                const qualityBorderColor = eventItem.quality === 'legendary' ? '#ffd700' : eventItem.quality === 'epic' ? '#9b59b6' : eventItem.quality === 'rare' ? '#3498db' : '#c41e3a';
+                                // 효과 정보 생성
+                                const effectsText = eventItem.effects ? Object.entries(eventItem.effects)
+                                    .filter(([k, v]) => v > 0)
+                                    .map(([k, v]) => {
+                                        const attrNames = { fire: '🔥', water: '💧', wind: '🌪️', earth: '🌱', light: '✨', dark: '🌙' };
+                                        return `${attrNames[k] || k}+${v}`;
+                                    }).join(' ') : '특별 효과';
                                 return `
-                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid #c41e3a; border-radius: 6px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                            <span style="font-size: 1.3rem;">${qualityLabel}${eventItem.icon}</span>
                                             <div>
                                                 <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
-                                                <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
+                                                <div style="font-size: 0.75rem; color: #888;">${effectsText}</div>
                                             </div>
                                         </div>
                                         <button onclick="removeDecorationFromTerrarium('${key}')" style="padding: 6px 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
@@ -13826,23 +14016,25 @@
                         // 이벤트 미니어처 체크 (전설급 취급)
                         const eventItem = EVENT_ITEMS[key];
                         if (eventItem && eventItem.type === 'decoration') {
-                            // 간소화된 효과 텍스트
-                            let effectsText = '모든 속성 +5';
-                            if (key === 'christmas_tree') {
-                                effectsText = '모든 속성 +5, 빛 +10';
-                            } else if (key === 'christmas_gift') {
-                                effectsText = '모든 속성 +3, 빛/암 +5';
-                            }
+                            const qualityLabel = eventItem.quality === 'legendary' ? '👑' : eventItem.quality === 'epic' ? '⭐' : eventItem.quality === 'rare' ? '💎' : '';
+                            const qualityBorderColor = eventItem.quality === 'legendary' ? '#ffd700' : eventItem.quality === 'epic' ? '#9b59b6' : eventItem.quality === 'rare' ? '#3498db' : '#c41e3a';
+                            // 효과 정보 생성
+                            const effectsText = eventItem.effects ? Object.entries(eventItem.effects)
+                                .filter(([k, v]) => v > 0)
+                                .map(([k, v]) => {
+                                    const attrNames = { fire: '🔥', water: '💧', wind: '🌪️', earth: '🌱', light: '✨', dark: '🌙' };
+                                    return `${attrNames[k] || k}+${v}`;
+                                }).join(' ') : '특별 효과';
                             const isEventLegendary = eventItem.quality === 'legendary';
                             const canInstallThis = canInstall && (!isEventLegendary || canInstallLegendary);
                             const buttonText = !canInstall ? '가득' : (isEventLegendary && !canInstallLegendary) ? '제한' : '설치';
                             return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid #c41e3a; border-radius: 6px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
+                                        <span style="font-size: 1.3rem;">${qualityLabel}${eventItem.icon}</span>
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
-                                            <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
+                                            <div style="font-size: 0.75rem; color: #888;">${effectsText}</div>
                                         </div>
                                     </div>
                                     <button onclick="placeDecorationInTerrarium('${key}')" style="padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;" ${!canInstallThis ? 'disabled' : ''}>
