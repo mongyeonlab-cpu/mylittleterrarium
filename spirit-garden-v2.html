@@ -4641,6 +4641,9 @@
                 renderSpirits();
                 renderInventory();
                 showNotification(`${eventItem.icon} ${eventItem.name}을(를) 주었습니다! (모든 스탯 +5, 성장 +10)`);
+                
+                // 튜토리얼 체크
+                checkTutorialAction('feed');
                 return;
             }
             
@@ -4726,6 +4729,9 @@
                 }
                 const growthText = synthItem.growthGain ? `, 성장 ${synthItem.growthGain > 0 ? '+' : ''}${synthItem.growthGain}` : '';
                 showNotification(`${synthItem.icon} ${synthItem.name}을(를) 주었습니다! (${effectMsg}, 애정도 +${synthItem.affectionGain}${growthText})`);
+                
+                // 튜토리얼 체크
+                checkTutorialAction('feed');
                 return;
             }
 
