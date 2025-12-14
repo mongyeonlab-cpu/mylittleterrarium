@@ -16,6 +16,7 @@
         :root {
             --bg: #fafaf8;
             --text: #2a2a2a;
+            --text-muted: #666;
             --border: #e0e0dc;
             --card: #ffffff;
             --shadow: rgba(0, 0, 0, 0.06);
@@ -290,6 +291,10 @@
             color: #888;
             margin-bottom: 4px;
             min-height: 40px;
+        }
+
+        .spirit-appearance {
+            color: var(--text-muted);
         }
 
         .action-buttons {
@@ -759,6 +764,7 @@
             --bg: #1a1a1a;
             --card: #2d2d2d;
             --text: #e0e0e0;
+            --text-muted: #b0b0b0;
             --border: #404040;
         }
 
@@ -767,6 +773,7 @@
         body.dark-mode .progress-text,
         body.dark-mode .param,
         body.dark-mode .spirit-status,
+        body.dark-mode .spirit-appearance,
         body.dark-mode .env-title,
         body.dark-mode .modal-title,
         body.dark-mode .option-name,
@@ -1308,6 +1315,12 @@
                 </div>
             </div>
             
+            <!-- 상점 탭 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+                <button id="shopTabSell" onclick="switchShopTab('sell')" style="padding: 12px 30px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--fire); color: white;">💸 판매</button>
+                <button id="shopTabBuy" onclick="switchShopTab('buy')" style="padding: 12px 30px; font-size: 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--card); color: var(--text);">🛒 구매</button>
+            </div>
+            
             <div style="text-align: center; margin-bottom: 20px;">
                 
                 <!-- 카테고리 선택 드롭다운 -->
@@ -1319,9 +1332,9 @@
                 </select>
             </div>
 
-            <div class="shop-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
-                <!-- 판매 (소지품 → 코인) -->
-                <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
+            <!-- 판매 페이지 -->
+            <div id="shopSellPage" style="display: block;">
+                <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px; border-radius: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0; color: var(--fire);">💸 판매하기</h3>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1343,9 +1356,11 @@
                     </div>
                     <div id="sellList"></div>
                 </div>
+            </div>
 
-                <!-- 구매 (코인 → 아이템) -->
-                <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px;">
+            <!-- 구매 페이지 -->
+            <div id="shopBuyPage" style="display: none;">
+                <div class="shop-section" style="background: var(--card); border: 1px solid var(--border); padding: 32px; border-radius: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin: 0; color: var(--water);">🛒 구매하기</h3>
                         <select id="buyFilterSelect" onchange="changeBuyFilter()" style="padding: 8px 12px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer;">
@@ -1632,6 +1647,8 @@
         let sellFilter = 'all'; // 판매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let buyFilter = 'all'; // 구매 필터 (all, fire, water, wind, earth, light, dark, intelligence, strength, charm)
         let shopFoldState = { etc: false, food: false, music: false, decoration: false }; // 상점 판매 카테고리 접기 상태 (true=접힘)
+        let currentShopTab = 'sell'; // 현재 상점 탭 (sell/buy)
+        let encyclopediaFoldState = {}; // 도감 접기 상태 { 'nostat': false, 'intelligent': true, ... }
         let shopBuyFoldState = { etc: false, food: false, music: false, decoration: false }; // 상점 구매 카테고리 접기 상태 (true=접힘)
         let lockedItems = { food: [], decorations: [], music: [] }; // 판매 잠금된 아이템 목록
         let isLockMode = false; // 잠금 모드 상태
@@ -6577,9 +6594,9 @@
             modalContent.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 4rem; margin-bottom: 10px;">${item.icon && item.icon.includes('<img') ? item.icon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:auto;height:auto') : (item.icon + (wingInfo ? '🦋' : ''))}</div>
-                    <div style="font-size: 0.9rem; color: #888;">본명: ${item.originalName || '이름 없음'}</div>
-                    ${wingInfo ? `<div style="font-size: 0.9rem; color: #888; margin-top: 4px;">${wingInfo}</div>` : ''}
-                    ${item.desc ? `<div style="font-size: 0.9rem; color: #888; margin-top: 8px; line-height: 1.4; font-style: italic;">"${item.desc}"</div>` : ''}
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">본명: ${item.originalName || '이름 없음'}</div>
+                    ${wingInfo ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">${wingInfo}</div>` : ''}
+                    ${item.desc ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px; line-height: 1.4; font-style: italic;">"${item.desc}"</div>` : ''}
                 </div>
                 
                 <div style="background: var(--bg); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
@@ -7755,7 +7772,7 @@
                             <div class="spirit-info">
                                 <div class="spirit-name" onclick="changeName(${spirit.id})">${spirit.name}</div>
                                 <div class="spirit-stage">${STAGE_NAMES[stage]}</div>
-                                ${appearance ? `<div style="font-size: 0.8rem; color: #666; margin-top: 6px; line-height: 1.4;">${appearance}</div>` : ''}
+                                ${appearance ? `<div class="spirit-appearance" style="font-size: 0.8rem; margin-top: 6px; line-height: 1.4;">${appearance}</div>` : ''}
                             </div>
                         </div>
                         <div class="progress-bar">
@@ -7989,6 +8006,35 @@
             renderSellList();
             renderBuyList();
         }
+        
+        function switchShopTab(tab) {
+            currentShopTab = tab;
+            
+            const sellPage = document.getElementById('shopSellPage');
+            const buyPage = document.getElementById('shopBuyPage');
+            const sellTabBtn = document.getElementById('shopTabSell');
+            const buyTabBtn = document.getElementById('shopTabBuy');
+            
+            if (tab === 'sell') {
+                sellPage.style.display = 'block';
+                buyPage.style.display = 'none';
+                sellTabBtn.style.background = 'var(--fire)';
+                sellTabBtn.style.color = 'white';
+                sellTabBtn.style.border = 'none';
+                buyTabBtn.style.background = 'var(--card)';
+                buyTabBtn.style.color = 'var(--text)';
+                buyTabBtn.style.border = '1px solid var(--border)';
+            } else {
+                sellPage.style.display = 'none';
+                buyPage.style.display = 'block';
+                sellTabBtn.style.background = 'var(--card)';
+                sellTabBtn.style.color = 'var(--text)';
+                sellTabBtn.style.border = '1px solid var(--border)';
+                buyTabBtn.style.background = 'var(--water)';
+                buyTabBtn.style.color = 'white';
+                buyTabBtn.style.border = 'none';
+            }
+        }
 
         function renderSellList() {
             const container = document.getElementById('sellList');
@@ -8041,16 +8087,16 @@
                         }
                         
                         foodItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${FOOD_NAMES[type]} ×${count}${rarityLabel}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #666;">${effectText}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${price}💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${FOOD_NAMES[type]} ×${count}${rarityLabel}${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">${effectText}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: ${price}💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8078,16 +8124,16 @@
                         }
                         
                         foodItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#c41e3a'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#c41e3a'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">🎄${eventItem.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${eventItem.name} ×${count} <span style="font-size: 0.75rem; color: #c41e3a;">이벤트</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #c41e3a;">모든 스탯 +5, 성장 +10</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: 15💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count} <span style="font-size: 0.7rem; color: #c41e3a;">이벤트</span>${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: #c41e3a;">모든 스탯 +5, 성장 +10</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 15💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8133,16 +8179,16 @@
                         }
                         
                         const itemHtml = `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">${isEtcItem ? '' : '🔬'}${synthItem.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${synthItem.name} ×${count} ${labelText}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #9b59b6;">${effectText}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: 8💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${synthItem.name} ×${count} ${labelText}${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: #9b59b6;">${effectText}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 8💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `;
                         if (isEtcItem) {
@@ -8170,16 +8216,16 @@
                             }
                             
                             etcItems.push(`
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                         <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
-                                        <div>
-                                            <div style="font-weight: 700;">${MEDICINE.name} ×${count} <span style="font-size: 0.75rem; color: #888;">기타</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                            <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
-                                            <div style="font-size: 0.85rem; color: #888;">판매가: 10💰</div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 700; font-size: 0.9rem;">${MEDICINE.name} ×${count} <span style="font-size: 0.7rem; color: var(--text-muted);">기타</span>${isLocked ? ' 🔒' : ''}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">${MEDICINE.description}</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 10💰</div>
                                         </div>
                                     </div>
-                                    ${actionButton}
+                                    ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                                 </div>
                             `);
                         }
@@ -8271,16 +8317,16 @@
                         }
                         
                         decoItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : qualityBorderColor}; border-radius: 6px; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : qualityBorderColor}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${decoData.name} ×${count}${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #666;">${attrDisplay} | ${qualityText}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${sellPrice}💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ×${count}${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">${attrDisplay} | ${qualityText}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: ${sellPrice}💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8306,16 +8352,16 @@
                         }
                         
                         decoItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#c41e3a'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#c41e3a'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">👑🎄${eventItem.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${eventItem.name} ×${count} <span style="font-size: 0.75rem; color: #c41e3a;">이벤트</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #c41e3a;">모든 속성 +5</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: 25💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count} <span style="font-size: 0.7rem; color: #c41e3a;">이벤트</span>${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: #c41e3a;">모든 속성 +5</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 25💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8341,16 +8387,16 @@
                         }
                         
                         decoItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">🔬${synthItem.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${synthItem.name} ×${count} <span style="font-size: 0.75rem; color: #9b59b6;">합성</span>${isLocked ? ' <span style="color: #e74c3c;">🔒</span>' : ''}</div>
-                                        <div style="font-size: 0.85rem; color: #9b59b6;">${synthItem.attr} +${synthItem.power}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: 20💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${synthItem.name} ×${count} <span style="font-size: 0.7rem; color: #9b59b6;">합성</span>${isLocked ? ' 🔒' : ''}</div>
+                                        <div style="font-size: 0.75rem; color: #9b59b6;">${synthItem.attr} +${synthItem.power}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 20💰</div>
                                     </div>
                                 </div>
-                                ${actionButton}
+                                ${actionButton.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8402,16 +8448,16 @@
                         }
                         
                         musicItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#27ae60' : 'var(--border)'}; margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#27ae60' : 'var(--border)'}; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">🎵</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${musicData.name} ×${count}</div>
-                                        <div style="font-size: 0.85rem; color: #666;">${musicData.effect}</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: ${SHOP_PRICES.sell.music}💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${musicData.name} ×${count}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">${musicData.effect}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: ${SHOP_PRICES.sell.music}💰</div>
                                     </div>
                                 </div>
-                                ${actionBtn}
+                                ${actionBtn.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8440,16 +8486,16 @@
                         }
                         
                         musicItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#27ae60' : '#c41e3a'}; margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#27ae60' : '#c41e3a'}; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">🎄${eventItem.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${eventItem.name} ×${count} <span style="font-size: 0.75rem; color: #c41e3a;">이벤트</span></div>
-                                        <div style="font-size: 0.85rem; color: #c41e3a;">모든 스탯 +5</div>
-                                        <div style="font-size: 0.85rem; color: #888;">판매가: 12💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count} <span style="font-size: 0.7rem; color: #c41e3a;">이벤트</span></div>
+                                        <div style="font-size: 0.75rem; color: #c41e3a;">모든 스탯 +5</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 12💰</div>
                                     </div>
                                 </div>
-                                ${actionBtn}
+                                ${actionBtn.replace('padding: 8px 16px;', 'padding: 8px 16px; width: 100%;')}
                             </div>
                         `);
                     });
@@ -8503,7 +8549,7 @@
                                 <span style="font-weight: 600;">📦 기타 (${etcItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopEtcContent" style="display: ${isFolded ? 'none' : 'block'};">
+                            <div id="shopEtcContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${etcItems.join('')}
                             </div>
                         </div>
@@ -8519,7 +8565,7 @@
                                 <span style="font-weight: 600;">🍎 먹이 (${foodItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopFoodContent" style="display: ${isFolded ? 'none' : 'block'};">
+                            <div id="shopFoodContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${foodItems.join('')}
                             </div>
                         </div>
@@ -8535,7 +8581,7 @@
                                 <span style="font-weight: 600;">🎵 레코드 (${musicItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopMusicContent" style="display: ${isFolded ? 'none' : 'block'};">
+                            <div id="shopMusicContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${musicItems.join('')}
                             </div>
                         </div>
@@ -8551,7 +8597,7 @@
                                 <span style="font-weight: 600;">🌳 미니어처 (${decoItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopDecoContent" style="display: ${isFolded ? 'none' : 'block'};">
+                            <div id="shopDecoContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${decoItems.join('')}
                             </div>
                         </div>
@@ -8626,16 +8672,16 @@
                         }
                         
                         const itemHtml = `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${item.quality === 'legendary' ? '#ffd700' : item.quality === 'epic' ? '#9b59b6' : '#c41e3a'}; border-radius: 8px; margin-bottom: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid ${item.quality === 'legendary' ? '#ffd700' : item.quality === 'epic' ? '#9b59b6' : '#c41e3a'}; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                     <span style="font-size: 1.5rem;">${item.quality === 'legendary' ? '👑' : ''}${item.icon}</span>
-                                    <div>
-                                        <div style="font-weight: 700;">${item.name} <span style="font-size: 0.7rem; color: #ffd700;">🎄${item.quality === 'legendary' ? '전설' : '한정'}</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                        <div style="font-size: 0.8rem; color: #888;">${item.desc}</div>
-                                        <div style="font-size: 0.85rem; color: #ffd700;">가격: ${price}💰</div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${item.name} <span style="font-size: 0.65rem; color: #ffd700;">🎄${item.quality === 'legendary' ? '전설' : '한정'}</span> <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">${item.desc}</div>
+                                        <div style="font-size: 0.75rem; color: #ffd700;">가격: ${price}💰</div>
                                     </div>
                                 </div>
-                                <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
+                                <button onclick="buyEventItem('${itemKey}', ${price})" style="padding: 8px 16px; width: 100%;">구매</button>
                             </div>
                         `;
                         
@@ -8653,16 +8699,16 @@
                 // 만병통치 약초
                 const medicineCount = inventory.food ? inventory.food.filter(f => f === 'medicine').length : 0;
                 etcItems.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                            <span style="font-size: 1.5rem; flex-shrink: 0;">${MEDICINE.icon}</span>
-                            <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${MEDICINE.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${medicineCount})</span></div>
-                                <div style="font-size: 0.85rem; color: #666;">${MEDICINE.description}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: ${MEDICINE.price}💰</div>
+                    <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span style="font-size: 1.5rem;">${MEDICINE.icon}</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 700; font-size: 0.9rem;">${MEDICINE.name} <span style="font-size: 0.7rem; color: var(--text-muted);">기타 (${medicineCount})</span></div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${MEDICINE.description}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${MEDICINE.price}💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('food', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
+                        <button onclick="buyItem('food', 'medicine', ${MEDICINE.price})" style="padding: 8px 16px; width: 100%;">구매</button>
                     </div>
                 `);
                 
@@ -8670,16 +8716,16 @@
                 const daffodil = SYNTH_ITEMS['reconciliation_flower'];
                 const daffodilCount = inventory.food ? inventory.food.filter(f => f === 'reconciliation_flower').length : 0;
                 etcItems.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                            <span style="font-size: 1.5rem; flex-shrink: 0;">${daffodil.icon}</span>
-                            <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${daffodil.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${daffodilCount})</span></div>
-                                <div style="font-size: 0.85rem; color: #666;">${daffodil.desc}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
+                    <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span style="font-size: 1.5rem;">${daffodil.icon}</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 700; font-size: 0.9rem;">${daffodil.name} <span style="font-size: 0.7rem; color: var(--text-muted);">기타 (${daffodilCount})</span></div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${daffodil.desc}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">가격: 25💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('food', 'reconciliation_flower', 25)" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
+                        <button onclick="buyItem('food', 'reconciliation_flower', 25)" style="padding: 8px 16px; width: 100%;">구매</button>
                     </div>
                 `);
                 
@@ -8687,16 +8733,16 @@
                 const honey = SYNTH_ITEMS['acacia_honey'];
                 const honeyCount = inventory.food ? inventory.food.filter(f => f === 'acacia_honey').length : 0;
                 etcItems.push(`
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                            <span style="font-size: 1.5rem; flex-shrink: 0;">${honey.icon}</span>
-                            <div style="min-width: 0;">
-                                <div style="font-weight: 700;">${honey.name} <span style="font-size: 0.75rem; color: #888;">기타</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${honeyCount})</span></div>
-                                <div style="font-size: 0.85rem; color: #666;">${honey.desc}</div>
-                                <div style="font-size: 0.85rem; color: #888;">가격: 25💰</div>
+                    <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <span style="font-size: 1.5rem;">${honey.icon}</span>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 700; font-size: 0.9rem;">${honey.name} <span style="font-size: 0.7rem; color: var(--text-muted);">기타 (${honeyCount})</span></div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${honey.desc}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">가격: 25💰</div>
                             </div>
                         </div>
-                        <button onclick="buyItem('food', 'acacia_honey', 25)" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
+                        <button onclick="buyItem('food', 'acacia_honey', 25)" style="padding: 8px 16px; width: 100%;">구매</button>
                     </div>
                 `);
                 
@@ -8706,36 +8752,36 @@
                     // 레시피북 (먹이)
                     const foodBookPurchased = purchasedRecipeBooks.includes('food');
                     etcItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${foodBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                                <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.food.icon}</span>
-                                <div style="min-width: 0;">
-                                    <div style="font-weight: 700;">${RECIPE_BOOKS.food.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
-                                    <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.food.desc} (${RECIPE_BOOKS.food.recipes.length}개)</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.food.price}💰</div>
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${foodBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 1.5rem;">${RECIPE_BOOKS.food.icon}</span>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${RECIPE_BOOKS.food.name} <span style="font-size: 0.7rem; color: #9b59b6;">레시피</span></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">${RECIPE_BOOKS.food.desc} (${RECIPE_BOOKS.food.recipes.length}개)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${RECIPE_BOOKS.food.price}💰</div>
                                 </div>
                             </div>
                             ${foodBookPurchased 
-                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
-                                : `<button onclick="buyRecipeBook('food')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
+                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700; text-align: center; display: block;">✓ 구매완료</span>'
+                                : `<button onclick="buyRecipeBook('food')" style="padding: 8px 16px; width: 100%; background: #9b59b6; color: white;">구매</button>`}
                         </div>
                     `);
                     
                     // 레시피북 (미니어처)
                     const decoBookPurchased = purchasedRecipeBooks.includes('decoration');
                     etcItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${decoBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                                <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.decoration.icon}</span>
-                                <div style="min-width: 0;">
-                                    <div style="font-weight: 700;">${RECIPE_BOOKS.decoration.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
-                                    <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.decoration.desc} (${RECIPE_BOOKS.decoration.recipes.length}개)</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.decoration.price}💰</div>
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${decoBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 1.5rem;">${RECIPE_BOOKS.decoration.icon}</span>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${RECIPE_BOOKS.decoration.name} <span style="font-size: 0.7rem; color: #9b59b6;">레시피</span></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">${RECIPE_BOOKS.decoration.desc} (${RECIPE_BOOKS.decoration.recipes.length}개)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${RECIPE_BOOKS.decoration.price}💰</div>
                                 </div>
                             </div>
                             ${decoBookPurchased 
-                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
-                                : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
+                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700; text-align: center; display: block;">✓ 구매완료</span>'
+                                : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; width: 100%; background: #9b59b6; color: white;">구매</button>`}
                         </div>
                     `);
                 }
@@ -8750,16 +8796,16 @@
                     
                     const ownedCount = inventory.food ? inventory.food.filter(f => f === type).length : 0;
                     foodItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                    <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +3, 성장 +2</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_common}💰</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${FOOD_NAMES[type]} <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +3, 성장 +2</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${SHOP_PRICES.buy.food_common}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_common})" style="padding: 8px 16px; width: 100%;">구매</button>
                         </div>
                     `);
                 });
@@ -8770,16 +8816,16 @@
                     
                     const ownedCount = inventory.food ? inventory.food.filter(f => f === type).length : 0;
                     foodItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${FOOD_NAMES[type]} <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span> <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                    <div style="font-size: 0.85rem; color: #666;">${ENV_ICONS[type]} 속성 +6, 성장 +3</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${FOOD_NAMES[type]} <span style="font-size: 0.7rem; color: #9b59b6;">희귀</span> <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +6, 성장 +3</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
+                            <button onclick="buyItem('food', '${type}', ${SHOP_PRICES.buy.food_rare})" style="padding: 8px 16px; width: 100%;">구매</button>
                         </div>
                     `);
                 });
@@ -8797,16 +8843,16 @@
                     const musicData = MUSIC_TYPES[type];
                     const ownedCount = inventory.music ? inventory.music.filter(m => m === type).length : 0;
                     musicItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                 <span style="font-size: 1.5rem;">🎵</span>
-                                <div>
-                                    <div style="font-weight: 700;">${musicData.name} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                    <div style="font-size: 0.85rem; color: #666;">${musicData.effect}</div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${SHOP_PRICES.buy.music}💰</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${musicData.name} <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${musicData.effect}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${SHOP_PRICES.buy.music}💰</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
+                            <button onclick="buyItem('music', '${type}', ${SHOP_PRICES.buy.music})" style="padding: 8px 16px; width: 100%;">구매</button>
                         </div>
                     `);
                 });
@@ -8861,15 +8907,15 @@
                     const qualityBorderColor = decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)';
                     
                     decoItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px; margin-bottom: 10px;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                                 <span style="font-size: 1.5rem;">${decoData.icon}</span>
-                                <div>
-                                    <div style="font-weight: 700;">${decoData.name} ${qualityLabel} <span style="font-size: 0.75rem; color: #888;">(보유: ${ownedCount})</span></div>
-                                    <div style="font-size: 0.85rem; color: #888;">가격: ${decoData.price}💰 | ${getDecoAttrDisplay(decoData)}</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${decoData.name} ${qualityLabel} <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${decoData.price}💰 | ${getDecoAttrDisplay(decoData)}</div>
                                 </div>
                             </div>
-                            <button onclick="buyItem('decoration', '${key}', ${decoData.price})" style="padding: 8px 16px; white-space: nowrap; min-width: 50px;">구매</button>
+                            <button onclick="buyItem('decoration', '${key}', ${decoData.price})" style="padding: 8px 16px; width: 100%;">구매</button>
                         </div>
                     `);
                 });
@@ -8892,7 +8938,7 @@
                                 <span style="font-weight: 600;">📦 기타 (${etcItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'block'};">
+                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${etcItems.join('')}
                             </div>
                         </div>
@@ -8908,7 +8954,7 @@
                                 <span style="font-weight: 600;">🍎 먹이 (${foodItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'block'};">
+                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${foodItems.join('')}
                             </div>
                         </div>
@@ -8924,7 +8970,7 @@
                                 <span style="font-weight: 600;">🎵 레코드 (${musicItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'block'};">
+                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${musicItems.join('')}
                             </div>
                         </div>
@@ -8940,7 +8986,7 @@
                                 <span style="font-weight: 600;">🌳 미니어처 (${decoItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'block'};">
+                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                                 ${decoItems.join('')}
                             </div>
                         </div>
@@ -11280,6 +11326,11 @@
             preview.style.display = 'block';
         }
 
+        function toggleEncyclopediaGroup(groupId) {
+            encyclopediaFoldState[groupId] = !encyclopediaFoldState[groupId];
+            renderEncyclopedia();
+        }
+        
         function renderEncyclopedia() {
             try {
                 console.log('도감 렌더링 시작');
@@ -11418,13 +11469,22 @@
                 </div>
             `;
             
-            attributeGroups.forEach(group => {
-                // 그룹 헤더
+            attributeGroups.forEach((group, groupIndex) => {
+                const groupId = `encycGroup_${groupIndex}`;
+                const isFolded = encyclopediaFoldState[groupId] || false;
+                
+                // 그룹 헤더 (접기/펼치기 버튼 포함)
                 html += `<div style="grid-column: 1 / -1; margin-top: 30px; margin-bottom: 15px;">
-                    <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); border-bottom: 3px solid var(--fire); padding-bottom: 10px;">
-                        ${group.title}
-                    </h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--fire); padding-bottom: 10px; cursor: pointer;" onclick="toggleEncyclopediaGroup('${groupId}')">
+                        <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); margin: 0;">
+                            ${group.title}
+                        </h2>
+                        <span style="font-size: 1rem; color: var(--text-muted);">${isFolded ? '▼ 펼치기' : '▲ 접기'}</span>
+                    </div>
                 </div>`;
+                
+                // 접혀있으면 내용 스킵
+                if (isFolded) return;
                 
                 group.attrs.forEach(attrType => {
                     const attributeData = ATTRIBUTE_NAMES[attrType];
@@ -11873,7 +11933,10 @@
                     document.querySelector('.tab:nth-child(4)').classList.add('active');
                     document.getElementById('shopSection').classList.add('active');
                     renderShop();
-                    // 질병 튜토리얼: 상점 탭 열기 액션 체크
+                    // 질병 튜토리얼: 상점 탭 열기 액션 체크 + 구매 탭으로 전환
+                    if (sickTutorialActive) {
+                        switchShopTab('buy');
+                    }
                     checkSickTutorialAction('openShop');
                 } else if (tab === 'minigame') {
                     document.querySelector('.tab:nth-child(5)').classList.add('active');
@@ -16644,7 +16707,7 @@
             },
             {
                 type: 'dialog',
-                text: '저렇다니까. 아, 약초를 사러 왔었지. 구매하기에서 약초를 찾아 구매해봐.'
+                text: '저렇다니까. 아, 약초를 사러 왔었지. 구매 탭에서 기타 카테고리를 열어 약초를 찾아 구매해봐.'
             },
             {
                 type: 'action',
