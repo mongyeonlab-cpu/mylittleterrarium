@@ -1620,6 +1620,7 @@
         let installedDecorations = []; // 설치된 미니어처 목록 (객체 배열: { type, index })
         let lightMode = true; // 조명 모드 (true: 빛, false: 어둠)
         let coins = 0; // 화폐
+        let totalEggsCreated = 0; // 지금까지 생성된 알의 총 개수
         let hasVisitedShop = false; // 상점 첫 방문 여부
         let currentSpiritId = null;
         let pendingSpirit = null;
@@ -3366,6 +3367,13 @@
                 
                 lightMode = data.lightMode !== undefined ? data.lightMode : true;
                 coins = data.coins || 0;
+                totalEggsCreated = data.totalEggsCreated || 0;
+                
+                // 기존 데이터 호환: totalEggsCreated가 없으면 앨범+현재정령 수로 추정
+                if (data.totalEggsCreated === undefined) {
+                    totalEggsCreated = (collection.length || 0) + (spirits.length || 0);
+                }
+                
                 lastGatherTime = data.lastGatherTime || null;
                 currentTitle = data.currentTitle || 'none';
                 currentGatherLocation = data.currentGatherLocation || 'garden';
@@ -3445,6 +3453,7 @@
                 installedDecorations,
                 lightMode,
                 coins,
+                totalEggsCreated,
                 lastGatherTime,
                 currentTitle,
                 currentGatherLocation,
@@ -3470,7 +3479,9 @@
         ];
         
         function generateSpiritName() {
-            return EGG_NAMES[Math.floor(Math.random() * EGG_NAMES.length)];
+            totalEggsCreated++;
+            saveGame();
+            return `${totalEggsCreated}호`;
         }
 
         function addLog(spirit, message) {
@@ -3775,11 +3786,12 @@
                 return;
             }
 
-            const randomName = EGG_NAMES[Math.floor(Math.random() * EGG_NAMES.length)];
+            totalEggsCreated++;
+            const eggName = `${totalEggsCreated}호`;
 
             const spirit = {
                 id: Date.now(),
-                name: randomName,
+                name: eggName,
                 growth: 0,
                 // 공개 스탯
                 parameters: {
@@ -3817,7 +3829,7 @@
             spirits.push(spirit);
             saveGame();
             renderSpirits();
-            showNotification(`${randomName}이(가) 태어났습니다! 🥚`);
+            showNotification(`${eggName}이(가) 태어났습니다! 🥚`);
             
             // 튜토리얼 체크
             checkTutorialAction('getEgg');
@@ -6276,10 +6288,8 @@
                 inheritedParams.charm += 15; // 매력 보너스
             }
             
-            // 이름 생성
-            const namePrefix = ['사랑', '축복', '행운', '기적', '희망'];
-            const randomPrefix = namePrefix[Math.floor(Math.random() * namePrefix.length)];
-            const randomName = `${randomPrefix}의 아이`;
+            // 이름 생성 (부모 이름 기반)
+            const eggName = `${parent1.originalName}와${parent2.originalName}의 알`;
             
             // 유전 키워드 로그 메시지
             let inheritLog = `💕 ${parent1.originalName}와(과) ${parent2.originalName}의 사랑으로 태어났습니다.`;
@@ -6289,7 +6299,7 @@
             
             const spirit = {
                 id: Date.now(),
-                name: randomName,
+                name: eggName,
                 stage: 'egg',
                 growth: 0,
                 parameters: inheritedParams,
@@ -6319,7 +6329,7 @@
             renderSpirits();
             
             // 유전 키워드에 따른 알림 메시지
-            let notification = `💕 ${randomName}이(가) 태어났습니다! 부모의 능력을 조금 물려받았어요.`;
+            let notification = `💕 ${eggName}이(가) 태어났습니다! 부모의 능력을 조금 물려받았어요.`;
             if (inheritedKeywords.length > 0) {
                 notification += ` 🧬 유전: ${inheritedKeywords.join(', ')}`;
             }
@@ -6800,9 +6810,10 @@
                 };
             } else {
                 // 일반 연결 결과
+                const breedEggName = `${item.name}와${friendData.name}의 알`;
                 newSpirit = {
                     id: Date.now(),
-                    name: isFusionType ? prediction.name : generateSpiritName(),
+                    name: breedEggName,
                     originalName: null,
                     growth: 0,
                     parameters: newParams,
@@ -10448,10 +10459,11 @@
             // 새 알 생성
             const newAttribute = result.inheritedAttr || getMainAttribute(fusionSlot1Spirit);
             const isFusionType = result.key && FUSION_TYPES[result.key];
+            const fusionEggName = `${fusionSlot1Spirit.name}와${fusionSlot2Spirit.name}의 알`;
             
             const newSpirit = {
                 id: Date.now().toString(),
-                name: isFusionType ? result.name : generateSpiritName(),
+                name: fusionEggName,
                 stage: 'egg',
                 growth: 0,
                 parameters: newParams,
@@ -10783,9 +10795,10 @@
             });
             
             // 새 알 생성 (createNewSpirit과 동일한 구조)
+            const breedEggName = `${mySpirit.name}와${friendData.name}의 알`;
             const newSpirit = {
                 id: Date.now(),
-                name: isFusionType ? prediction.name : generateSpiritName(),
+                name: breedEggName,
                 originalName: null,
                 growth: 0,
                 // 공개 스탯 (부모에게서 상속)
