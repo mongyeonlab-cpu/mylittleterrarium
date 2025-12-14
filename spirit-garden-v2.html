@@ -5697,17 +5697,9 @@
                     if (eventItem && eventItem.type === 'decoration') {
                         const qualityLabel = eventItem.quality === 'legendary' ? '👑' : eventItem.quality === 'epic' ? '⭐' : eventItem.quality === 'rare' ? '💎' : '';
                         const qualityBorderColor = eventItem.quality === 'legendary' ? '#ffd700' : eventItem.quality === 'epic' ? '#9b59b6' : eventItem.quality === 'rare' ? '#3498db' : '#c41e3a';
-                        // 효과 정보 생성
-                        const effectsInfo = eventItem.effects ? Object.entries(eventItem.effects)
-                            .filter(([k, v]) => v > 0)
-                            .map(([k, v]) => {
-                                const attrNames = { fire: '🔥', water: '💧', wind: '🌪️', earth: '🌱', light: '✨', dark: '🌙' };
-                                return `${attrNames[k] || k}+${v}`;
-                            }).join(' ') : '';
                         return `
                             <div class="inventory-item" title="${eventItem.name}" style="border: 2px solid ${qualityBorderColor};">
                                 ${qualityLabel}${eventItem.icon} ×${decorCounts[key]}
-                                <span style="font-size: 0.7rem; color: #888;">${effectsInfo}</span>
                             </div>
                         `;
                     }
@@ -15689,7 +15681,7 @@
         // 오프닝 스토리
         const OPENING_SCENES = [
             "먼 미래...",
-            "인간들에 의한 환경오염으로\n지구에서 정령들의 서식지가\n줄어들기 시작했다.",
+            "인간들에 의한 오염으로\n지구에서 정령들의 서식지가\n줄어들기 시작했다.",
             "자연스럽게 정령들의 숫자는 줄어들어갔고\n지구의 자정작용은 기능을 잃게 된다.",
             "푸른 자연은 사라지고\n기계와 쓰레기의 산만 쌓여가던 어느 날...",
             "정령의 알이 열리는 식물을\n발견한 인간이 있었다.",
