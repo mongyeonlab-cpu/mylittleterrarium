@@ -1126,6 +1126,28 @@
                     <!-- 자바스크립트로 채워짐 -->
                 </div>
             </div>
+            
+            <!-- 레시피 발견 업적 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">
+                    🧪 레시피 발견
+                    <span id="recipeCountDisplay" style="font-size: 0.9rem; color: #888; font-weight: normal; margin-left: 10px;"></span>
+                </h3>
+                <div id="recipeAchievements" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 자바스크립트로 채워짐 -->
+                </div>
+            </div>
+            
+            <!-- 특별 업적 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--text);">
+                    🏅 특별 업적
+                    <span id="specialCountDisplay" style="font-size: 0.9rem; color: #888; font-weight: normal; margin-left: 10px;"></span>
+                </h3>
+                <div id="specialAchievements" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 자바스크립트로 채워짐 -->
+                </div>
+            </div>
         </div>
         
         <!-- 메모 탭 -->
@@ -1433,8 +1455,8 @@
                 
                 <!-- 입력 영역 -->
                 <div style="margin-top: 15px;">
-                    <input type="text" id="minigameInput" placeholder="단어를 입력하세요..." autocomplete="off" autocapitalize="off" spellcheck="false"
-                        style="width: 100%; padding: 18px 24px; font-size: 1.3rem; border: 3px solid var(--border); border-radius: 12px; text-align: center; font-family: 'Gowun Batang', serif; background: var(--card); color: var(--text); box-sizing: border-box;">
+                    <input type="text" id="minigameInput" placeholder="단어를 입력하세요..." autocomplete="off" autocapitalize="off" spellcheck="false" lang="ko"
+                        style="width: 100%; padding: 18px 24px; font-size: 1.3rem; border: 3px solid var(--border); border-radius: 12px; text-align: center; font-family: 'Gowun Batang', serif; background: var(--card); color: var(--text); box-sizing: border-box; ime-mode: active;">
                 </div>
             </div>
             
@@ -1560,7 +1582,7 @@
     <div class="modal" id="nameModal">
         <div class="modal-content">
             <div class="modal-title">정령의 이름을 지어주세요</div>
-            <input type="text" class="name-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="10" onkeypress="if(event.key === 'Enter') confirmName()">
+            <input type="text" class="name-input" id="nameInput" placeholder="이름을 입력하세요" maxlength="10" onkeypress="if(event.key === 'Enter') confirmName()" lang="ko" style="ime-mode: active;">
             <button onclick="confirmName()" style="width: 100%;">확인</button>
         </div>
     </div>
@@ -1735,6 +1757,40 @@
                 title: '정령 박사',
                 icon: '🎓',
                 desc: '도감에 50종류의 정령을 등록했습니다.'
+            },
+            // 레시피 발견 수
+            recipe_5: {
+                id: 'recipe_5',
+                category: 'recipe',
+                requirement: 5,
+                title: '견습 연금술사',
+                icon: '🧪',
+                desc: '5개의 레시피를 발견했습니다.'
+            },
+            recipe_15: {
+                id: 'recipe_15',
+                category: 'recipe',
+                requirement: 15,
+                title: '숙련 연금술사',
+                icon: '⚗️',
+                desc: '15개의 레시피를 발견했습니다.'
+            },
+            recipe_28: {
+                id: 'recipe_28',
+                category: 'recipe',
+                requirement: 28,
+                title: '마스터 연금술사',
+                icon: '🔮',
+                desc: '모든 레시피를 발견했습니다!'
+            },
+            // 레시피북 없이 직접 발견 (특별 업적)
+            recipe_self_all: {
+                id: 'recipe_self_all',
+                category: 'recipe_special',
+                requirement: 28,
+                title: '진정한 연금술의 대가',
+                icon: '🏅',
+                desc: '레시피북 없이 모든 레시피를 직접 발견했습니다!'
             }
         };
 
@@ -2363,6 +2419,33 @@
             description: '정령의 질병을 치료합니다'
         };
 
+        // ===== 레시피북 정의 =====
+        const RECIPE_BOOKS = {
+            food: {
+                name: '먹이 레시피북',
+                icon: '📕',
+                price: 500,
+                desc: '모든 먹이 합성 레시피가 담긴 책',
+                recipes: [
+                    'fire_tart', 'water_jelly', 'wind_candy', 'earth_pie', 'light_cookie', 'dark_chocolate', 'rainbow_cake',
+                    'fire_water_steam', 'fire_wind_heat', 'fire_earth_lava', 'fire_light_sun', 'fire_dark_ash',
+                    'water_wind_mist', 'water_earth_mud', 'water_light_aurora', 'water_dark_abyss',
+                    'wind_earth_sand', 'wind_light_sky', 'wind_dark_shadow',
+                    'earth_light_crystal', 'earth_dark_cave',
+                    'light_dark_twilight'
+                ]
+            },
+            decoration: {
+                name: '미니어처 레시피북',
+                icon: '📗',
+                price: 250,
+                desc: '모든 미니어처 합성 레시피가 담긴 책',
+                recipes: [
+                    'flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'
+                ]
+            }
+        };
+
         // ===== 연구실 합성 시스템 =====
         // 합성 아이템 정의 (결과물)
         const SYNTH_ITEMS = {
@@ -2646,6 +2729,8 @@
         let labSlot2 = null;
         let currentLabSlot = null; // 현재 선택 중인 슬롯
         let discoveredRecipes = []; // 발견한 레시피 목록
+        let purchasedRecipeBooks = []; // 구매한 레시피북 목록 ('food', 'decoration')
+        let selfDiscoveredRecipes = []; // 레시피북 없이 직접 발견한 레시피 목록
         const ENCYCLOPEDIA_HINTS = {
             // 전설
             'spiritking': '만개한 자연의 화신. 정령계의 유일무이한 지배자.',
@@ -3320,6 +3405,15 @@
                 lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
                 hasVisitedShop = data.hasVisitedShop || false;
                 discoveredRecipes = data.discoveredRecipes || [];
+                purchasedRecipeBooks = data.purchasedRecipeBooks || [];
+                selfDiscoveredRecipes = data.selfDiscoveredRecipes || [];
+                
+                // 기존 데이터 호환: selfDiscoveredRecipes가 없으면 discoveredRecipes를 복사
+                // (레시피북 시스템 도입 전에 발견한 레시피는 직접 발견으로 간주)
+                if (data.selfDiscoveredRecipes === undefined && discoveredRecipes.length > 0) {
+                    selfDiscoveredRecipes = [...discoveredRecipes];
+                }
+                
                 achievements = data.achievements || {};
                 labSlot1 = data.labSlot1 || null;
                 labSlot2 = data.labSlot2 || null;
@@ -3390,6 +3484,8 @@
                 lowSatisfactionStartTime,
                 hasVisitedShop,
                 discoveredRecipes,
+                purchasedRecipeBooks,
+                selfDiscoveredRecipes,
                 achievements,
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
                 lockedItems
@@ -3439,6 +3535,24 @@
             // 도감 업적 체크
             Object.values(ACHIEVEMENTS).filter(a => a.category === 'encyclopedia').forEach(achievement => {
                 if (!achievements[achievement.id] && encyclopediaCount >= achievement.requirement) {
+                    achievements[achievement.id] = Date.now();
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            // 레시피 업적 체크
+            const recipeCount = discoveredRecipes.length;
+            Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe').forEach(achievement => {
+                if (!achievements[achievement.id] && recipeCount >= achievement.requirement) {
+                    achievements[achievement.id] = Date.now();
+                    newAchievements.push(achievement);
+                }
+            });
+            
+            // 레시피북 없이 직접 발견 특별 업적 체크
+            const selfDiscoveredCount = selfDiscoveredRecipes.length;
+            Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe_special').forEach(achievement => {
+                if (!achievements[achievement.id] && selfDiscoveredCount >= achievement.requirement) {
                     achievements[achievement.id] = Date.now();
                     newAchievements.push(achievement);
                 }
@@ -3539,6 +3653,12 @@
                 encyclopediaCountDisplay.textContent = `(현재 ${encyclopediaCount}종)`;
             }
             
+            // 레시피 카운트 표시
+            const recipeCountDisplay = document.getElementById('recipeCountDisplay');
+            if (recipeCountDisplay) {
+                recipeCountDisplay.textContent = `(현재 ${discoveredRecipes.length}개)`;
+            }
+            
             // 앨범 업적 렌더링
             const albumAchievementsDiv = document.getElementById('albumAchievements');
             if (albumAchievementsDiv) {
@@ -3598,6 +3718,79 @@
                                 <span>${progress} / ${achievement.requirement}종</span>
                                 ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
                             </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // 레시피 업적 렌더링
+            const recipeAchievementsDiv = document.getElementById('recipeAchievements');
+            if (recipeAchievementsDiv) {
+                const recipeCount = discoveredRecipes.length;
+                const recipeAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe').sort((a, b) => a.requirement - b.requirement);
+                recipeAchievementsDiv.innerHTML = recipeAchievements.map(achievement => {
+                    const isCompleted = achievements[achievement.id];
+                    const progress = Math.min(recipeCount, achievement.requirement);
+                    const progressPercent = (progress / achievement.requirement) * 100;
+                    const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    return `
+                        <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 1px solid ${isCompleted ? 'rgba(255,215,0,0.3)' : 'var(--border)'};">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="font-size: 1.8rem; ${isCompleted ? '' : 'filter: grayscale(100%); opacity: 0.5;'}">${achievement.icon}</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: ${isCompleted ? 'var(--text)' : '#888'}; font-size: 1.05rem;">${achievement.title}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">${achievement.desc}</div>
+                                </div>
+                                ${isCompleted ? '<span style="color: #ffd700; font-size: 1.2rem;">✓</span>' : ''}
+                            </div>
+                            <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : '#9b59b6'}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                                <span>${progress} / ${achievement.requirement}개</span>
+                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // 특별 업적 렌더링
+            const specialAchievementsDiv = document.getElementById('specialAchievements');
+            if (specialAchievementsDiv) {
+                const selfDiscoveredCount = selfDiscoveredRecipes.length;
+                const specialAchievements = Object.values(ACHIEVEMENTS).filter(a => a.category === 'recipe_special').sort((a, b) => a.requirement - b.requirement);
+                specialAchievementsDiv.innerHTML = specialAchievements.map(achievement => {
+                    const isCompleted = achievements[achievement.id];
+                    const progress = Math.min(selfDiscoveredCount, achievement.requirement);
+                    const progressPercent = (progress / achievement.requirement) * 100;
+                    const completedDate = isCompleted ? new Date(isCompleted).toLocaleDateString('ko-KR') : null;
+                    
+                    // 레시피북 구매 여부에 따른 안내 메시지
+                    const hasBookPurchased = purchasedRecipeBooks.length > 0;
+                    const warningMsg = hasBookPurchased && !isCompleted
+                        ? '<div style="font-size: 0.75rem; color: #e74c3c; margin-top: 8px;">⚠️ 레시피북을 구매하여 이 업적을 달성할 수 없습니다.</div>'
+                        : '';
+                    
+                    return `
+                        <div style="padding: 16px; background: ${isCompleted ? 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05))' : 'var(--bg)'}; border-radius: 8px; border: 2px solid ${isCompleted ? '#ffd700' : hasBookPurchased ? '#e74c3c' : 'var(--border)'};">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                <span style="font-size: 1.8rem; ${isCompleted ? '' : 'filter: grayscale(100%); opacity: 0.5;'}">${achievement.icon}</span>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; color: ${isCompleted ? '#ffd700' : '#888'}; font-size: 1.05rem;">${achievement.title}</div>
+                                    <div style="font-size: 0.85rem; color: #888;">${achievement.desc}</div>
+                                </div>
+                                ${isCompleted ? '<span style="color: #ffd700; font-size: 1.2rem;">✓</span>' : ''}
+                            </div>
+                            <div style="background: var(--border); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${progressPercent}%; height: 100%; background: ${isCompleted ? 'linear-gradient(90deg, #ffd700, #ffed4a)' : '#27ae60'}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.8rem; color: #888;">
+                                <span>직접 발견: ${progress} / ${achievement.requirement}개</span>
+                                ${completedDate ? `<span>달성: ${completedDate}</span>` : ''}
+                            </div>
+                            ${warningMsg}
                         </div>
                     `;
                 }).join('');
@@ -5335,8 +5528,9 @@
                     const decoData = DECORATION_TYPES[key];
                     if (decoData) {
                         const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        const qualityBorderColor = decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)';
                         return `
-                            <div class="inventory-item" title="${decoData.name} (${decoData.attr} +${decoData.power})">
+                            <div class="inventory-item" title="${decoData.name} (${decoData.attr} +${decoData.power})" style="border: 2px solid ${qualityBorderColor};">
                                 ${qualityLabel}${decoData.icon} ×${decorCounts[key]}
                             </div>
                         `;
@@ -5346,7 +5540,7 @@
                     const synthItem = SYNTH_ITEMS[key];
                     if (synthItem && synthItem.type === 'decoration') {
                         return `
-                            <div class="inventory-item" title="${synthItem.name} (${synthItem.attr} +${synthItem.power})" style="border: 1px solid #9b59b6;">
+                            <div class="inventory-item" title="${synthItem.name} (${synthItem.attr} +${synthItem.power})" style="border: 2px solid #9b59b6;">
                                 ${synthItem.icon} ×${decorCounts[key]}
                             </div>
                         `;
@@ -5356,7 +5550,7 @@
                     const eventItem = EVENT_ITEMS[key];
                     if (eventItem && eventItem.type === 'decoration') {
                         return `
-                            <div class="inventory-item" title="${eventItem.name}">
+                            <div class="inventory-item" title="${eventItem.name}" style="border: 2px solid #c41e3a;">
                                 ${eventItem.icon} ×${decorCounts[key]}
                             </div>
                         `;
@@ -7882,6 +8076,9 @@
                         const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                         const qualityText = decoData.quality === 'legendary' ? '<span style="color: #ff6b35;">전설</span>' : decoData.quality === 'epic' ? '<span style="color: #9b59b6;">최상급</span>' : decoData.quality === 'rare' ? '<span style="color: #3498db;">희귀</span>' : '<span style="color: #888;">일반</span>';
                         
+                        // 등급별 테두리 색
+                        const qualityBorderColor = decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)';
+                        
                         // 속성 표시 (복합 속성 처리)
                         let attrDisplay = '';
                         if (decoData.attr === 'dual' && decoData.dualAttr) {
@@ -7910,7 +8107,7 @@
                         }
                         
                         decoItems.push(`
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#e74c3c' : 'var(--border)'}; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : qualityBorderColor}; border-radius: 6px; margin-bottom: 10px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 1.5rem;">${qualityLabel}${decoData.icon}</span>
                                     <div>
@@ -8337,6 +8534,42 @@
                         <button onclick="buyItem('food', 'acacia_honey', 25)" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0;">구매</button>
                     </div>
                 `);
+                
+                // 레시피북 (먹이)
+                const foodBookPurchased = purchasedRecipeBooks.includes('food');
+                etcItems.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${foodBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                            <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.food.icon}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 700;">${RECIPE_BOOKS.food.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
+                                <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.food.desc} (${RECIPE_BOOKS.food.recipes.length}개)</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.food.price}💰</div>
+                            </div>
+                        </div>
+                        ${foodBookPurchased 
+                            ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
+                            : `<button onclick="buyRecipeBook('food')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
+                    </div>
+                `);
+                
+                // 레시피북 (미니어처)
+                const decoBookPurchased = purchasedRecipeBooks.includes('decoration');
+                etcItems.push(`
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${decoBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 6px; margin-bottom: 10px; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                            <span style="font-size: 1.5rem; flex-shrink: 0;">${RECIPE_BOOKS.decoration.icon}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 700;">${RECIPE_BOOKS.decoration.name} <span style="font-size: 0.75rem; color: #9b59b6;">레시피</span></div>
+                                <div style="font-size: 0.85rem; color: #666;">${RECIPE_BOOKS.decoration.desc} (${RECIPE_BOOKS.decoration.recipes.length}개)</div>
+                                <div style="font-size: 0.85rem; color: #888;">가격: ${RECIPE_BOOKS.decoration.price}💰</div>
+                            </div>
+                        </div>
+                        ${decoBookPurchased 
+                            ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700;">✓ 구매완료</span>'
+                            : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; white-space: nowrap; min-width: 50px; flex-shrink: 0; background: #9b59b6; color: white;">구매</button>`}
+                    </div>
+                `);
             }
             
             // 먹이 구매 (카테고리가 all 또는 food, 속성 필터만 적용)
@@ -8455,8 +8688,11 @@
                     const qualityLabel = decoData.quality === 'rare' ? '<span style="font-size: 0.75rem; color: #1565c0;">희귀</span>' :
                                         decoData.quality === 'epic' ? '<span style="font-size: 0.75rem; color: #e65100;">최상급</span>' : '';
                     
+                    // 등급별 테두리 색
+                    const qualityBorderColor = decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)';
+                    
                     decoItems.push(`
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px; margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <span style="font-size: 1.5rem;">${decoData.icon}</span>
                                 <div>
@@ -8891,6 +9127,51 @@
             renderBuyList();
             updateCoinDisplay();
             renderInventory();
+        }
+
+        // 레시피북 구매
+        async function buyRecipeBook(bookType) {
+            const book = RECIPE_BOOKS[bookType];
+            if (!book) return;
+            
+            if (purchasedRecipeBooks.includes(bookType)) {
+                showNotification('이미 구매한 레시피북입니다!');
+                return;
+            }
+            
+            if (coins < book.price) {
+                showNotification('코인이 부족합니다!');
+                setShopkeeperDialogue('...돈이 부족해 보이네요.');
+                return;
+            }
+            
+            const confirmed = await showConfirm(
+                '레시피북 구매',
+                `${book.icon} ${book.name}을(를) ${book.price}💰에 구매하시겠습니까?\n\n${book.recipes.length}개의 레시피가 연구실에 추가됩니다.\n\n⚠️ 레시피북으로 해금된 레시피는 "직접 발견" 업적에 포함되지 않습니다.`
+            );
+            
+            if (!confirmed) return;
+            
+            coins -= book.price;
+            purchasedRecipeBooks.push(bookType);
+            
+            // 해당 레시피들을 발견된 레시피에 추가 (이미 발견한 것은 제외)
+            let newRecipes = 0;
+            book.recipes.forEach(recipeId => {
+                if (!discoveredRecipes.includes(recipeId)) {
+                    discoveredRecipes.push(recipeId);
+                    newRecipes++;
+                }
+            });
+            
+            saveGame();
+            renderBuyList();
+            updateCoinDisplay();
+            applyRecipeFilters();
+            checkAchievements(); // 레시피 업적 체크
+            
+            showNotification(`${book.icon} ${book.name} 구매 완료! (${newRecipes}개의 새 레시피 해금)`);
+            setShopkeeperDialogue(`${book.name}이군요! 연구실에서 확인해보세요.`);
         }
 
         function buyItem(category, type, price) {
@@ -11157,7 +11438,15 @@
                     let recipeHint = '';
                     if (fusion.recipe) {
                         const recipeNames = fusion.recipe.map(r => {
-                            if (ATTRIBUTE_NAMES[r]) return ATTRIBUTE_NAMES[r].icon;
+                            if (ATTRIBUTE_NAMES[r]) {
+                                const icon = ATTRIBUTE_NAMES[r].icon;
+                                // icon이 object인 경우 (fire 등) 이모지로 대체
+                                if (typeof icon === 'object') {
+                                    const attrEmojis = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
+                                    return attrEmojis[r] || '✨';
+                                }
+                                return icon;
+                            }
                             if (r === 'intelligent') return '🧠';
                             if (r === 'strong') return '💪';
                             if (r === 'beautiful') return '💖';
@@ -12117,6 +12406,11 @@
             // 레시피 발견 기록
             if (!discoveredRecipes.includes(recipeId)) {
                 discoveredRecipes.push(recipeId);
+                // 직접 발견한 레시피로도 기록 (레시피북으로 해금되지 않은 경우)
+                if (!selfDiscoveredRecipes.includes(recipeId)) {
+                    selfDiscoveredRecipes.push(recipeId);
+                }
+                checkAchievements(); // 레시피 업적 체크
             }
             
             // 슬롯 초기화
@@ -12127,7 +12421,7 @@
             updateLabUI();
             checkRecipe();
             renderInventory();
-            renderRecipeList();
+            applyRecipeFilters(); // 현재 필터 유지하면서 레시피 목록 갱신
             saveGame();
             
             showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${recipe.result.count} 합성 성공!`);
@@ -12362,6 +12656,11 @@
             // 레시피 발견 기록
             if (!discoveredRecipes.includes(recipeId)) {
                 discoveredRecipes.push(recipeId);
+                // 직접 발견한 레시피로도 기록 (레시피북으로 해금되지 않은 경우)
+                if (!selfDiscoveredRecipes.includes(recipeId)) {
+                    selfDiscoveredRecipes.push(recipeId);
+                }
+                checkAchievements(); // 레시피 업적 체크
             }
             
             // 슬롯 초기화 (혹시 무언가 있을 경우)
@@ -12487,6 +12786,12 @@
                 const resultCategory = resultItem.type === 'decoration' ? 'decoration' : 'food';
                 const resultCount = countInventoryItem(recipe.result.type, resultCategory);
                 
+                // 직접 발견 vs 레시피북 해금 체크
+                const isSelfDiscovered = selfDiscoveredRecipes.includes(recipeId);
+                const discoveryTag = isSelfDiscovered 
+                    ? '<span style="font-size: 0.65rem; background: #27ae60; color: white; padding: 2px 5px; border-radius: 3px; margin-left: 6px;">✨직접발견</span>'
+                    : '<span style="font-size: 0.65rem; background: #888; color: white; padding: 2px 5px; border-radius: 3px; margin-left: 6px;">📖레시피북</span>';
+                
                 // 제작 버튼 (제작 가능할 때만)
                 let craftButton = '';
                 if (canCraft) {
@@ -12503,9 +12808,10 @@
                     <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" 
                          onmouseout="this.style.transform=''; this.style.boxShadow='${canCraft ? '0 0 8px rgba(39, 174, 96, 0.3)' : ''}';">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
                             <span style="font-size: 1.5rem;">${resultItem.icon}</span>
                             <span style="font-weight: 600;">${resultItem.name}</span>
+                            ${discoveryTag}
                             <span style="color: #9b59b6; font-size: 0.85rem;">×${recipe.result.count}</span>
                             <span style="color: #888; font-size: 0.75rem; margin-left: 4px;">(보유: ${resultCount})</span>
                             ${canCraft ? '<span style="margin-left: auto; font-size: 0.75rem; background: #27ae60; color: white; padding: 2px 6px;">제작 가능</span>' : ''}
@@ -12623,6 +12929,8 @@
                 darkModeLocked: darkModeLocked,
                 lowSatisfactionStartTime: lowSatisfactionStartTime,
                 discoveredRecipes: discoveredRecipes,
+                purchasedRecipeBooks: purchasedRecipeBooks,
+                selfDiscoveredRecipes: selfDiscoveredRecipes,
                 lockedItems: lockedItems,
                 activatedEvents: activatedEvents,
                 hasVisitedShop: hasVisitedShop,
@@ -12871,6 +13179,15 @@
             darkModeLocked = gameData.darkModeLocked || false;
             lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
             discoveredRecipes = gameData.discoveredRecipes || [];
+            purchasedRecipeBooks = gameData.purchasedRecipeBooks || [];
+            selfDiscoveredRecipes = gameData.selfDiscoveredRecipes || [];
+            
+            // 기존 데이터 호환: selfDiscoveredRecipes가 없으면 discoveredRecipes를 복사
+            // (레시피북 시스템 도입 전에 발견한 레시피는 직접 발견으로 간주)
+            if (gameData.selfDiscoveredRecipes === undefined && discoveredRecipes.length > 0) {
+                selfDiscoveredRecipes = [...discoveredRecipes];
+            }
+            
             lockedItems = gameData.lockedItems || { food: [], decorations: [], music: [] };
             if (!lockedItems.music) lockedItems.music = []; // 기존 세이브 호환
             encyclopediaDetails = gameData.encyclopediaDetails || {};
@@ -13170,9 +13487,12 @@
             
             // 추가 변수 초기화
             discoveredRecipes = [];
+            purchasedRecipeBooks = [];
+            selfDiscoveredRecipes = [];
+            achievements = {};
             labSlot1 = null;
             labSlot2 = null;
-            lockedItems = { food: [], decorations: [] };
+            lockedItems = { food: [], decorations: [], music: [] };
             activatedEvents = [];
             lowSatisfactionStartTime = {};
             hasVisitedShop = false;
@@ -13316,8 +13636,9 @@
                             if (decoData) {
                                 const qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
                                 const isSynth = SYNTH_ITEMS[key] && !DECORATION_TYPES[key];
+                                const qualityBorderColor = isSynth ? '#9b59b6' : (decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)');
                                 return `
-                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isSynth ? '#9b59b6' : 'var(--border)'}; border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <span style="font-size: 1.3rem;">${isSynth ? '🔬' : qualityLabel}${decoData.icon}</span>
                                             <div>
@@ -13343,9 +13664,9 @@
                                     effectsText = '모든 속성 +3, 빛/암 +5';
                                 }
                                 return `
-                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid #c41e3a; border-radius: 6px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
-                                            <span style="font-size: 1.3rem;">👑🎄${eventItem.icon}</span>
+                                            <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
                                             <div>
                                                 <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
                                                 <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
@@ -13489,8 +13810,9 @@
                             const canInstallThis = canInstall && (!isLegendary || canInstallLegendary);
                             const buttonText = !canInstall ? '가득' : (isLegendary && !canInstallLegendary) ? '제한' : '설치';
                             const isSynth = SYNTH_ITEMS[key] && !DECORATION_TYPES[key];
+                            const qualityBorderColor = isSynth ? '#9b59b6' : (decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)');
                             return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid ${isSynth ? '#9b59b6' : 'var(--border)'}; border-radius: 4px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid ${qualityBorderColor}; border-radius: 6px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
                                         <span style="font-size: 1.3rem;">${isSynth ? '🔬' : qualityLabel}${decoData.icon}</span>
                                         <div>
@@ -13519,9 +13841,9 @@
                             const canInstallThis = canInstall && (!isEventLegendary || canInstallLegendary);
                             const buttonText = !canInstall ? '가득' : (isEventLegendary && !canInstallLegendary) ? '제한' : '설치';
                             return `
-                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border: 2px solid #c41e3a; border-radius: 6px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-size: 1.3rem;">👑🎄${eventItem.icon}</span>
+                                        <span style="font-size: 1.3rem;">🎄${eventItem.icon}</span>
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.9rem;">${eventItem.name} ×${count}</div>
                                             <div style="font-size: 0.75rem; color: #c41e3a;">${effectsText}</div>
@@ -14415,17 +14737,21 @@
             // UI 초기화
             updateMinigameUI();
             
-            // 입력 필드 초기화
+            // 입력 필드 초기화 (카운트다운 중에도 입력 가능)
             const input = document.getElementById('minigameInput');
             input.value = '';
-            input.disabled = true; // 카운트다운 동안 비활성화
+            input.disabled = false; // 카운트다운 중에도 활성화
+            
+            // 바로 포커스 (카운트다운 중 준비 가능)
+            setTimeout(() => {
+                input.focus();
+            }, 100);
             
             // 카운트다운 시작
             showMinigameCountdown(() => {
                 // 카운트다운 완료 후 게임 시작
-                input.disabled = false;
                 
-                // 모바일: 약간 딜레이 후 포커스 (키보드 올라오게)
+                // 모바일: 포커스 재확인
                 setTimeout(() => {
                     input.focus();
                 }, 100);
@@ -15172,13 +15498,14 @@
 
         // 오프닝 스토리
         const OPENING_SCENES = [
-            "멀지 않은 미래...",
-            "지구에서 정령의 수가 급감하기 시작했다.",
-            "정령이 사라진 자리,\n자연은 서서히 황폐해져 갔다.",
-            "황폐해진 자연 속에서\n정령들은 더 이상 알을 낳지 않았다.",
-            "뒤늦게 위기를 깨달은 인간들은\n남은 정령의 알을 수집하기 시작했다.",
-            "그리고 작은 유리병 안에서\n정령을 키워 자연으로 돌려보내는\n이들이 나타났다.",
-            "사람들은 그들을\n'테라리움 키퍼'라 불렀다.",
+            "먼 미래...",
+            "인간들에 의한 오염으로\n지구에서 정령들의 서식지가\n줄어들기 시작했다.",
+            "자연스럽게 정령들의 숫자는 줄어들어갔고\n지구의 자정작용은 기능을 잃게 된다.",
+            "푸른 자연은 사라지고\n기계와 쓰레기의 산만 쌓여가던 어느 날...",
+            "정령의 알이 열리는 식물을\n발견한 인간이 있었다.",
+            "모두가 불가능하리라 예상했지만\n그는 작은 테라리움 안에서\n정령을 길러내는 데 성공한다.",
+            "그 이후로도 그를 따라\n테라리움에서 정령을 인공사육해\n자연으로 방사하는 사람들이 늘어갔다.",
+            "다른 사람들은 그들을\n'테라리움 키퍼'라고 불렀다.",
             "이것은 작은 테라리움에서 시작되는\n당신의 이야기."
         ];
         
@@ -15654,7 +15981,20 @@
         }
         
         function skipTutorial() {
-            endTutorial();
+            // 건너뛰기는 보상 없이 종료
+            tutorialActive = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_tutorialSeen', 'true');
+            showNotification('튜토리얼을 건너뛰었습니다.');
         }
         
         function endTutorial() {
@@ -15671,7 +16011,7 @@
             
             localStorage.setItem('spiritGarden_tutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급
+            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
             if (!localStorage.getItem('spiritGarden_tutorialCompleted')) {
                 localStorage.setItem('spiritGarden_tutorialCompleted', 'true');
                 coins += 25;
@@ -15868,7 +16208,20 @@
         }
         
         function skipTutorial2() {
-            endTutorial2();
+            // 건너뛰기는 보상 없이 종료
+            tutorial2Active = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
+            showNotification('튜토리얼을 건너뛰었습니다.');
         }
         
         function endTutorial2() {
@@ -15885,7 +16238,7 @@
             
             localStorage.setItem('spiritGarden_tutorial2Seen', 'true');
             
-            // 최초 완료 시 보상 지급
+            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
             if (!localStorage.getItem('spiritGarden_tutorial2Completed')) {
                 localStorage.setItem('spiritGarden_tutorial2Completed', 'true');
                 coins += 25;
@@ -16179,7 +16532,20 @@
         }
         
         function skipSickTutorial() {
-            endSickTutorial();
+            // 건너뛰기는 보상 없이 종료
+            sickTutorialActive = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_sickTutorialSeen', 'true');
+            showNotification('튜토리얼을 건너뛰었습니다.');
         }
         
         function endSickTutorial() {
@@ -16196,7 +16562,7 @@
             
             localStorage.setItem('spiritGarden_sickTutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급
+            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
             if (!localStorage.getItem('spiritGarden_sickTutorialCompleted')) {
                 localStorage.setItem('spiritGarden_sickTutorialCompleted', 'true');
                 coins += 25;
@@ -16340,7 +16706,18 @@
         }
         
         function skipImbalanceTutorial() {
-            endImbalanceTutorial();
+            // 건너뛰기 (보상 없음)
+            imbalanceTutorialActive = false;
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_imbalanceTutorialSeen', 'true');
+            showNotification('튜토리얼을 건너뛰었습니다.');
         }
         
         function endImbalanceTutorial() {
@@ -16627,7 +17004,20 @@
         }
         
         function skipLabTutorial() {
-            endLabTutorial();
+            // 건너뛰기는 보상 없이 종료
+            labTutorialActive = false;
+            window.tutorialWaitingFor = null;
+            clearTutorialHighlight();
+            
+            const modal = document.getElementById('tutorialModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.3s';
+                setTimeout(() => modal.remove(), 300);
+            }
+            
+            localStorage.setItem('spiritGarden_labTutorialSeen', 'true');
+            showNotification('튜토리얼을 건너뛰었습니다.');
         }
         
         function endLabTutorial() {
@@ -16644,7 +17034,7 @@
             
             localStorage.setItem('spiritGarden_labTutorialSeen', 'true');
             
-            // 최초 완료 시 보상 지급
+            // 최초 완료 시 보상 지급 (건너뛰기가 아닌 경우에만)
             if (!localStorage.getItem('spiritGarden_labTutorialCompleted')) {
                 localStorage.setItem('spiritGarden_labTutorialCompleted', 'true');
                 coins += 25;
