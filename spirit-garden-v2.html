@@ -679,8 +679,19 @@
             transform: scale(0.95);
         }
         
+        /* 상점 아이템 그리드 - 기본 3열, 모바일 2열 */
+        .shop-items-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
         /* 모바일 반응형 */
         @media (max-width: 768px) {
+            .shop-items-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
             .scroll-buttons {
                 right: 15px;
                 bottom: 15px;
@@ -8549,7 +8560,7 @@
                                 <span style="font-weight: 600;">📦 기타 (${etcItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopEtcContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div id="shopEtcContent" class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${etcItems.join('')}
                             </div>
                         </div>
@@ -8565,7 +8576,7 @@
                                 <span style="font-weight: 600;">🍎 먹이 (${foodItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopFoodContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div id="shopFoodContent" class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${foodItems.join('')}
                             </div>
                         </div>
@@ -8581,7 +8592,7 @@
                                 <span style="font-weight: 600;">🎵 레코드 (${musicItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopMusicContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div id="shopMusicContent" class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${musicItems.join('')}
                             </div>
                         </div>
@@ -8597,7 +8608,7 @@
                                 <span style="font-weight: 600;">🌳 미니어처 (${decoItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div id="shopDecoContent" style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div id="shopDecoContent" class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${decoItems.join('')}
                             </div>
                         </div>
@@ -8938,7 +8949,7 @@
                                 <span style="font-weight: 600;">📦 기타 (${etcItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${etcItems.join('')}
                             </div>
                         </div>
@@ -8954,7 +8965,7 @@
                                 <span style="font-weight: 600;">🍎 먹이 (${foodItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${foodItems.join('')}
                             </div>
                         </div>
@@ -8970,7 +8981,7 @@
                                 <span style="font-weight: 600;">🎵 레코드 (${musicItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${musicItems.join('')}
                             </div>
                         </div>
@@ -8986,7 +8997,7 @@
                                 <span style="font-weight: 600;">🌳 미니어처 (${decoItems.length})</span>
                                 <span>${isFolded ? '▶' : '▼'}</span>
                             </div>
-                            <div style="display: ${isFolded ? 'none' : 'grid'}; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <div class="shop-items-grid" style="display: ${isFolded ? 'none' : 'grid'};">
                                 ${decoItems.join('')}
                             </div>
                         </div>
