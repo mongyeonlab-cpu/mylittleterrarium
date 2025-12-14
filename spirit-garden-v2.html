@@ -2423,15 +2423,15 @@
         // 합성 아이템 정의 (결과물)
         const SYNTH_ITEMS = {
             // 먹이 합성 결과물 (단일 속성)
-            fire_tart: { name: '불꽃열매 타르트', icon: '🥧', type: 'food', attr: 'fire', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            water_jelly: { name: '이슬 에이드', icon: '🥤', type: 'food', attr: 'water', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            wind_candy: { name: '바람꿀차', icon: '🍵', type: 'food', attr: 'wind', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            earth_pie: { name: '대지버섯 볶음', icon: '🥘', type: 'food', attr: 'earth', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            light_cookie: { name: '넥타르', icon: '🍯', type: 'food', attr: 'light', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            dark_chocolate: { name: '다크 초콜릿', icon: '🍫', type: 'food', attr: 'dark', attrGain: 6, affectionGain: 3, growthGain: 3 },
-            rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'all', attrGain: 3, affectionGain: 5, growthGain: 5 },
+            fire_tart: { name: '불꽃열매 타르트', icon: '🥧', type: 'food', attr: 'fire', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            water_jelly: { name: '이슬 에이드', icon: '🥤', type: 'food', attr: 'water', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            wind_candy: { name: '바람꿀차', icon: '🍵', type: 'food', attr: 'wind', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            earth_pie: { name: '대지버섯 볶음', icon: '🥘', type: 'food', attr: 'earth', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            light_cookie: { name: '넥타르', icon: '🍯', type: 'food', attr: 'light', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            dark_chocolate: { name: '다크 초콜릿', icon: '🍫', type: 'food', attr: 'dark', attrGain: 6, affectionGain: 3, growthGain: 2 },
+            rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'all', attrGain: 3, affectionGain: 5, growthGain: 2 },
             
-            // 먹이 합성 결과물 (혼합 속성) - 밸런스 조정: 성장 2, 속성 4
+            // 먹이 합성 결과물 (혼합 속성)
             fire_water_steam: { name: '스팀 푸딩', icon: '♨️', type: 'food', attr: 'dual', dualAttr: ['fire', 'water'], attrGain: 4, affectionGain: 3, growthGain: 2 },
             fire_wind_heat: { name: '열풍 크래커', icon: '🌪️', type: 'food', attr: 'dual', dualAttr: ['fire', 'wind'], attrGain: 4, affectionGain: 3, growthGain: 2 },
             fire_earth_lava: { name: '화산 스프', icon: '🍲', type: 'food', attr: 'dual', dualAttr: ['fire', 'earth'], attrGain: 4, affectionGain: 3, growthGain: 2 },
@@ -2451,7 +2451,7 @@
             dark_nectar: { name: '암흑의 넥타르', icon: '🖤🍯', type: 'food', attr: 'special', attrGain: 0, affectionGain: 2, growthGain: -2, desc: '성장을 늦추는 신비한 음료' },
             
             // 특수 먹이 - 화해 효과 (앙숙 전용)
-            reconciliation_flower: { name: '수선화 꽃잎', icon: '🌼💫', type: 'food', attr: 'special', attrGain: 0, affectionGain: 5, growthGain: 1, desc: '앙숙 관계인 정령에게 사용. 30분간 싸우지 않습니다', effectDuration: 30 * 60 * 1000, requiresRival: true },
+            reconciliation_flower: { name: '수선화 꽃잎', icon: '🌼💫', type: 'food', attr: 'special', attrGain: 0, affectionGain: 5, growthGain: 2, desc: '앙숙 관계인 정령에게 사용. 30분간 싸우지 않습니다', effectDuration: 30 * 60 * 1000, requiresRival: true },
             
             // 특수 먹이 - 친밀도 증가 효과
             acacia_honey: { name: '아카시아 꿀', icon: '🍯✨', type: 'food', attr: 'special', attrGain: 0, affectionGain: 3, growthGain: 2, desc: '30분간 다른 정령과 빠르게 친해집니다', effectDuration: 30 * 60 * 1000 },
