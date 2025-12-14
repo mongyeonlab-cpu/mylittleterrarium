@@ -9335,6 +9335,17 @@
             
             showNotification(`${book.icon} ${book.name} 구매 완료! (${newRecipes}개의 새 레시피 해금)`);
             setShopkeeperDialogue(`${book.name}이군요! 연구실에서 확인해보세요.`);
+            
+            // 0원이 되면 10코인 지급
+            if (coins === 0) {
+                setTimeout(() => {
+                    coins += 10;
+                    saveGame();
+                    updateCoinDisplay();
+                    setShopkeeperDialogue('...이거라도 가져가요.');
+                    showNotification('💰 상점 주인에게 10코인을 받았습니다!');
+                }, 800);
+            }
         }
 
         function buyItem(category, type, price) {
@@ -9382,6 +9393,17 @@
             updateCoinDisplay();
             renderInventory();
             
+            // 0원이 되면 10코인 지급
+            if (coins === 0) {
+                setTimeout(() => {
+                    coins += 10;
+                    saveGame();
+                    updateCoinDisplay();
+                    setShopkeeperDialogue('...이거라도 가져가요.');
+                    showNotification('💰 상점 주인에게 10코인을 받았습니다!');
+                }, 800);
+            }
+            
             // 연구실 튜토리얼 체크
             checkInventoryAndLabTutorial();
         }
@@ -9428,6 +9450,17 @@
             renderBuyList();
             updateCoinDisplay();
             renderInventory();
+            
+            // 0원이 되면 10코인 지급
+            if (coins === 0) {
+                setTimeout(() => {
+                    coins += 10;
+                    saveGame();
+                    updateCoinDisplay();
+                    setShopkeeperDialogue('...이거라도 가져가요.');
+                    showNotification('💰 상점 주인에게 10코인을 받았습니다!');
+                }, 800);
+            }
             
             // 연구실 튜토리얼 체크
             checkInventoryAndLabTutorial();
