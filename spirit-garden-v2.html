@@ -679,18 +679,22 @@
             transform: scale(0.95);
         }
         
-        /* 상점 아이템 그리드 - 기본 3열, 모바일 2열 */
+        /* 상점 아이템 그리드 - 기본 2열 (모바일 우선) */
         .shop-items-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+        }
+        
+        /* 큰 화면에서만 3열 (1200px 이상) */
+        @media (min-width: 1200px) {
+            .shop-items-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
         
         /* 모바일 반응형 */
         @media (max-width: 768px) {
-            .shop-items-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
             
             .scroll-buttons {
                 right: 15px;
