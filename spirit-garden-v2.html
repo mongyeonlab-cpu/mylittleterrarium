@@ -2220,6 +2220,11 @@
                 larva1: '<img src="https://i.imgur.com/8r4d5Ff.png" style="width:150px;height:150px;vertical-align:middle;">',
                 larva2: '<img src="https://i.imgur.com/NRu98rF.png" style="width:150px;height:150px;vertical-align:middle;">',
                 larva3: '<img src="https://i.imgur.com/cyZ04mg.png" style="width:150px;height:150px;vertical-align:middle;">'
+            },
+            water: {
+                larva1: '<img src="https://i.imgur.com/zFPU23e.png" style="width:150px;height:150px;vertical-align:middle;">',
+                larva2: '<img src="https://i.imgur.com/lIfnolj.png" style="width:150px;height:150px;vertical-align:middle;">',
+                larva3: '<img src="https://i.imgur.com/f6zYjjk.png" style="width:150px;height:150px;vertical-align:middle;">'
             }
         };
         
@@ -2229,10 +2234,13 @@
             let icon = STAGE_ICONS[stage];
             
             // 정령이 있고, 속성별 아이콘이 있는 경우
-            if (spirit && spirit.attribute && ATTRIBUTE_STAGE_ICONS[spirit.attribute]) {
-                const attrIcons = ATTRIBUTE_STAGE_ICONS[spirit.attribute];
-                if (attrIcons[stage]) {
-                    icon = attrIcons[stage];
+            if (spirit && spirit.hiddenAttributes) {
+                const dominantAttr = getDominantAttribute(spirit);
+                if (dominantAttr && ATTRIBUTE_STAGE_ICONS[dominantAttr]) {
+                    const attrIcons = ATTRIBUTE_STAGE_ICONS[dominantAttr];
+                    if (attrIcons[stage]) {
+                        icon = attrIcons[stage];
+                    }
                 }
             }
             
