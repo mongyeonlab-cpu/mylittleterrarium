@@ -3454,6 +3454,16 @@
                     if (spirit.type && statLevelPattern.test(spirit.type)) {
                         spirit.type = spirit.type.replace(/-(low|mid|high)$/, '');
                     }
+                    
+                    // 이벤트 정령 wingType 마이그레이션 (기존 데이터에 wingType이 없는 경우)
+                    if (spirit.type && spirit.type.startsWith('event_') && !spirit.wingType) {
+                        if (spirit.lightTime !== undefined && spirit.darkTime !== undefined) {
+                            spirit.wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
+                            if (spirit.lightTime === spirit.darkTime) spirit.wingType = 'butterfly';
+                        } else {
+                            spirit.wingType = 'butterfly'; // 기본값
+                        }
+                    }
                 });
                 
                 // 도감 마이그레이션 (키 변환 및 합산)
@@ -6648,6 +6658,40 @@
             
             modalTitle.textContent = item.name;
             
+            // 이벤트 정령인 경우 최신 아이콘으로 업데이트
+            let itemIcon = item.icon;
+            if (item.type && item.type.startsWith('event_')) {
+                const typeParts = item.type.replace('event_', '').split('_');
+                const eventKey = typeParts[0];
+                const isShiny = typeParts.includes('shiny');
+                
+                // wingType 결정: 저장된 값 > type에서 추출 > lightTime/darkTime으로 계산 > 기본값
+                let wingType = item.wingType;
+                if (!wingType) {
+                    if (typeParts.includes('butterfly')) {
+                        wingType = 'butterfly';
+                    } else if (typeParts.includes('moth')) {
+                        wingType = 'moth';
+                    } else if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                        wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                    } else {
+                        wingType = 'butterfly';
+                    }
+                }
+                
+                const event = EVENT_TYPES[eventKey];
+                if (event) {
+                    const stages = isShiny && event.shiny ? event.shiny.stages : event.stages;
+                    if (stages && stages.adult) {
+                        if (typeof stages.adult === 'object' && stages.adult.butterfly) {
+                            itemIcon = stages.adult[wingType] || stages.adult.butterfly;
+                        } else {
+                            itemIcon = stages.adult;
+                        }
+                    }
+                }
+            }
+            
             // 날개 정보
             let wingInfo = '';
             if (item.wingType === 'butterfly') {
@@ -6702,7 +6746,7 @@
             
             modalContent.innerHTML = `
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 4rem; margin-bottom: 10px;">${item.icon && item.icon.includes('<img') ? item.icon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:auto;height:auto') : (item.icon + (wingInfo ? '🦋' : ''))}</div>
+                    <div style="font-size: 4rem; margin-bottom: 10px;">${itemIcon && itemIcon.includes('<img') ? itemIcon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:auto;height:auto') : (itemIcon + (wingInfo ? '🦋' : ''))}</div>
                     <div style="font-size: 0.9rem; color: var(--text-muted);">본명: ${item.originalName || '이름 없음'}</div>
                     ${wingInfo ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 4px;">${wingInfo}</div>` : ''}
                     ${item.desc ? `<div style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px; line-height: 1.4; font-style: italic;">"${item.desc}"</div>` : ''}
@@ -12060,8 +12104,44 @@
                 const desc = item.desc || '';
                 const originalName = item.originalName || item.name || '이름 없음';
                 
+                // 이벤트 정령인 경우 최신 아이콘으로 업데이트
+                let itemIcon = item.icon;
+                if (item.type && item.type.startsWith('event_')) {
+                    // event_christmas2025_shiny_butterfly 형식 파싱
+                    const typeParts = item.type.replace('event_', '').split('_');
+                    const eventKey = typeParts[0]; // christmas2025
+                    const isShiny = typeParts.includes('shiny');
+                    
+                    // wingType 결정: 저장된 값 > type에서 추출 > lightTime/darkTime으로 계산 > 기본값
+                    let wingType = item.wingType;
+                    if (!wingType) {
+                        if (typeParts.includes('butterfly')) {
+                            wingType = 'butterfly';
+                        } else if (typeParts.includes('moth')) {
+                            wingType = 'moth';
+                        } else if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                            wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                        } else {
+                            wingType = 'butterfly';
+                        }
+                    }
+                    
+                    const event = EVENT_TYPES[eventKey];
+                    if (event) {
+                        const stages = isShiny && event.shiny ? event.shiny.stages : event.stages;
+                        if (stages && stages.adult) {
+                            // adult가 나비/나방으로 분리된 경우
+                            if (typeof stages.adult === 'object' && stages.adult.butterfly) {
+                                itemIcon = stages.adult[wingType] || stages.adult.butterfly;
+                            } else {
+                                itemIcon = stages.adult;
+                            }
+                        }
+                    }
+                }
+                
                 // 이미지 아이콘인지 확인
-                const isImageIcon = item.icon && item.icon.includes('<img');
+                const isImageIcon = itemIcon && itemIcon.includes('<img');
                 
                 // 날개 이모지 결정 (이미지 아이콘이면 붙이지 않음)
                 let wingEmoji = '';
@@ -12076,9 +12156,9 @@
                 }
                 
                 // 아이콘 표시 (이미지인 경우 180x247로 조정 - 원본 270x370의 2/3)
-                let displayIcon = item.icon;
+                let displayIcon = itemIcon;
                 if (isImageIcon) {
-                    displayIcon = item.icon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:180px;height:247px');
+                    displayIcon = itemIcon.replace(/width:\d+px;height:(auto|\d+px)/g, 'width:180px;height:247px');
                 }
                 
                 return `
