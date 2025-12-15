@@ -2219,7 +2219,7 @@
             fire: {
                 larva1: '<img src="https://i.imgur.com/8r4d5Ff.png" style="width:150px;height:150px;vertical-align:middle;">',
                 larva2: '<img src="https://i.imgur.com/NRu98rF.png" style="width:150px;height:150px;vertical-align:middle;">',
-                larva3: '<img src="https://i.imgur.com/cyZ04mg.png" style="width:150px;height:150px;vertical-align:middle;">',
+                larva3: '<img src="https://i.imgur.com/VbpzzMN.png" style="width:150px;height:150px;vertical-align:middle;">',
                 pupa: '<img src="https://i.imgur.com/Z4fTKVH.png" style="width:150px;height:150px;vertical-align:middle;">'
             },
             water: {
@@ -3193,7 +3193,10 @@
                         larva2: '<img src="https://i.imgur.com/hOFMEAC.png" style="width:150px;height:150px;vertical-align:middle;">',
                         larva3: '<img src="https://i.imgur.com/hOFMEAC.png" style="width:150px;height:150px;vertical-align:middle;">',
                         pupa: '<img src="https://i.imgur.com/bP78pu0.png" style="width:150px;height:150px;vertical-align:middle;">',
-                        adult: '❄️'
+                        adult: {
+                            butterfly: '<img src="https://i.imgur.com/6GClNZD.png" style="width:270px;height:370px;vertical-align:middle;">',
+                            moth: '<img src="https://i.imgur.com/WiZJ49u.png" style="width:270px;height:370px;vertical-align:middle;">'
+                        }
                     },
                     chance: 0.4 // 40% 확률
                 }
@@ -3355,10 +3358,22 @@
             
             // 이로치면 이로치 스테이지 아이콘 사용
             if (spirit.isShiny && event.shiny && event.shiny.stages) {
-                return event.shiny.stages[stage] || event.shiny.icon;
+                const stageIcon = event.shiny.stages[stage];
+                // adult가 객체(나비/나방)인 경우
+                if (stage === 'adult' && typeof stageIcon === 'object' && stageIcon.butterfly) {
+                    const wingType = spirit.wingType || 'butterfly';
+                    return stageIcon[wingType] || stageIcon.butterfly;
+                }
+                return stageIcon || event.shiny.icon;
             }
             
-            return event.stages[stage] || event.icon;
+            const stageIcon = event.stages[stage];
+            // adult가 객체(나비/나방)인 경우
+            if (stage === 'adult' && typeof stageIcon === 'object' && stageIcon.butterfly) {
+                const wingType = spirit.wingType || 'butterfly';
+                return stageIcon[wingType] || stageIcon.butterfly;
+            }
+            return stageIcon || event.icon;
         }
         
         // 이벤트 정령 완성 시 보상 지급
@@ -5831,12 +5846,36 @@
                 if (event) {
                     spirit.isCompleted = true;
                     
+                    // 날개 타입 결정
+                    if (!spirit.lightTime) spirit.lightTime = 0;
+                    if (!spirit.darkTime) spirit.darkTime = 0;
+                    let wingType = spirit.lightTime > spirit.darkTime ? 'butterfly' : 'moth';
+                    if (spirit.lightTime === spirit.darkTime) wingType = 'butterfly';
+                    spirit.wingType = wingType;
+                    
                     // 이로치 여부에 따라 다른 데이터 설정
                     const isShiny = spirit.isShiny && event.shiny;
                     const spiritName = isShiny ? event.shiny.name : event.name;
-                    const spiritIcon = isShiny ? event.shiny.stages.adult : event.stages.adult;
                     const spiritDesc = isShiny ? event.shiny.desc : event.desc;
-                    const eventTypeKey = isShiny ? `event_${spirit.eventType}_shiny` : `event_${spirit.eventType}`;
+                    
+                    // adult 아이콘 (나비/나방 분리 지원)
+                    let spiritIcon;
+                    const adultStage = isShiny ? event.shiny.stages.adult : event.stages.adult;
+                    if (typeof adultStage === 'object' && adultStage.butterfly) {
+                        spiritIcon = adultStage[wingType] || adultStage.butterfly;
+                    } else {
+                        spiritIcon = adultStage;
+                    }
+                    
+                    // encyclopedia 키 (나비/나방 분리)
+                    let eventTypeKey;
+                    const hasWingTypes = (isShiny ? event.shiny.stages.adult : event.stages.adult) && 
+                                        typeof (isShiny ? event.shiny.stages.adult : event.stages.adult) === 'object';
+                    if (hasWingTypes) {
+                        eventTypeKey = isShiny ? `event_${spirit.eventType}_shiny_${wingType}` : `event_${spirit.eventType}_${wingType}`;
+                    } else {
+                        eventTypeKey = isShiny ? `event_${spirit.eventType}_shiny` : `event_${spirit.eventType}`;
+                    }
                     
                     spirit.evolutionData = {
                         type: eventTypeKey,
@@ -5844,10 +5883,17 @@
                         name: spiritName,
                         icon: spiritIcon,
                         desc: spiritDesc,
-                        wingType: null,
+                        wingType: wingType,
                         isEvent: true,
                         isShiny: isShiny
                     };
+                    
+                    // 도감 등록
+                    if (!encyclopedia[eventTypeKey]) {
+                        encyclopedia[eventTypeKey] = 0;
+                        showNotification(`🎉 새로운 이벤트 정령 "${spiritName}" 도감 등록!`);
+                    }
+                    encyclopedia[eventTypeKey]++;
                     
                     saveGame();
                     renderSpirits();
@@ -11705,34 +11751,116 @@
             
             if (!eventFolded) {
             Object.entries(EVENT_TYPES).forEach(([eventKey, event]) => {
-                // 일반 이벤트 정령
-                const eventEncKey = `event_${eventKey}`;
-                const eventCount = encyclopedia[eventEncKey] || 0;
-                const isUnlocked = eventCount > 0;
+                // adult가 나비/나방으로 분리된 경우
+                const hasWingTypes = event.stages.adult && typeof event.stages.adult === 'object' && event.stages.adult.butterfly;
                 
-                html += `
-                    <div class="${isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #c41e3a;">
-                        <div class="encyclopedia-icon" style="font-size: 3rem;">${isUnlocked ? event.stages.adult : event.stages.egg}</div>
-                        <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #c41e3a;">${isUnlocked ? event.name : '???'}</div>
-                        <div class="encyclopedia-count" style="font-size: 0.8rem;">${isUnlocked ? `${eventCount}회` : '미달성'}</div>
-                        <div style="font-size: 0.7rem; color: ${isUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
-                    </div>
-                `;
+                if (hasWingTypes) {
+                    // 나비 버전
+                    const butterflyKey = `event_${eventKey}_butterfly`;
+                    const butterflyCount = encyclopedia[butterflyKey] || 0;
+                    const isButterflyUnlocked = butterflyCount > 0;
+                    let butterflyIcon = isButterflyUnlocked ? event.stages.adult.butterfly : event.stages.egg;
+                    if (isButterflyUnlocked && butterflyIcon.includes('<img')) {
+                        butterflyIcon = butterflyIcon.replace(/width:\d+px;height:\d+px/g, 'width:180px;height:247px');
+                    }
+                    
+                    html += `
+                        <div class="${isButterflyUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #c41e3a;">
+                            <div class="encyclopedia-icon" style="font-size: 3rem;">${butterflyIcon}</div>
+                            <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #c41e3a;">${isButterflyUnlocked ? event.name : '???'} (나비형)</div>
+                            <div class="encyclopedia-count" style="font-size: 0.8rem;">${isButterflyUnlocked ? `${butterflyCount}회` : '미달성'}</div>
+                            <div style="font-size: 0.7rem; color: ${isButterflyUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isButterflyUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
+                        </div>
+                    `;
+                    
+                    // 나방 버전
+                    const mothKey = `event_${eventKey}_moth`;
+                    const mothCount = encyclopedia[mothKey] || 0;
+                    const isMothUnlocked = mothCount > 0;
+                    let mothIcon = isMothUnlocked ? event.stages.adult.moth : event.stages.egg;
+                    if (isMothUnlocked && mothIcon.includes('<img')) {
+                        mothIcon = mothIcon.replace(/width:\d+px;height:\d+px/g, 'width:180px;height:247px');
+                    }
+                    
+                    html += `
+                        <div class="${isMothUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #c41e3a;">
+                            <div class="encyclopedia-icon" style="font-size: 3rem;">${mothIcon}</div>
+                            <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #c41e3a;">${isMothUnlocked ? event.name : '???'} (나방형)</div>
+                            <div class="encyclopedia-count" style="font-size: 0.8rem;">${isMothUnlocked ? `${mothCount}회` : '미달성'}</div>
+                            <div style="font-size: 0.7rem; color: ${isMothUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isMothUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
+                        </div>
+                    `;
+                } else {
+                    // 일반 이벤트 정령 (나비/나방 분리 없음)
+                    const eventEncKey = `event_${eventKey}`;
+                    const eventCount = encyclopedia[eventEncKey] || 0;
+                    const isUnlocked = eventCount > 0;
+                    
+                    html += `
+                        <div class="${isUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #c41e3a;">
+                            <div class="encyclopedia-icon" style="font-size: 3rem;">${isUnlocked ? event.stages.adult : event.stages.egg}</div>
+                            <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #c41e3a;">${isUnlocked ? event.name : '???'}</div>
+                            <div class="encyclopedia-count" style="font-size: 0.8rem;">${isUnlocked ? `${eventCount}회` : '미달성'}</div>
+                            <div style="font-size: 0.7rem; color: ${isUnlocked ? '#c41e3a' : '#888'}; margin-top: 5px;">${isUnlocked ? event.desc : '이벤트 코드로 획득할 수 있는 특별한 정령.'}</div>
+                        </div>
+                    `;
+                }
                 
                 // 이로치 버전이 있으면 별도 표시
                 if (event.shiny) {
-                    const shinyEncKey = `event_${eventKey}_shiny`;
-                    const shinyCount = encyclopedia[shinyEncKey] || 0;
-                    const isShinyUnlocked = shinyCount > 0;
+                    const shinyHasWingTypes = event.shiny.stages.adult && typeof event.shiny.stages.adult === 'object' && event.shiny.stages.adult.butterfly;
                     
-                    html += `
-                        <div class="${isShinyUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #87CEEB; background: ${isShinyUnlocked ? 'linear-gradient(135deg, rgba(135,206,235,0.1), rgba(255,255,255,0.1))' : 'var(--card)'};">
-                            <div class="encyclopedia-icon" style="font-size: 3rem;">${isShinyUnlocked ? event.shiny.stages.adult : event.shiny.stages.egg}</div>
-                            <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #87CEEB;">${isShinyUnlocked ? event.shiny.name : '???'} ${isShinyUnlocked ? '✨' : ''}</div>
-                            <div class="encyclopedia-count" style="font-size: 0.8rem;">${isShinyUnlocked ? `${shinyCount}회` : '미달성'}</div>
-                            <div style="font-size: 0.7rem; color: ${isShinyUnlocked ? '#87CEEB' : '#888'}; margin-top: 5px;">${isShinyUnlocked ? event.shiny.desc : '크리스마스에 드물게 나타나는 차가운 눈꽃.'}</div>
-                        </div>
-                    `;
+                    if (shinyHasWingTypes) {
+                        // 이로치 나비 버전
+                        const shinyButterflyKey = `event_${eventKey}_shiny_butterfly`;
+                        const shinyButterflyCount = encyclopedia[shinyButterflyKey] || 0;
+                        const isShinyButterflyUnlocked = shinyButterflyCount > 0;
+                        let shinyButterflyIcon = isShinyButterflyUnlocked ? event.shiny.stages.adult.butterfly : event.shiny.stages.egg;
+                        if (isShinyButterflyUnlocked && shinyButterflyIcon.includes('<img')) {
+                            shinyButterflyIcon = shinyButterflyIcon.replace(/width:\d+px;height:\d+px/g, 'width:180px;height:247px');
+                        }
+                        
+                        html += `
+                            <div class="${isShinyButterflyUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #87CEEB; background: ${isShinyButterflyUnlocked ? 'linear-gradient(135deg, rgba(135,206,235,0.1), rgba(255,255,255,0.1))' : 'var(--card)'};">
+                                <div class="encyclopedia-icon" style="font-size: 3rem;">${shinyButterflyIcon}</div>
+                                <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #87CEEB;">${isShinyButterflyUnlocked ? event.shiny.name : '???'} (나비형) ${isShinyButterflyUnlocked ? '✨' : ''}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${isShinyButterflyUnlocked ? `${shinyButterflyCount}회` : '미달성'}</div>
+                                <div style="font-size: 0.7rem; color: ${isShinyButterflyUnlocked ? '#87CEEB' : '#888'}; margin-top: 5px;">${isShinyButterflyUnlocked ? event.shiny.desc : '이벤트에서 드물게 나타나는 특별한 정령.'}</div>
+                            </div>
+                        `;
+                        
+                        // 이로치 나방 버전
+                        const shinyMothKey = `event_${eventKey}_shiny_moth`;
+                        const shinyMothCount = encyclopedia[shinyMothKey] || 0;
+                        const isShinyMothUnlocked = shinyMothCount > 0;
+                        let shinyMothIcon = isShinyMothUnlocked ? event.shiny.stages.adult.moth : event.shiny.stages.egg;
+                        if (isShinyMothUnlocked && shinyMothIcon.includes('<img')) {
+                            shinyMothIcon = shinyMothIcon.replace(/width:\d+px;height:\d+px/g, 'width:180px;height:247px');
+                        }
+                        
+                        html += `
+                            <div class="${isShinyMothUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #87CEEB; background: ${isShinyMothUnlocked ? 'linear-gradient(135deg, rgba(135,206,235,0.1), rgba(255,255,255,0.1))' : 'var(--card)'};">
+                                <div class="encyclopedia-icon" style="font-size: 3rem;">${shinyMothIcon}</div>
+                                <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #87CEEB;">${isShinyMothUnlocked ? event.shiny.name : '???'} (나방형) ${isShinyMothUnlocked ? '✨' : ''}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${isShinyMothUnlocked ? `${shinyMothCount}회` : '미달성'}</div>
+                                <div style="font-size: 0.7rem; color: ${isShinyMothUnlocked ? '#87CEEB' : '#888'}; margin-top: 5px;">${isShinyMothUnlocked ? event.shiny.desc : '이벤트에서 드물게 나타나는 특별한 정령.'}</div>
+                            </div>
+                        `;
+                    } else {
+                        // 이로치 (나비/나방 분리 없음)
+                        const shinyEncKey = `event_${eventKey}_shiny`;
+                        const shinyCount = encyclopedia[shinyEncKey] || 0;
+                        const isShinyUnlocked = shinyCount > 0;
+                        
+                        html += `
+                            <div class="${isShinyUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid #87CEEB; background: ${isShinyUnlocked ? 'linear-gradient(135deg, rgba(135,206,235,0.1), rgba(255,255,255,0.1))' : 'var(--card)'};">
+                                <div class="encyclopedia-icon" style="font-size: 3rem;">${isShinyUnlocked ? event.shiny.stages.adult : event.shiny.stages.egg}</div>
+                                <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700; color: #87CEEB;">${isShinyUnlocked ? event.shiny.name : '???'} ${isShinyUnlocked ? '✨' : ''}</div>
+                                <div class="encyclopedia-count" style="font-size: 0.8rem;">${isShinyUnlocked ? `${shinyCount}회` : '미달성'}</div>
+                                <div style="font-size: 0.7rem; color: ${isShinyUnlocked ? '#87CEEB' : '#888'}; margin-top: 5px;">${isShinyUnlocked ? event.shiny.desc : '이벤트에서 드물게 나타나는 특별한 정령.'}</div>
+                            </div>
+                        `;
+                    }
                 }
             });
             }
@@ -15890,10 +16018,8 @@
                 const newSatisfaction = calculateSatisfaction(spirit);
                 spirit.satisfaction = newSatisfaction;
                 
-                // 만족도에 따른 애정도 변화
-                if (newSatisfaction === 'high') {
-                    spirit.parameters.affection += 1;
-                } else if (newSatisfaction === 'low') {
+                // 만족도 낮을 때 애정도 감소
+                if (newSatisfaction === 'low') {
                     spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 1);
                 }
                 
