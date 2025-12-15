@@ -3141,17 +3141,34 @@
             'fusion-earth': { name: '노아스', icon: '🌱🏔️', desc: '두 땅이 만나 태어난 우거진 산맥의 정령.', recipe: ['earth', 'earth'], rarity: 'rare' },
             'fusion-light': { name: '루미엘', icon: '✨⚡', desc: '두 빛이 만나 태어난 눈부신 섬광의 정령.', recipe: ['light', 'light'], rarity: 'rare' },
             'fusion-dark': { name: '녹투스', icon: '🌙🕳️', desc: '두 어둠이 만나 태어난 끝없는 심연의 정령.', recipe: ['dark', 'dark'], rarity: 'rare' },
+            'fusion-normal': { name: '프리마', icon: '⚪✨', desc: '두 순수한 힘이 만나 태어난 근원의 정령.', recipe: ['normal', 'normal'], rarity: 'rare' },
             
             // 상극 속성 (균형 계열)
             'fusion-balance-flame': { name: '에테르나', icon: '🔥💧', desc: '불과 물이 만나 태어난 영원의 정령.', recipe: ['fire', 'water'], rarity: 'epic' },
             'fusion-balance-storm': { name: '사일렌시아', icon: '🌬️🌱', desc: '바람과 대지가 만나 태어난 고요의 정령.', recipe: ['wind', 'earth'], rarity: 'epic' },
             'fusion-balance-twilight': { name: '트와일라', icon: '✨🌙', desc: '빛과 어둠이 만나 태어난 황혼의 정령.', recipe: ['light', 'dark'], rarity: 'epic' },
             
-            // 특수 조합
+            // 불 조합
             'fusion-phoenix': { name: '솔라리스', icon: '🔥🐦', desc: '불과 빛이 만나 태어난 태양의 정령.', recipe: ['fire', 'light'], rarity: 'legendary' },
-            'fusion-leviathan': { name: '아비수스', icon: '💧🐉', desc: '물과 어둠이 만나 태어난 심해의 정령.', recipe: ['water', 'dark'], rarity: 'legendary' },
             'fusion-dragon': { name: '템페스타', icon: '🔥🌬️', desc: '불과 바람이 만나 태어난 폭염의 정령.', recipe: ['fire', 'wind'], rarity: 'legendary' },
+            'fusion-lava': { name: '마그마', icon: '🔥🌱', desc: '불과 대지가 만나 태어난 용암의 정령.', recipe: ['fire', 'earth'], rarity: 'legendary' },
+            'fusion-shadow-flame': { name: '인페르노', icon: '🔥🌙', desc: '불과 어둠이 만나 태어난 지옥불의 정령.', recipe: ['fire', 'dark'], rarity: 'legendary' },
+            
+            // 물 조합
+            'fusion-leviathan': { name: '아비수스', icon: '💧🐉', desc: '물과 어둠이 만나 태어난 심해의 정령.', recipe: ['water', 'dark'], rarity: 'legendary' },
+            'fusion-cloud': { name: '누베', icon: '💧☁️', desc: '물과 바람이 만나 태어난 구름의 정령.', recipe: ['water', 'wind'], rarity: 'legendary' },
+            'fusion-swamp': { name: '글리스', icon: '💧🌱', desc: '물과 대지가 만나 태어난 늪의 정령.', recipe: ['water', 'earth'], rarity: 'legendary' },
+            'fusion-rainbow': { name: '이리스', icon: '💧🌈', desc: '물과 빛이 만나 태어난 무지개의 정령.', recipe: ['water', 'light'], rarity: 'legendary' },
+            
+            // 바람 조합
+            'fusion-aurora': { name: '오로라', icon: '🌬️🌌', desc: '바람과 빛이 만나 태어난 오로라의 정령.', recipe: ['wind', 'light'], rarity: 'legendary' },
+            'fusion-void': { name: '투르보', icon: '🌬️🌀', desc: '바람과 어둠이 만나 태어난 회오리의 정령.', recipe: ['wind', 'dark'], rarity: 'legendary' },
+            
+            // 대지 조합
             'fusion-golem': { name: '크리스탈리아', icon: '🌱💎', desc: '대지와 빛이 만나 태어난 수정의 정령.', recipe: ['earth', 'light'], rarity: 'legendary' },
+            'fusion-cave': { name: '안트룸', icon: '🌱⛰️', desc: '대지와 어둠이 만나 태어난 동굴의 정령.', recipe: ['earth', 'dark'], rarity: 'legendary' },
+            
+            // 특수 조합
             'fusion-spirit-king': { name: '하모니아', icon: '👑✨', desc: '모든 원소를 품고 태어난 조화의 정령.', recipe: ['balanced', 'balanced'], rarity: 'legendary' },
             'fusion-chaos-king': { name: '코스모스', icon: '🌪️👑', desc: '세상의 혼돈을 품고 태어난 질서의 정령.', recipe: ['multi', 'multi'], rarity: 'legendary' },
             'fusion-balance-chaos': { name: '리멘', icon: '⚖️🌪️', desc: '조화와 혼돈을 품고 태어난 경계의 정령.', recipe: ['balanced', 'multi'], rarity: 'legendary' },
@@ -3483,6 +3500,33 @@
                 });
                 encyclopedia = newEncyclopedia;
                 // ===== 마이그레이션 끝 =====
+                
+                // ===== 이벤트 정령 도감 키 마이그레이션 (나비/나방 분리) =====
+                const eventKeysToMigrate = Object.keys(encyclopedia).filter(key => 
+                    key.startsWith('event_') && !key.endsWith('_butterfly') && !key.endsWith('_moth')
+                );
+                
+                eventKeysToMigrate.forEach(key => {
+                    // 기존 이벤트 키 (예: event_christmas2025_shiny)
+                    const typeParts = key.replace('event_', '').split('_');
+                    const eventKey = typeParts[0];
+                    const isShiny = typeParts.includes('shiny');
+                    const event = EVENT_TYPES[eventKey];
+                    
+                    // 이벤트가 나비/나방 분리를 지원하는지 확인
+                    const stages = isShiny && event?.shiny ? event.shiny.stages : event?.stages;
+                    const hasWingTypes = stages?.adult && typeof stages.adult === 'object' && stages.adult.butterfly;
+                    
+                    if (hasWingTypes) {
+                        // 기존 카운트를 나비형으로 이전 (기본값)
+                        const count = encyclopedia[key];
+                        const newKey = isShiny ? `event_${eventKey}_shiny_butterfly` : `event_${eventKey}_butterfly`;
+                        encyclopedia[newKey] = (encyclopedia[newKey] || 0) + count;
+                        delete encyclopedia[key];
+                        console.log(`도감 키 마이그레이션: ${key} → ${newKey} (${count}회)`);
+                    }
+                });
+                // ===== 이벤트 정령 도감 키 마이그레이션 끝 =====
                 
                 // 도감 상세 정보 로드 (복구용)
                 encyclopediaDetails = data.encyclopediaDetails || {};
@@ -7072,9 +7116,17 @@
             
             const mySpirit = {
                 ...item,
-                attributes: item.hiddenAttributes || {}
+                attributes: item.hiddenAttributes || {},
+                type: item.type,
+                attributeType: item.attributeType
             };
             const prediction = predictBreedResult(mySpirit, friendData);
+            
+            // 연결 불가능한 조합인 경우
+            if (prediction.cannotBreed) {
+                showNotification(`❌ ${prediction.desc}`);
+                return;
+            }
             
             // 먼저 모든 창 닫기
             closeBreedWithCodeModal();
@@ -9695,8 +9747,24 @@
                     // 연결 정령은 타입 그대로 사용
                     encyclopediaKey = spirit.type;
                 } else if (spirit.type && spirit.type.startsWith('event_')) {
-                    // 이벤트 정령은 타입 그대로 사용
-                    encyclopediaKey = spirit.type;
+                    // 이벤트 정령 - 나비/나방 구분 필요
+                    // 기존 키에서 이벤트 타입과 이로치 여부 추출
+                    const typeParts = spirit.type.replace('event_', '').split('_');
+                    const eventKey = typeParts[0]; // christmas2025
+                    const isShiny = typeParts.includes('shiny');
+                    const event = EVENT_TYPES[eventKey];
+                    
+                    // 이벤트가 나비/나방 분리를 지원하는지 확인
+                    const stages = isShiny && event?.shiny ? event.shiny.stages : event?.stages;
+                    const hasWingTypes = stages?.adult && typeof stages.adult === 'object' && stages.adult.butterfly;
+                    
+                    if (hasWingTypes) {
+                        // 나비/나방 분리
+                        encyclopediaKey = isShiny ? `event_${eventKey}_shiny_${wingType}` : `event_${eventKey}_${wingType}`;
+                    } else {
+                        // 분리 없음 - 기존 키 사용
+                        encyclopediaKey = spirit.type;
+                    }
                 } else {
                     // 일반 정령 (스탯-속성-wingType)
                     encyclopediaKey = `${spirit.type}-${spirit.attributeType}-${wingType}`;
@@ -10963,13 +11031,21 @@
         function encodeSpiritData(spirit) {
             // 타입 결정: type > evolutionType > evolutionData.type > 'normal'
             const spiritType = spirit.type || spirit.evolutionType || spirit.evolutionData?.type || 'normal';
+            // 속성 결정: attributeType > attribute > type에서 추출
+            const spiritAttr = spirit.attributeType || spirit.attribute || (() => {
+                const attrs = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                for (const attr of attrs) {
+                    if (spiritType.includes(attr)) return attr;
+                }
+                return 'normal';
+            })();
             
             const data = {
                 id: spirit.id || null, // 고유 ID 추가
                 n: spirit.name,
                 o: spirit.originalName || spirit.name, // 본명 추가
-                a: spirit.attribute,
-                t: spiritType,
+                a: spiritAttr, // 속성
+                t: spiritType, // 타입
                 i: spirit.parameters?.intelligence || 0,
                 s: spirit.parameters?.strength || 0,
                 c: spirit.parameters?.charm || 0,
@@ -10979,7 +11055,7 @@
                 ev: spirit.isEventSpirit ? spirit.eventType : null
             };
             
-            console.log('연결 코드 생성:', { spiritType, spirit: spirit.name }); // 디버깅용
+            console.log('연결 코드 생성:', { spiritType, spiritAttr, spirit: spirit.name }); // 디버깅용
             
             try {
                 const json = JSON.stringify(data);
@@ -11006,6 +11082,8 @@
                     name: data.n,
                     originalName: data.o || data.n, // 본명 추가
                     attribute: data.a || 'normal',
+                    attributeType: data.a || 'normal', // attributeType도 추가
+                    type: data.t || 'normal', // type도 추가
                     evolutionType: data.t || 'normal',
                     parameters: {
                         intelligence: data.i || 0,
@@ -11377,8 +11455,72 @@
             }
             
             // 4. 속성 기반 합성
-            const myAttr = myInfo.attr || getMainAttribute(mySpirit);
-            const friendAttr = friendInfo.attr || friendData.attribute || getMainAttributeFromData(friendData);
+            // 속성 감지 강화 - attributeType, type에서도 추출
+            const extractAttrFromType = (typeStr) => {
+                if (!typeStr) return null;
+                // nostat-fire-butterfly, intelligent-water-moth 등에서 속성 추출
+                const attrs = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                for (const attr of attrs) {
+                    if (typeStr.includes(attr)) return attr;
+                }
+                return null;
+            };
+            
+            // 속성 감지 함수 - 여러 소스에서 확실한 속성 찾기
+            const detectAttribute = (spirit) => {
+                // 1. attributeType 직접 사용 (가장 확실)
+                if (spirit.attributeType && spirit.attributeType !== 'normal') {
+                    const validAttrs = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                    if (validAttrs.includes(spirit.attributeType)) {
+                        return spirit.attributeType;
+                    }
+                }
+                
+                // 2. type 문자열에서 추출
+                const typeAttr = extractAttrFromType(spirit.type);
+                if (typeAttr) return typeAttr;
+                
+                // 3. attribute 필드 (디코딩된 데이터용)
+                if (spirit.attribute && spirit.attribute !== 'normal') {
+                    const validAttrs = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                    if (validAttrs.includes(spirit.attribute)) {
+                        return spirit.attribute;
+                    }
+                }
+                
+                // 4. hiddenAttributes에서 추출
+                const attrs = spirit.attributes || spirit.hiddenAttributes || {};
+                let maxAttr = null;
+                let maxVal = 0;
+                ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(attr => {
+                    if ((attrs[attr] || 0) > maxVal) {
+                        maxVal = attrs[attr] || 0;
+                        maxAttr = attr;
+                    }
+                });
+                if (maxVal >= 30) return maxAttr; // 30 이상이면 해당 속성으로 인정 (기존 50에서 완화)
+                
+                // 5. 이름 기반 추출
+                const name = spirit.name || '';
+                if (name.includes('화염') || name.includes('불꽃')) return 'fire';
+                if (name.includes('빙하') || name.includes('물')) return 'water';
+                if (name.includes('질풍') || name.includes('바람')) return 'wind';
+                if (name.includes('대지') || name.includes('땅')) return 'earth';
+                if (name.includes('광명') || name.includes('빛')) return 'light';
+                if (name.includes('암흑') || name.includes('어둠')) return 'dark';
+                
+                return 'normal';
+            };
+            
+            let myAttr = myInfo.attr || detectAttribute(mySpirit);
+            let friendAttr = friendInfo.attr || detectAttribute(friendData);
+            
+            console.log('속성 매칭:', { 
+                myAttr, 
+                friendAttr,
+                mySpirit: { type: mySpirit.type, attributeType: mySpirit.attributeType, name: mySpirit.name },
+                friendData: { type: friendData.type, attributeType: friendData.attributeType, attribute: friendData.attribute, name: friendData.name }
+            });
             
             // 정확한 레시피 매칭
             for (const [key, fusion] of Object.entries(FUSION_TYPES)) {
@@ -11389,16 +11531,15 @@
                 }
             }
             
-            // 5. 기본 결과
-            const inheritedAttr = Math.random() > 0.5 ? myAttr : friendAttr;
-            const attrInfo = ATTRIBUTE_NAMES[inheritedAttr] || ATTRIBUTE_NAMES.normal;
-            const attrIcon = typeof attrInfo.icon === 'object' ? attrInfo.icon.butterfly : attrInfo.icon;
+            // 5. FUSION_TYPES에 없는 조합 - 연결 불가 표시
             return {
-                name: attrInfo.name,
-                icon: attrIcon,
-                desc: attrInfo.desc,
-                rarity: 'common',
-                inheritedAttr
+                name: '연결 불가',
+                icon: '❌',
+                desc: `${myAttr}와 ${friendAttr} 속성은 아직 연결할 수 없습니다.`,
+                rarity: 'invalid',
+                cannotBreed: true,
+                myAttr,
+                friendAttr
             };
         }
         
