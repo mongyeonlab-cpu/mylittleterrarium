@@ -3722,6 +3722,9 @@
             // 업적 요약
             const summaryDiv = document.getElementById('achievementSummary');
             if (summaryDiv) {
+                // 수령 완료 시 총 획득 코인 계산
+                const totalClaimedCoins = claimedAchievementRewards.length * 25;
+                
                 summaryDiv.innerHTML = `
                     <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
                         <div style="font-size: 2rem; margin-bottom: 4px;">🏆</div>
@@ -3729,9 +3732,9 @@
                         <div style="font-size: 0.85rem; color: #888;">달성한 업적</div>
                     </div>
                     <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px; ${unclaimedRewards > 0 ? 'border: 2px solid #ffd700;' : ''}">
-                        <div style="font-size: 2rem; margin-bottom: 4px;">💰</div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: ${unclaimedRewards > 0 ? '#ffd700' : 'var(--text)'};">${unclaimedRewards > 0 ? unclaimedRewards * 25 : 0}</div>
-                        <div style="font-size: 0.85rem; color: #888;">${unclaimedRewards > 0 ? `수령 가능 (${unclaimedRewards}개)` : '수령 완료'}</div>
+                        <div style="font-size: 2rem; margin-bottom: 4px;">${unclaimedRewards > 0 ? '💰' : '✅'}</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: ${unclaimedRewards > 0 ? '#ffd700' : '#27ae60'};">${unclaimedRewards > 0 ? unclaimedRewards * 25 : totalClaimedCoins}</div>
+                        <div style="font-size: 0.85rem; color: #888;">${unclaimedRewards > 0 ? `미수령 (${unclaimedRewards}개)` : '총 획득 코인'}</div>
                     </div>
                     <div style="text-align: center; padding: 12px 20px; background: var(--bg); border-radius: 8px;">
                         <div style="font-size: 2rem; margin-bottom: 4px;">📚</div>
