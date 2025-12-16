@@ -913,6 +913,414 @@
             from { transform: translateX(-50%) translateY(0); }
             to { transform: translateX(-50%) translateY(-5px); }
         }
+        
+        /* ===== 모바일 전용 UI (768px 이하) ===== */
+        @media (max-width: 768px) {
+            /* 모바일 모드일 때 기본 레이아웃 숨기기 */
+            body.mobile-mode .desktop-only {
+                display: none !important;
+            }
+            
+            /* 모바일 모드일 때 섹션 패딩 조정 */
+            body.mobile-mode .section {
+                padding-top: 60px;
+                padding-bottom: 70px;
+            }
+            
+            body.mobile-mode #gardenSection {
+                display: none !important; /* 육성 탭은 모바일 전용 UI 사용 */
+            }
+            
+            /* 모바일 고정 헤더 */
+            .mobile-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 16px;
+                z-index: 1000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .mobile-header h1 {
+                font-size: 1.3rem !important;
+                margin: 0;
+            }
+            
+            .mobile-header .settings-btn {
+                position: absolute;
+                right: 16px;
+                background: none;
+                border: none;
+                font-size: 1.2rem;
+                cursor: pointer;
+            }
+            
+            /* 모바일 채집 섹션 */
+            .mobile-gather-section {
+                position: fixed;
+                top: 50px;
+                left: 0;
+                right: 0;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                z-index: 999;
+                transition: max-height 0.3s ease;
+                overflow: hidden;
+            }
+            
+            .mobile-gather-section.collapsed {
+                max-height: 60px;
+            }
+            
+            .mobile-gather-section.expanded {
+                max-height: 400px;
+            }
+            
+            .mobile-gather-header {
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                gap: 12px;
+            }
+            
+            .mobile-gather-btn {
+                flex: 1;
+                padding: 10px 20px;
+                background: linear-gradient(135deg, #8BC34A, #4CAF50);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 1rem;
+                cursor: pointer;
+            }
+            
+            .mobile-gather-toggle {
+                width: 36px;
+                height: 36px;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+            
+            .mobile-gather-section.expanded .mobile-gather-toggle {
+                transform: rotate(180deg);
+            }
+            
+            .mobile-gather-content {
+                padding: 0 16px 16px;
+            }
+            
+            /* 모바일 정령 슬라이더 */
+            .mobile-spirit-slider {
+                position: fixed;
+                top: 110px;
+                left: 0;
+                right: 0;
+                bottom: 60px;
+                overflow-x: auto;
+                overflow-y: auto;
+                scroll-snap-type: x mandatory;
+                display: flex;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            
+            .mobile-spirit-slider::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .mobile-spirit-slider.gather-expanded {
+                top: 280px;
+            }
+            
+            .mobile-spirit-card {
+                flex: 0 0 100%;
+                scroll-snap-align: start;
+                padding: 16px;
+                box-sizing: border-box;
+                overflow-y: auto;
+            }
+            
+            .mobile-card-inner {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 16px;
+            }
+            
+            .mobile-card-header {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-spirit-image {
+                width: 80px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3rem;
+                flex-shrink: 0;
+            }
+            
+            .mobile-spirit-image img {
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+            }
+            
+            .mobile-spirit-info {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .mobile-spirit-name {
+                font-weight: 700;
+                font-size: 1.1rem;
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .mobile-spirit-stage {
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+            }
+            
+            .mobile-spirit-status {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                font-style: italic;
+            }
+            
+            .mobile-satisfaction {
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+            
+            .mobile-satisfaction.high { background: #4CAF50; color: white; }
+            .mobile-satisfaction.mid { background: #FF9800; color: white; }
+            .mobile-satisfaction.low { background: #f44336; color: white; }
+            
+            /* 성장도 바 */
+            .mobile-growth-bar {
+                margin-bottom: 16px;
+            }
+            
+            .mobile-growth-label {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+            }
+            
+            .mobile-growth-track {
+                height: 8px;
+                background: var(--bg);
+                border-radius: 4px;
+                overflow: hidden;
+            }
+            
+            .mobile-growth-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #FFD700, #FFA500);
+                border-radius: 4px;
+                transition: width 0.3s;
+            }
+            
+            /* 액션 버튼 */
+            .mobile-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-action-btn {
+                padding: 12px;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .mobile-action-btn:active {
+                background: var(--border);
+            }
+            
+            /* 상세 정보 토글 */
+            .mobile-detail-toggle {
+                width: 100%;
+                padding: 10px;
+                background: var(--bg);
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+            }
+            
+            .mobile-detail-toggle .arrow {
+                transition: transform 0.3s;
+            }
+            
+            .mobile-detail-toggle.expanded .arrow {
+                transform: rotate(180deg);
+            }
+            
+            .mobile-detail-content {
+                display: none;
+                margin-top: 12px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border);
+            }
+            
+            .mobile-detail-content.show {
+                display: block;
+            }
+            
+            /* 모바일 하단 탭바 */
+            .mobile-tabbar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--card);
+                border-top: 1px solid var(--border);
+                display: flex;
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .mobile-tab {
+                flex: 1;
+                padding: 8px 4px;
+                background: none;
+                border: none;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+                cursor: pointer;
+                color: var(--text-muted);
+                font-size: 0.7rem;
+            }
+            
+            .mobile-tab.active {
+                color: var(--fire);
+            }
+            
+            .mobile-tab-icon {
+                font-size: 1.2rem;
+            }
+            
+            .mobile-tab-right {
+                display: flex;
+                gap: 4px;
+            }
+            
+            .mobile-control-btn {
+                width: 40px;
+                height: 100%;
+                background: none;
+                border: none;
+                font-size: 1.2rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* 플로팅 스크롤 버튼 */
+            .mobile-float-btns {
+                position: fixed;
+                right: 16px;
+                bottom: 80px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                z-index: 999;
+            }
+            
+            .mobile-float-btn {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--card);
+                border: 1px solid var(--border);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 1.2rem;
+            }
+            
+            /* 정령 인디케이터 (몇번째 정령인지) */
+            .mobile-spirit-indicator {
+                display: flex;
+                justify-content: center;
+                gap: 6px;
+                padding: 8px;
+            }
+            
+            .mobile-indicator-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--border);
+                transition: background 0.3s;
+            }
+            
+            .mobile-indicator-dot.active {
+                background: var(--fire);
+            }
+            
+            /* 빈 정원 메시지 */
+            .mobile-empty-garden {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                color: var(--text-muted);
+                text-align: center;
+                padding: 40px;
+            }
+            
+            .mobile-empty-garden .icon {
+                font-size: 4rem;
+                margin-bottom: 16px;
+            }
+        }
+        
+        /* 데스크톱에서는 모바일 UI 숨기기 */
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -934,16 +1342,104 @@
         </div>
     </div>
 
+    <!-- ===== 모바일 전용 UI ===== -->
+    <div id="mobileUI" class="mobile-only" style="display: none;">
+        <!-- 모바일 고정 헤더 -->
+        <div class="mobile-header">
+            <h1>나의 작은 테라리움</h1>
+            <button class="settings-btn" onclick="switchTab('settings')">⚙️</button>
+        </div>
+        
+        <!-- 모바일 채집 섹션 -->
+        <div id="mobileGatherSection" class="mobile-gather-section collapsed">
+            <div class="mobile-gather-header">
+                <button class="mobile-gather-btn" onclick="goGather()">🌿 채집하기</button>
+                <button class="mobile-gather-toggle" onclick="toggleMobileGather()">
+                    <span>▼</span>
+                </button>
+            </div>
+            <div class="mobile-gather-content">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; display: block;">칭호</label>
+                    <select id="mobileTitleSelect" onchange="changeTitle(this.value)" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                        <option value="none">자동채집 (확률 절반)</option>
+                        <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
+                        <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
+                        <option value="musician">음악가 (레코드 확률 2배)</option>
+                        <option value="collector">수집가 (테라리움 물품 확률 2배)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; display: block;">채집 장소</label>
+                    <select id="mobileLocationSelect" onchange="changeGatherLocation(this.value)" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                        <option value="garden">🌸 정원 (모든 속성)</option>
+                        <option value="lake">🌊 호수 (물·바람)</option>
+                        <option value="forest">🌲 숲 (땅·불)</option>
+                    </select>
+                </div>
+                <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;">내 소지품</div>
+                <div id="mobileInventorySummary" style="font-size: 0.8rem; color: var(--text-muted);"></div>
+            </div>
+        </div>
+        
+        <!-- 정령 인디케이터 -->
+        <div id="mobileSpiritIndicator" class="mobile-spirit-indicator" style="position: fixed; top: 110px; left: 0; right: 0; background: var(--bg); z-index: 998;"></div>
+        
+        <!-- 모바일 정령 슬라이더 -->
+        <div id="mobileSpiritSlider" class="mobile-spirit-slider">
+            <!-- 정령 카드들이 여기에 동적으로 추가됨 -->
+        </div>
+        
+        <!-- 플로팅 스크롤 버튼 -->
+        <div class="mobile-float-btns">
+            <button class="mobile-float-btn" onclick="scrollToTop()">⬆️</button>
+            <button class="mobile-float-btn" onclick="scrollToBottom()">⬇️</button>
+        </div>
+        
+        <!-- 모바일 하단 탭바 -->
+        <div class="mobile-tabbar">
+            <button class="mobile-tab active" data-tab="garden" onclick="switchMobileTab('garden')">
+                <span class="mobile-tab-icon">🌱</span>
+                <span>육성</span>
+            </button>
+            <button class="mobile-tab" data-tab="terrarium" onclick="switchMobileTab('terrarium')">
+                <span class="mobile-tab-icon">🏠</span>
+                <span>테라리움</span>
+            </button>
+            <button class="mobile-tab" data-tab="lab" onclick="switchMobileTab('lab')">
+                <span class="mobile-tab-icon">🔬</span>
+                <span>연구실</span>
+            </button>
+            <button class="mobile-tab" data-tab="shop" onclick="switchMobileTab('shop')">
+                <span class="mobile-tab-icon">🛒</span>
+                <span>상점</span>
+            </button>
+            <button class="mobile-tab" data-tab="minigame" onclick="switchMobileTab('minigame')">
+                <span class="mobile-tab-icon">🎮</span>
+                <span>게임</span>
+            </button>
+            <button class="mobile-tab" data-tab="journal" onclick="switchMobileTab('journal')">
+                <span class="mobile-tab-icon">📔</span>
+                <span>일지</span>
+            </button>
+            <div class="mobile-tab-right">
+                <button class="mobile-control-btn" id="mobilePauseBtn" onclick="togglePause()">⏸️</button>
+                <button class="mobile-control-btn" id="mobileLightBtn" onclick="toggleLight()">☀️</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== 모바일 전용 UI 끝 ===== -->
+
     <!-- 제목 영역 -->
-    <div style="display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px;">
+    <div class="desktop-only" style="display: flex; justify-content: center; align-items: center; position: relative; margin-bottom: 10px;">
         <h1 style="margin: 0;">나의 작은 테라리움</h1>
         <button id="settingsBtn" onclick="switchTab('settings')" style="position: absolute; right: 0; background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.5;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">⚙️</button>
     </div>
-    <div class="subtitle">Spirit Garden</div>
+    <div class="subtitle desktop-only">Spirit Garden</div>
 
-    <div class="time-display" id="timeDisplay"></div>
+    <div class="time-display desktop-only" id="timeDisplay"></div>
 
-    <div class="tabs">
+    <div class="tabs desktop-only">
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('lab')">연구실</button>
@@ -7030,6 +7526,21 @@
                 ? `<div style="color: #aaa; font-size: 0.8rem; font-style: italic;">본명: ${friendData.originalName}</div>` 
                 : '';
             
+            // 키워드 표시
+            let keywordsDisplay = '';
+            if (friendData.keywords && friendData.keywords.length > 0) {
+                const keywordTags = friendData.keywords.map(kw => {
+                    const kwData = STATUS_KEYWORDS[kw];
+                    if (kwData) {
+                        return `<span style="display: inline-block; padding: 2px 6px; background: rgba(100,100,100,0.3); border-radius: 4px; font-size: 0.75rem; margin: 2px;">${kwData.name}</span>`;
+                    }
+                    return '';
+                }).filter(x => x).join('');
+                if (keywordTags) {
+                    keywordsDisplay = `<div style="margin-top: 6px;">${keywordTags}</div>`;
+                }
+            }
+            
             friendPreview.innerHTML = `
                 <div style="flex: 1;">
                     <div style="font-weight: 700;">✅ ${friendData.name}</div>
@@ -7039,6 +7550,7 @@
                         🧠${friendData.parameters.intelligence} | 💪${friendData.parameters.strength} | 💖${friendData.parameters.charm}
                     </div>
                     ${attrDisplay.length > 0 ? `<div style="font-size: 0.8rem; margin-top: 4px;">${attrDisplay.join(' ')}</div>` : ''}
+                    ${keywordsDisplay}
                 </div>
             `;
             friendPreview.style.display = 'block';
@@ -11093,6 +11605,9 @@
                 return 'normal';
             })();
             
+            // 키워드 수집
+            const allKeywords = spirit.allStatusKeywords || spirit.statusKeywords || [];
+            
             const data = {
                 id: spirit.id || null, // 고유 ID 추가
                 n: spirit.name,
@@ -11105,7 +11620,9 @@
                 at: spirit.attributes || spirit.hiddenAttributes || {},
                 ts: Date.now(),
                 // 이벤트 정령 정보
-                ev: spirit.isEventSpirit ? spirit.eventType : null
+                ev: spirit.isEventSpirit ? spirit.eventType : null,
+                // 키워드 정보
+                kw: allKeywords.length > 0 ? allKeywords : null
             };
             
             console.log('연결 코드 생성:', { spiritType, spiritAttr, spirit: spirit.name }); // 디버깅용
@@ -11146,7 +11663,9 @@
                     attributes: data.at || {},
                     // 이벤트 정령 정보
                     isEventSpirit: !!data.ev,
-                    eventType: data.ev || null
+                    eventType: data.ev || null,
+                    // 키워드 정보
+                    keywords: data.kw || []
                 };
             } catch (e) {
                 console.error('디코딩 오류:', e);
@@ -18202,10 +18721,349 @@
                 }
             });
         });
+        
+        // ===== 모바일 UI 함수들 =====
+        let isMobileMode = false;
+        let mobileGatherExpanded = false;
+        let currentSpiritIndex = 0;
+        let spiritDetailExpanded = {}; // 각 정령별 상세 정보 펼침 상태
+        
+        function initMobileUI() {
+            // 화면 너비로 모바일 감지
+            const checkMobile = () => {
+                const wasMobile = isMobileMode;
+                isMobileMode = window.innerWidth <= 768;
+                
+                if (isMobileMode !== wasMobile) {
+                    if (isMobileMode) {
+                        document.body.classList.add('mobile-mode');
+                        document.getElementById('mobileUI').style.display = 'block';
+                        document.querySelectorAll('.desktop-only').forEach(el => el.style.display = 'none');
+                        renderMobileSpirits();
+                        updateMobileInventory();
+                        syncMobileSelects();
+                    } else {
+                        document.body.classList.remove('mobile-mode');
+                        document.getElementById('mobileUI').style.display = 'none';
+                        document.querySelectorAll('.desktop-only').forEach(el => el.style.display = '');
+                    }
+                }
+            };
+            
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            
+            // 슬라이더 스크롤 이벤트
+            const slider = document.getElementById('mobileSpiritSlider');
+            if (slider) {
+                slider.addEventListener('scroll', () => {
+                    const cardWidth = slider.offsetWidth;
+                    currentSpiritIndex = Math.round(slider.scrollLeft / cardWidth);
+                    updateMobileIndicator();
+                });
+            }
+        }
+        
+        function renderMobileSpirits() {
+            if (!isMobileMode) return;
+            
+            const slider = document.getElementById('mobileSpiritSlider');
+            const indicator = document.getElementById('mobileSpiritIndicator');
+            
+            if (!slider) return;
+            
+            // 채집 섹션 상태에 따라 슬라이더 위치 조정
+            if (mobileGatherExpanded) {
+                slider.classList.add('gather-expanded');
+                slider.style.top = '280px';
+                indicator.style.top = '270px';
+            } else {
+                slider.classList.remove('gather-expanded');
+                slider.style.top = '135px';
+                indicator.style.top = '110px';
+            }
+            
+            if (spirits.length === 0) {
+                slider.innerHTML = `
+                    <div class="mobile-spirit-card">
+                        <div class="mobile-empty-garden">
+                            <div class="icon">🥚</div>
+                            <div>아직 정령이 없습니다<br>새로운 알을 받아보세요</div>
+                            <button onclick="createNewSpirit()" style="margin-top: 20px; padding: 12px 24px; background: linear-gradient(135deg, #8BC34A, #4CAF50); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">
+                                🥚 새 알 받기
+                            </button>
+                        </div>
+                    </div>
+                `;
+                indicator.innerHTML = '';
+                return;
+            }
+            
+            slider.innerHTML = spirits.map((spirit, index) => {
+                const stage = getStage(spirit.growth);
+                const nextReq = getNextStageRequirement(spirit.growth);
+                const progress = Math.min(100, (spirit.growth / nextReq) * 100);
+                
+                let icon = getStageIcon(stage, spirit);
+                if (spirit.isEventSpirit && spirit.eventType) {
+                    const eventIcon = getEventStageIcon(spirit);
+                    if (eventIcon) icon = eventIcon;
+                } else if (stage === 'adult' && spirit.evolutionType) {
+                    const evolutionData = EVOLUTION_TYPES[spirit.evolutionType];
+                    if (evolutionData) icon = evolutionData.icon;
+                }
+                if (spirit.isDead) icon = stage === 'egg' ? '💔' : '👻';
+                
+                const satisfaction = calculateSatisfaction(spirit);
+                const satisfactionClass = satisfaction === 'high' ? 'high' : satisfaction === 'mid' ? 'mid' : 'low';
+                const satisfactionText = satisfaction === 'high' ? '만족' : satisfaction === 'mid' ? '보통' : '불만';
+                
+                const canFeed = !isPaused && canDoAction(spirit, 'feed') && !spirit.isDead;
+                const canMusic = !isPaused && canDoAction(spirit, 'music') && !spirit.isDead;
+                const canPat = !isPaused && canDoAction(spirit, 'pat') && !spirit.isDead;
+                
+                const isDetailExpanded = spiritDetailExpanded[spirit.id] || false;
+                
+                // 현재 상태/대사
+                const statusText = spirit.status || getAppearanceDescription(spirit);
+                
+                return `
+                    <div class="mobile-spirit-card" data-index="${index}">
+                        <div class="mobile-card-inner">
+                            <div class="mobile-card-header">
+                                <div class="mobile-spirit-image">${icon}</div>
+                                <div class="mobile-spirit-info">
+                                    <div class="mobile-spirit-name">
+                                        <span>${spirit.name}</span>
+                                        <span class="mobile-satisfaction ${satisfactionClass}">${satisfactionText}</span>
+                                    </div>
+                                    <div class="mobile-spirit-stage">${STAGE_NAMES[stage]} · ${spirit.originalName || '알 수 없음'}</div>
+                                    <div class="mobile-spirit-status">${statusText}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-growth-bar">
+                                <div class="mobile-growth-label">성장도 ${spirit.growth}/${nextReq}</div>
+                                <div class="mobile-growth-track">
+                                    <div class="mobile-growth-fill" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-actions">
+                                <button class="mobile-action-btn" onclick="feedSpirit(${spirit.id})" ${!canFeed ? 'disabled style="opacity:0.5"' : ''}>
+                                    🍎 먹이주기
+                                </button>
+                                <button class="mobile-action-btn" onclick="playMusic(${spirit.id})" ${!canMusic ? 'disabled style="opacity:0.5"' : ''}>
+                                    🎵 음악 듣기
+                                </button>
+                                <button class="mobile-action-btn" onclick="patSpirit(${spirit.id})" ${!canPat ? 'disabled style="opacity:0.5"' : ''}>
+                                    ✋ 쓰다듬기
+                                </button>
+                                <button class="mobile-action-btn" onclick="releaseSpirit(${spirit.id})">
+                                    👋 보내기
+                                </button>
+                            </div>
+                            
+                            <button class="mobile-detail-toggle ${isDetailExpanded ? 'expanded' : ''}" onclick="toggleMobileSpiritDetail(${spirit.id})">
+                                <span>상세 정보</span>
+                                <span class="arrow">▼</span>
+                            </button>
+                            
+                            <div class="mobile-detail-content ${isDetailExpanded ? 'show' : ''}" id="mobileDetail-${spirit.id}">
+                                ${renderMobileSpiritDetail(spirit)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 인디케이터 업데이트
+            updateMobileIndicator();
+        }
+        
+        function renderMobileSpiritDetail(spirit) {
+            const stage = getStage(spirit.growth);
+            const attrs = spirit.hiddenAttributes || {};
+            const params = spirit.parameters || {};
+            const keywords = getStatusKeywords(spirit);
+            
+            const attrDisplay = ['fire', 'water', 'wind', 'earth', 'light', 'dark']
+                .map(a => `<span style="margin-right: 8px;">${ENV_ICONS[a]}${attrs[a] || 0}</span>`)
+                .join('');
+            
+            const keywordTags = keywords.length > 0 ? keywords.map(kw => {
+                const kwData = STATUS_KEYWORDS[kw];
+                return kwData ? `<span style="display: inline-block; padding: 3px 8px; background: rgba(100,100,100,0.2); border-radius: 4px; font-size: 0.75rem; margin: 2px;">${kwData.name}</span>` : '';
+            }).filter(x => x).join('') : '<span style="color: var(--text-muted); font-size: 0.8rem;">없음</span>';
+            
+            // 최근 일지
+            const recentLogs = (spirit.logs || []).slice(-5).reverse();
+            const logsHtml = recentLogs.length > 0 ? recentLogs.map(log => 
+                `<div style="font-size: 0.8rem; color: var(--text-muted); padding: 4px 0; border-bottom: 1px solid var(--border);">${log}</div>`
+            ).join('') : '<div style="font-size: 0.8rem; color: var(--text-muted);">아직 기록이 없습니다</div>';
+            
+            return `
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.85rem;">📊 스탯</div>
+                    <div style="display: flex; gap: 12px; font-size: 0.9rem;">
+                        <span>🧠 ${params.intelligence || 0}</span>
+                        <span>💪 ${params.strength || 0}</span>
+                        <span>💖 ${params.charm || 0}</span>
+                        <span>💕 ${params.affection || 0}</span>
+                    </div>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.85rem;">🌈 속성</div>
+                    <div style="font-size: 0.85rem;">${attrDisplay}</div>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.85rem;">🏷️ 상태 키워드</div>
+                    <div>${keywordTags}</div>
+                </div>
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.85rem;">📜 최근 일지</div>
+                    <div style="max-height: 150px; overflow-y: auto;">${logsHtml}</div>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                    <button onclick="changeName(${spirit.id})" style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; cursor: pointer;">✏️ 이름 변경</button>
+                    ${spirit.isCompleted ? `<button onclick="showBreedCodeModal(${spirit.id})" style="flex: 1; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🔗 연결 코드</button>` : ''}
+                </div>
+            `;
+        }
+        
+        function toggleMobileSpiritDetail(spiritId) {
+            spiritDetailExpanded[spiritId] = !spiritDetailExpanded[spiritId];
+            const content = document.getElementById(`mobileDetail-${spiritId}`);
+            const toggle = content?.previousElementSibling;
+            
+            if (content) {
+                content.classList.toggle('show');
+            }
+            if (toggle) {
+                toggle.classList.toggle('expanded');
+            }
+        }
+        
+        function toggleMobileGather() {
+            mobileGatherExpanded = !mobileGatherExpanded;
+            const section = document.getElementById('mobileGatherSection');
+            
+            if (mobileGatherExpanded) {
+                section.classList.remove('collapsed');
+                section.classList.add('expanded');
+            } else {
+                section.classList.remove('expanded');
+                section.classList.add('collapsed');
+            }
+            
+            // 슬라이더 위치 조정
+            renderMobileSpirits();
+        }
+        
+        function updateMobileIndicator() {
+            const indicator = document.getElementById('mobileSpiritIndicator');
+            if (!indicator || spirits.length === 0) {
+                if (indicator) indicator.innerHTML = '';
+                return;
+            }
+            
+            indicator.innerHTML = spirits.map((_, index) => 
+                `<div class="mobile-indicator-dot ${index === currentSpiritIndex ? 'active' : ''}" onclick="scrollToMobileSpirit(${index})"></div>`
+            ).join('');
+        }
+        
+        function scrollToMobileSpirit(index) {
+            const slider = document.getElementById('mobileSpiritSlider');
+            if (slider) {
+                const cardWidth = slider.offsetWidth;
+                slider.scrollTo({ left: cardWidth * index, behavior: 'smooth' });
+            }
+        }
+        
+        function switchMobileTab(tabName) {
+            // 모바일 탭 활성화 상태 변경
+            document.querySelectorAll('.mobile-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+            
+            // 기존 탭 전환 함수 호출
+            switchTab(tabName);
+            
+            // 육성 탭이면 모바일 전용 UI 표시
+            if (tabName === 'garden' && isMobileMode) {
+                document.getElementById('mobileGatherSection').style.display = '';
+                document.getElementById('mobileSpiritSlider').style.display = '';
+                document.getElementById('mobileSpiritIndicator').style.display = '';
+                document.querySelector('.mobile-float-btns').style.display = '';
+                renderMobileSpirits();
+            } else if (isMobileMode) {
+                // 다른 탭이면 모바일 채집/정령 UI 숨기기
+                document.getElementById('mobileGatherSection').style.display = 'none';
+                document.getElementById('mobileSpiritSlider').style.display = 'none';
+                document.getElementById('mobileSpiritIndicator').style.display = 'none';
+                document.querySelector('.mobile-float-btns').style.display = 'none';
+            }
+        }
+        
+        function updateMobileInventory() {
+            const summary = document.getElementById('mobileInventorySummary');
+            if (!summary) return;
+            
+            const foodCount = (inventory.food || []).reduce((sum, item) => sum + item.count, 0);
+            const musicCount = (inventory.music || []).reduce((sum, item) => sum + item.count, 0);
+            
+            summary.innerHTML = `🍎 먹이 ${foodCount}개 · 🎵 레코드 ${musicCount}개 · 💰 ${coins}`;
+        }
+        
+        function syncMobileSelects() {
+            // 데스크톱 셀렉트와 모바일 셀렉트 동기화
+            const desktopTitle = document.getElementById('titleSelect');
+            const mobileTitle = document.getElementById('mobileTitleSelect');
+            const desktopLocation = document.getElementById('gatherLocationSelect');
+            const mobileLocation = document.getElementById('mobileLocationSelect');
+            
+            if (desktopTitle && mobileTitle) {
+                mobileTitle.value = desktopTitle.value;
+            }
+            if (desktopLocation && mobileLocation) {
+                mobileLocation.value = desktopLocation.value;
+            }
+        }
+        
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+        
+        // 기존 renderSpirits 호출 시 모바일도 업데이트
+        const originalRenderSpirits = renderSpirits;
+        renderSpirits = function() {
+            originalRenderSpirits();
+            if (isMobileMode) {
+                renderMobileSpirits();
+            }
+        };
+        
+        // 코인 업데이트 시 모바일 인벤토리도 업데이트
+        const originalUpdateCoinDisplay = updateCoinDisplay;
+        if (typeof updateCoinDisplay === 'function') {
+            updateCoinDisplay = function() {
+                originalUpdateCoinDisplay();
+                updateMobileInventory();
+            };
+        }
+        
+        // 초기화 시 모바일 UI도 초기화
+        setTimeout(() => {
+            initMobileUI();
+        }, 100);
     </script>
     
     <!-- 플로팅 스크롤 버튼 -->
-    <div class="scroll-buttons">
+    <div class="scroll-buttons desktop-only">
         <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">⬆️</button>
         <button class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">⬇️</button>
     </div>
