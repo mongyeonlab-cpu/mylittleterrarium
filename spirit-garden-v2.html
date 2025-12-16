@@ -977,7 +977,7 @@
                 border-top: 1px solid var(--border);
                 z-index: 1000;
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 padding: 8px 4px;
                 padding-bottom: calc(8px + env(safe-area-inset-bottom));
                 overflow-x: auto;
@@ -6020,8 +6020,8 @@
         }
 
         function updateGatherButton() {
-            const gatherBtn = document.querySelector('.walk-btn');
-            if (!gatherBtn) return;
+            const gatherBtns = document.querySelectorAll('.walk-btn');
+            if (gatherBtns.length === 0) return;
 
             const now = Date.now();
             const gatherCooldown = 15000; // 15초
@@ -6029,29 +6029,31 @@
             // 자동 채집 활성화 여부
             const isAutoGatherActive = currentTitle === 'none';
             
-            // 일시정지 중이면 버튼 비활성화
-            if (isPaused) {
-                gatherBtn.disabled = true;
-                gatherBtn.textContent = '채집하기 (일시정지)';
-                return;
-            }
+            gatherBtns.forEach(gatherBtn => {
+                // 일시정지 중이면 버튼 비활성화
+                if (isPaused) {
+                    gatherBtn.disabled = true;
+                    gatherBtn.textContent = '채집하기 (일시정지)';
+                    return;
+                }
 
-            if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
-                gatherBtn.disabled = true;
-                const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
-                if (isAutoGatherActive) {
-                    gatherBtn.textContent = `자동 채집 (${remainingTime}초)`;
+                if (lastGatherTime && (now - lastGatherTime < gatherCooldown)) {
+                    gatherBtn.disabled = true;
+                    const remainingTime = Math.ceil((gatherCooldown - (now - lastGatherTime)) / 1000);
+                    if (isAutoGatherActive) {
+                        gatherBtn.textContent = `자동 채집 (${remainingTime}초)`;
+                    } else {
+                        gatherBtn.textContent = `채집하기 (${remainingTime}초)`;
+                    }
                 } else {
-                    gatherBtn.textContent = `채집하기 (${remainingTime}초)`;
+                    gatherBtn.disabled = false;
+                    if (isAutoGatherActive) {
+                        gatherBtn.textContent = '자동 채집 중';
+                    } else {
+                        gatherBtn.textContent = '채집하기';
+                    }
                 }
-            } else {
-                gatherBtn.disabled = false;
-                if (isAutoGatherActive) {
-                    gatherBtn.textContent = '자동 채집 중';
-                } else {
-                    gatherBtn.textContent = '채집하기';
-                }
-            }
+            });
         }
 
         function confirmDeleteSpirit(spiritId) {
