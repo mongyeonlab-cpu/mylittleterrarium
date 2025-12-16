@@ -1010,12 +1010,23 @@
             
             /* 본문 패딩 조정 */
             body.mobile-layout {
-                padding-top: 120px !important;
+                padding-top: 140px !important;
                 padding-bottom: 70px !important;
             }
             
             body.mobile-layout.gather-expanded {
-                padding-top: 320px !important;
+                padding-top: 340px !important;
+            }
+            
+            /* 모바일 알림창 위치 조정 */
+            body.mobile-layout .notification {
+                top: 150px !important;
+                right: 10px !important;
+                max-width: 250px !important;
+            }
+            
+            body.mobile-layout.gather-expanded .notification {
+                top: 350px !important;
             }
             
             /* 기존 헤더/탭 숨기기 */
