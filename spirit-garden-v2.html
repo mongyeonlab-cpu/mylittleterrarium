@@ -1166,14 +1166,14 @@
                 max-width: 100vw !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
-                padding: 8px 0 !important;
-                scroll-snap-align: start;
+                padding: 8px 16px !important;
+                scroll-snap-align: center;
             }
             
             body.mobile-layout .spirit-card {
-                width: calc(100vw - 32px) !important;
-                max-width: calc(100vw - 32px) !important;
-                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
                 padding: 16px !important;
                 box-sizing: border-box !important;
             }
@@ -7228,8 +7228,10 @@
             
             modalTitle.textContent = item.name;
             
-            // 이벤트 정령인 경우 최신 아이콘으로 업데이트
+            // 아이콘을 최신 버전으로 업데이트
             let itemIcon = item.icon;
+            
+            // 이벤트 정령인 경우 최신 아이콘으로 업데이트
             if (item.type && item.type.startsWith('event_')) {
                 const typeParts = item.type.replace('event_', '').split('_');
                 const eventKey = typeParts[0];
@@ -7259,6 +7261,35 @@
                             itemIcon = stages.adult;
                         }
                     }
+                }
+            }
+            // 일반 정령(ATTRIBUTE_NAMES)인 경우도 최신 아이콘으로 업데이트
+            else if (item.type && ATTRIBUTE_NAMES[item.type]) {
+                const attrData = ATTRIBUTE_NAMES[item.type];
+                if (attrData && attrData.icon) {
+                    // wingType 결정
+                    let wingType = item.wingType;
+                    if (!wingType) {
+                        if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                            wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                        } else {
+                            wingType = 'butterfly';
+                        }
+                    }
+                    
+                    // 이미지가 있는 경우 (butterfly/moth 구분)
+                    if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
+                        itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
+                    } else {
+                        itemIcon = attrData.icon;
+                    }
+                }
+            }
+            // 합성 정령(FUSION_TYPES)인 경우도 최신 아이콘으로 업데이트
+            else if (item.type && FUSION_TYPES[item.type]) {
+                const fusionData = FUSION_TYPES[item.type];
+                if (fusionData && fusionData.icon) {
+                    itemIcon = fusionData.icon;
                 }
             }
             
@@ -13024,8 +13055,10 @@
                 const desc = item.desc || '';
                 const originalName = item.originalName || item.name || '이름 없음';
                 
-                // 이벤트 정령인 경우 최신 아이콘으로 업데이트
+                // 아이콘을 최신 버전으로 업데이트
                 let itemIcon = item.icon;
+                
+                // 이벤트 정령인 경우 최신 아이콘으로 업데이트
                 if (item.type && item.type.startsWith('event_')) {
                     // event_christmas2025_shiny_butterfly 형식 파싱
                     const typeParts = item.type.replace('event_', '').split('_');
@@ -13057,6 +13090,35 @@
                                 itemIcon = stages.adult;
                             }
                         }
+                    }
+                }
+                // 일반 정령(ATTRIBUTE_NAMES)인 경우도 최신 아이콘으로 업데이트
+                else if (item.type && ATTRIBUTE_NAMES[item.type]) {
+                    const attrData = ATTRIBUTE_NAMES[item.type];
+                    if (attrData && attrData.icon) {
+                        // wingType 결정
+                        let wingType = item.wingType;
+                        if (!wingType) {
+                            if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                                wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                            } else {
+                                wingType = 'butterfly';
+                            }
+                        }
+                        
+                        // 이미지가 있는 경우 (butterfly/moth 구분)
+                        if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
+                            itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
+                        } else {
+                            itemIcon = attrData.icon;
+                        }
+                    }
+                }
+                // 합성 정령(FUSION_TYPES)인 경우도 최신 아이콘으로 업데이트
+                else if (item.type && FUSION_TYPES[item.type]) {
+                    const fusionData = FUSION_TYPES[item.type];
+                    if (fusionData && fusionData.icon) {
+                        itemIcon = fusionData.icon;
                     }
                 }
                 
