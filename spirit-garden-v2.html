@@ -151,19 +151,35 @@
         }
 
         .spirits-grid {
-            display: grid;
+            display: grid !important;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
         }
         
-        /* PC에서 Swiper 스타일 무시 */
+        /* PC에서 Swiper 스타일 완전 무시 - 그리드 레이아웃 유지 */
         .spirits-swiper {
-            overflow: visible;
+            overflow: visible !important;
         }
         
-        .swiper-slide {
+        /* PC에서 swiper-wrapper(spirits-grid)는 그리드로 작동 */
+        .swiper-wrapper.spirits-grid,
+        .spirits-swiper .swiper-wrapper {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+            gap: 20px !important;
+            transform: none !important;
             width: auto !important;
-            height: auto !important;
+        }
+        
+        /* PC에서 swiper-slide는 그리드 아이템처럼 작동 */
+        .spirits-grid .swiper-slide,
+        .spirits-swiper .swiper-slide {
+            width: auto !important;
+            min-width: auto !important;
+            max-width: none !important;
+            flex-shrink: 1 !important;
+            padding: 0 !important;
+            margin-right: 0 !important;
         }
         
         /* Swiper 페이지네이션 - PC에서 숨김 */
@@ -1032,6 +1048,16 @@
             body.mobile-layout {
                 padding-top: 140px !important;
                 padding-bottom: 70px !important;
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
+            
+            body.mobile-layout .section {
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow-x: hidden !important;
             }
             
             body.mobile-layout.gather-expanded {
@@ -1114,18 +1140,24 @@
             /* 모바일 Swiper 스타일 */
             body.mobile-layout .spirits-swiper {
                 width: 100% !important;
+                max-width: 100vw !important;
                 overflow: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             
             body.mobile-layout .swiper-wrapper {
                 display: flex !important;
+                width: 100% !important;
             }
             
             body.mobile-layout .swiper-slide {
                 width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
                 flex-shrink: 0 !important;
-                padding: 8px 12px !important;
                 box-sizing: border-box !important;
+                padding: 8px 12px !important;
             }
             
             body.mobile-layout .spirit-card {
@@ -1312,6 +1344,8 @@
     </style>
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 </head>
 <body>
     <!-- 오프닝 스토리 팝업 -->
@@ -8680,15 +8714,31 @@
         // Swiper 초기화 또는 업데이트
         function initOrUpdateSpiritsSwiper() {
             const paginationContainer = document.getElementById('swiperPaginationContainer');
+            const swiperEl = document.querySelector('.spirits-swiper');
+            const gridEl = document.querySelector('.spirits-grid');
             const isMobile = window.innerWidth <= 768;
             
-            // PC 모드: Swiper 비활성화
+            // PC 모드: Swiper 완전 비활성화 및 그리드 복원
             if (!isMobile) {
                 if (spiritsSwiper) {
                     spiritsSwiper.destroy(true, true);
                     spiritsSwiper = null;
                 }
                 if (paginationContainer) paginationContainer.style.display = 'none';
+                if (swiperEl) {
+                    swiperEl.style.overflow = 'visible';
+                }
+                // 그리드 스타일 강제 복원
+                if (gridEl) {
+                    gridEl.style.display = '';
+                    gridEl.style.transform = '';
+                    gridEl.style.width = '';
+                }
+                // swiper-slide 스타일도 초기화
+                document.querySelectorAll('.spirits-grid .swiper-slide').forEach(slide => {
+                    slide.style.width = '';
+                    slide.style.marginRight = '';
+                });
                 lastSpiritCount = 0;
                 return;
             }
@@ -8706,6 +8756,7 @@
             
             // 모바일 모드: Swiper 활성화
             if (paginationContainer) paginationContainer.style.display = 'block';
+            if (swiperEl) swiperEl.style.overflow = 'hidden';
             
             // 정령 수가 변경되지 않았으면 update만 호출
             if (spiritsSwiper && lastSpiritCount === spirits.length) {
@@ -8738,6 +8789,9 @@
                     touchRatio: 1,
                     resistance: true,
                     resistanceRatio: 0.85,
+                    watchOverflow: true,
+                    observer: true,
+                    observeParents: true,
                     pagination: {
                         el: '#spiritsPagination',
                         clickable: true,
@@ -8745,12 +8799,16 @@
                     on: {
                         slideChange: function() {
                             currentSpiritIndex = this.realIndex;
+                        },
+                        init: function() {
+                            // 초기화 후 크기 재계산
+                            this.update();
                         }
                     }
                 });
                 
                 currentSpiritIndex = savedIndex;
-            }, 100);
+            }, 150);
         }
         
         // 현재 보고 있는 정령 인덱스
@@ -18885,12 +18943,18 @@
                 desktopHeaders.forEach(el => el.style.display = 'none');
                 if (desktopTabs) desktopTabs.style.display = 'none';
                 
-                // 인벤토리 동기화
+                // 인벤토리 동기화 - 즉시 및 지연 호출
                 updateMobileInventoryDisplay();
                 syncMobileSelects();
                 
-                // Swiper 초기화
-                setTimeout(() => initOrUpdateSpiritsSwiper(), 100);
+                // Swiper 초기화 (Swiper JS 로드 후)
+                setTimeout(() => {
+                    if (typeof Swiper !== 'undefined') {
+                        initOrUpdateSpiritsSwiper();
+                    }
+                    // 인벤토리 다시 업데이트
+                    updateMobileInventoryDisplay();
+                }, 200);
             } else {
                 document.body.classList.remove('mobile-layout');
                 document.body.classList.remove('gather-expanded');
@@ -18901,7 +18965,9 @@
                 if (desktopTabs) desktopTabs.style.display = '';
                 
                 // PC에서는 Swiper 비활성화
-                initOrUpdateSpiritsSwiper();
+                if (typeof Swiper !== 'undefined') {
+                    initOrUpdateSpiritsSwiper();
+                }
             }
         }
         
@@ -18929,6 +18995,9 @@
             const display = document.getElementById('mobileInventoryDisplay');
             if (!display) return;
             
+            // inventory가 초기화되지 않았으면 기본값 사용
+            if (typeof inventory === 'undefined') return;
+            
             // 먹이 인벤토리 표시
             let html = '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🍎 먹이:</span> ';
             if (inventory.food && inventory.food.length > 0) {
@@ -18937,14 +19006,16 @@
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
                 const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
-                html += foodOrder
+                const foodDisplay = foodOrder
                     .filter(type => foodCounts[type])
-                    .map(type => `${ENV_ICONS[type] || '🍎'}${foodCounts[type]}`)
+                    .map(type => `${(typeof ENV_ICONS !== 'undefined' && ENV_ICONS[type]) || '🍎'}${foodCounts[type]}`)
                     .join(' ');
+                html += foodDisplay || '';
                 // 기타 먹이 추가
                 Object.keys(foodCounts).forEach(key => {
                     if (!foodOrder.includes(key)) {
-                        const icon = (SYNTH_ITEMS && SYNTH_ITEMS[key]?.icon) || (EVENT_ITEMS && EVENT_ITEMS[key]?.icon) || '🍎';
+                        const icon = (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[key]?.icon) || 
+                                    (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]?.icon) || '🍎';
                         html += ` ${icon}${foodCounts[key]}`;
                     }
                 });
@@ -18964,7 +19035,7 @@
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
                 html += Object.entries(musicCounts).map(([type, count]) => {
-                    const icon = (MUSIC && MUSIC[type]?.icon) || '🎵';
+                    const icon = (typeof MUSIC !== 'undefined' && MUSIC[type]?.icon) || '🎵';
                     return `${icon}${count}`;
                 }).join(' ');
             } else {
@@ -18973,7 +19044,7 @@
             html += '</div>';
             
             // 코인 표시
-            html += `<div><span style="color: var(--text-muted);">💰 코인:</span> ${coins}</div>`;
+            html += `<div><span style="color: var(--text-muted);">💰 코인:</span> ${typeof coins !== 'undefined' ? coins : 0}</div>`;
             
             display.innerHTML = html;
         }
@@ -19059,8 +19130,5 @@
         <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">⬆️</button>
         <button class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">⬇️</button>
     </div>
-    
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 </body>
 </html>
