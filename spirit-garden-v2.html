@@ -156,6 +156,21 @@
             gap: 20px;
         }
         
+        /* PC에서 Swiper 스타일 무시 */
+        .spirits-swiper {
+            overflow: visible;
+        }
+        
+        .swiper-slide {
+            width: auto !important;
+            height: auto !important;
+        }
+        
+        /* Swiper 페이지네이션 - PC에서 숨김 */
+        .swiper-pagination-container {
+            display: none;
+        }
+        
         /* 모바일 정령 슬라이더 네비게이션 - 기본 숨김 */
         .mobile-spirit-nav {
             display: none;
@@ -1096,60 +1111,53 @@
                 transform: rotate(180deg);
             }
             
-            /* 모바일 정령 그리드 슬라이드 */
+            /* 모바일 Swiper 스타일 */
+            body.mobile-layout .spirits-swiper {
+                overflow: hidden !important;
+                padding: 0 16px;
+            }
+            
             body.mobile-layout .spirits-grid {
                 display: flex !important;
                 flex-wrap: nowrap !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-                gap: 0;
-                padding: 0;
-                margin: 0 -16px;
-                width: calc(100% + 32px);
             }
             
-            body.mobile-layout .spirits-grid::-webkit-scrollbar {
-                display: none;
+            body.mobile-layout .swiper-slide {
+                width: 100% !important;
+                flex-shrink: 0;
             }
             
             body.mobile-layout .spirits-grid .spirit-card {
-                flex: 0 0 100%;
                 width: 100%;
-                min-width: 100%;
-                max-width: 100%;
-                scroll-snap-align: start;
-                scroll-snap-stop: always;
                 box-sizing: border-box;
-                margin: 0;
-                border-left: none;
-                border-right: none;
             }
             
-            /* 정령 슬라이더 인디케이터 (버튼 없이 숫자만) */
-            .mobile-spirit-nav {
-                display: none;
-                justify-content: center;
-                align-items: center;
-                padding: 8px 16px;
+            /* Swiper 페이지네이션 스타일 */
+            .swiper-pagination-container {
                 background: var(--card);
                 border-bottom: 1px solid var(--border);
+                padding: 12px;
             }
             
-            body.mobile-layout .mobile-spirit-nav {
-                display: flex;
+            body.mobile-layout .swiper-pagination-container {
+                display: block !important;
             }
             
-            .mobile-spirit-nav-btn {
-                display: none;
+            .swiper-pagination-bullet {
+                background: var(--text-muted);
+                opacity: 0.5;
+                width: 10px;
+                height: 10px;
             }
             
-            .mobile-spirit-indicator {
-                font-size: 0.9rem;
-                color: var(--text-muted);
-                text-align: center;
+            .swiper-pagination-bullet-active {
+                background: var(--primary);
+                opacity: 1;
+            }
+            
+            /* 정령 슬라이더 인디케이터 - 더 이상 사용 안함 */
+            .mobile-spirit-nav {
+                display: none !important;
             }
             
             /* 정령 인디케이터 */
@@ -1287,6 +1295,8 @@
             }
         }
     </style>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
     <!-- 오프닝 스토리 팝업 -->
@@ -1435,11 +1445,14 @@
             </div>
 
             <div>
-                <!-- 모바일 정령 슬라이더 인디케이터 -->
-                <div class="mobile-spirit-nav" id="mobileSpiritNav">
-                    <span class="mobile-spirit-indicator" id="mobileSpiritIndicator">1 / 1</span>
+                <!-- 모바일 Swiper 페이지네이션 -->
+                <div class="swiper-pagination-container" id="swiperPaginationContainer" style="display: none; text-align: center; padding: 8px;">
+                    <div class="swiper-pagination" id="spiritsPagination"></div>
                 </div>
-                <div class="spirits-grid" id="spiritsGrid"></div>
+                <!-- PC: 기존 그리드 / 모바일: Swiper -->
+                <div class="swiper spirits-swiper" id="spiritsSwiper">
+                    <div class="swiper-wrapper spirits-grid" id="spiritsGrid"></div>
+                </div>
                 <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
             </div>
         </div>
@@ -8432,7 +8445,7 @@
                         : spirit.evolutionData.icon;
                     
                     return `
-                        <div class="spirit-card" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border: 3px solid #ffa500;">
+                        <div class="swiper-slide"><div class="spirit-card" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border: 3px solid #ffa500;">
                             <div style="text-align: center; padding: 20px;">
                                 <div style="font-size: 4rem; margin-bottom: 15px;">${evolutionIcon}</div>
                                 <div style="font-size: 1.3rem; font-weight: 700; color: #333; margin-bottom: 10px;">
@@ -8458,7 +8471,7 @@
                                     확인하기
                                 </button>
                             </div>
-                        </div>
+                        </div></div>
                     `;
                 }
                 // 외형 묘사 가져오기
@@ -8468,7 +8481,7 @@
                 const isCollapsed = spiritCardExpanded[spirit.id] === false;
 
                 return `
-                    <div class="spirit-card" style="position: relative;">
+                    <div class="swiper-slide"><div class="spirit-card" style="position: relative;">
                         ${(() => {
                             const satisfaction = spirit.satisfaction || 'mid';
                             const satisfactionIcons = { high: '', mid: '', low: '' };
@@ -8617,9 +8630,12 @@
                         <div class="spirit-card-toggle" onclick="toggleSpiritCardDetail(${spirit.id})">
                             <span>${isCollapsed ? '▼' : '▲'}</span>
                         </div>
-                    </div>
+                    </div></div>
                 `;
             }).join('');
+            
+            // 모바일 Swiper 초기화/업데이트
+            initOrUpdateSpiritsSwiper();
             
             // 튜토리얼 진행 중이면 강조 표시 재적용
             if ((tutorialActive || tutorial2Active) && window.tutorialWaitingFor) {
@@ -8642,84 +8658,60 @@
             updateSpiritSliderIndicator();
         }
         
-        // 현재 보고 있는 정령 인덱스
-        let currentSpiritIndex = 0;
+        // Swiper 인스턴스
+        let spiritsSwiper = null;
         
-        // 정령 슬라이더 네비게이션
-        function navigateSpirit(direction) {
-            const grid = document.getElementById('spiritsGrid');
-            if (!grid || spirits.length === 0) return;
-            
-            const cards = grid.querySelectorAll('.spirit-card');
-            if (cards.length === 0) return;
-            
-            // 새 인덱스 계산 (무한 루프)
-            currentSpiritIndex = (currentSpiritIndex + direction + cards.length) % cards.length;
-            
-            // 해당 카드로 스크롤
-            cards[currentSpiritIndex].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            
-            // 인디케이터 업데이트
-            updateSpiritSliderIndicator();
-        }
-        
-        // 슬라이더 인디케이터 업데이트
-        function updateSpiritSliderIndicator() {
-            const indicator = document.getElementById('mobileSpiritIndicator');
-            const nav = document.getElementById('mobileSpiritNav');
-            
-            if (!indicator || !nav) return;
-            
-            // 모바일이 아니거나, 육성 탭이 아니거나, 정령이 없으면 숨기기
-            if (!isMobileMode || currentTab !== 'garden' || spirits.length === 0) {
-                nav.style.display = 'none';
+        // Swiper 초기화 또는 업데이트
+        function initOrUpdateSpiritsSwiper() {
+            if (!isMobileMode) {
+                // PC 모드: Swiper 비활성화
+                if (spiritsSwiper) {
+                    spiritsSwiper.destroy(true, true);
+                    spiritsSwiper = null;
+                }
+                document.getElementById('swiperPaginationContainer')?.style.setProperty('display', 'none');
                 return;
             }
             
-            // 모바일 + 육성 탭 + 정령 있음 → 표시
-            nav.style.display = 'flex';
+            // 모바일 모드: Swiper 활성화
+            const container = document.getElementById('swiperPaginationContainer');
+            if (container) container.style.display = 'block';
             
-            // 인덱스가 범위를 벗어나면 조정
-            if (currentSpiritIndex >= spirits.length) {
-                currentSpiritIndex = 0;
-            }
-            
-            indicator.textContent = `${currentSpiritIndex + 1} / ${spirits.length}`;
-        }
-        
-        // 스크롤 시 현재 인덱스 업데이트
-        function initSpiritSliderScroll() {
-            const grid = document.getElementById('spiritsGrid');
-            if (!grid) return;
-            
-            grid.addEventListener('scroll', () => {
-                if (!isMobileMode) return;
-                
-                const cards = grid.querySelectorAll('.spirit-card');
-                if (cards.length === 0) return;
-                
-                const gridRect = grid.getBoundingClientRect();
-                const gridCenter = gridRect.left + gridRect.width / 2;
-                
-                let closestIndex = 0;
-                let closestDistance = Infinity;
-                
-                cards.forEach((card, index) => {
-                    const cardRect = card.getBoundingClientRect();
-                    const cardCenter = cardRect.left + cardRect.width / 2;
-                    const distance = Math.abs(gridCenter - cardCenter);
-                    
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestIndex = index;
+            if (spiritsSwiper) {
+                // 기존 Swiper 업데이트
+                spiritsSwiper.update();
+                spiritsSwiper.slideTo(0, 0);
+            } else {
+                // 새 Swiper 초기화
+                spiritsSwiper = new Swiper('.spirits-swiper', {
+                    loop: true,
+                    slidesPerView: 1,
+                    spaceBetween: 16,
+                    centeredSlides: true,
+                    pagination: {
+                        el: '#spiritsPagination',
+                        clickable: true,
+                    },
+                    on: {
+                        slideChange: function() {
+                            currentSpiritIndex = this.realIndex;
+                        }
                     }
                 });
-                
-                if (currentSpiritIndex !== closestIndex) {
-                    currentSpiritIndex = closestIndex;
-                    updateSpiritSliderIndicator();
-                }
-            });
+            }
+        }
+        
+        // 현재 보고 있는 정령 인덱스
+        let currentSpiritIndex = 0;
+        
+        // 슬라이더 인디케이터 업데이트 (Swiper용 - 더 이상 사용 안함)
+        function updateSpiritSliderIndicator() {
+            // Swiper가 자동으로 처리
+        }
+        
+        // 스크롤 시 현재 인덱스 업데이트 (Swiper용 - 더 이상 사용 안함)
+        function initSpiritSliderScroll() {
+            // Swiper가 자동으로 처리
         }
         
         // 정령 카드 상세 정보 펼치기/접기 (기본값: 펼침)
@@ -18824,8 +18816,8 @@
                 updateMobileInventoryDisplay();
                 syncMobileSelects();
                 
-                // 슬라이더 인디케이터 업데이트
-                updateSpiritSliderIndicator();
+                // Swiper 초기화
+                setTimeout(() => initOrUpdateSpiritsSwiper(), 100);
             } else {
                 document.body.classList.remove('mobile-layout');
                 document.body.classList.remove('gather-expanded');
@@ -18835,9 +18827,8 @@
                 desktopHeaders.forEach(el => el.style.display = '');
                 if (desktopTabs) desktopTabs.style.display = '';
                 
-                // PC에서는 네비게이션 숨기기
-                const nav = document.getElementById('mobileSpiritNav');
-                if (nav) nav.style.display = 'none';
+                // PC에서는 Swiper 비활성화
+                initOrUpdateSpiritsSwiper();
             }
         }
         
@@ -18995,5 +18986,8 @@
         <button class="scroll-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="맨 위로">⬆️</button>
         <button class="scroll-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="맨 아래로">⬇️</button>
     </div>
+    
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 </body>
 </html>
