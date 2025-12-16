@@ -1145,7 +1145,8 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: auto;
                 scrollbar-width: none;
                 -ms-overflow-style: none;
             }
@@ -1168,6 +1169,7 @@
                 box-sizing: border-box !important;
                 padding: 8px 16px !important;
                 scroll-snap-align: start;
+                scroll-snap-stop: always;
             }
             
             body.mobile-layout .spirit-card {
