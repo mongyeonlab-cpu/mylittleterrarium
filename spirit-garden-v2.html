@@ -1157,7 +1157,7 @@
                 max-width: 100% !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
-                padding: 8px 12px !important;
+                padding: 8px 10px 8px 14px !important;
             }
             
             body.mobile-layout .spirit-card {
@@ -8709,10 +8709,16 @@
         
         // Swiper 인스턴스
         let spiritsSwiper = null;
-        let lastSpiritCount = 0; // 마지막 정령 수 (재초기화 필요 여부 판단용)
+        let lastSpiritCount = 0;
+        let swiperInitTimeout = null; // 디바운스용
         
         // Swiper 초기화 또는 업데이트
         function initOrUpdateSpiritsSwiper() {
+            // Swiper가 로드되지 않았으면 무시
+            if (typeof Swiper === 'undefined') {
+                return;
+            }
+            
             const paginationContainer = document.getElementById('swiperPaginationContainer');
             const swiperEl = document.querySelector('.spirits-swiper');
             const gridEl = document.querySelector('.spirits-grid');
@@ -8720,6 +8726,11 @@
             
             // PC 모드: Swiper 완전 비활성화 및 그리드 복원
             if (!isMobile) {
+                // 대기 중인 초기화 취소
+                if (swiperInitTimeout) {
+                    clearTimeout(swiperInitTimeout);
+                    swiperInitTimeout = null;
+                }
                 if (spiritsSwiper) {
                     spiritsSwiper.destroy(true, true);
                     spiritsSwiper = null;
@@ -8745,6 +8756,10 @@
             
             // 정령이 없으면 Swiper 초기화하지 않음
             if (spirits.length === 0) {
+                if (swiperInitTimeout) {
+                    clearTimeout(swiperInitTimeout);
+                    swiperInitTimeout = null;
+                }
                 if (spiritsSwiper) {
                     spiritsSwiper.destroy(true, true);
                     spiritsSwiper = null;
@@ -8758,14 +8773,9 @@
             if (paginationContainer) paginationContainer.style.display = 'block';
             if (swiperEl) swiperEl.style.overflow = 'hidden';
             
-            // 정령 수가 변경되지 않았으면 update만 호출
-            if (spiritsSwiper && lastSpiritCount === spirits.length) {
-                spiritsSwiper.update();
-                return;
-            }
-            
-            // 현재 슬라이드 인덱스 저장
-            const savedIndex = Math.min(currentSpiritIndex, spirits.length - 1);
+            // 현재 슬라이드 인덱스 저장 (Swiper에서 가져오거나 전역 변수 사용)
+            const savedIndex = spiritsSwiper ? spiritsSwiper.realIndex : currentSpiritIndex;
+            const validIndex = Math.min(Math.max(0, savedIndex), spirits.length - 1);
             
             // 기존 Swiper가 있으면 파괴
             if (spiritsSwiper) {
@@ -8773,10 +8783,22 @@
                 spiritsSwiper = null;
             }
             
+            // 대기 중인 초기화가 있으면 취소 (디바운스)
+            if (swiperInitTimeout) {
+                clearTimeout(swiperInitTimeout);
+            }
+            
             lastSpiritCount = spirits.length;
             
             // DOM이 완전히 렌더링된 후 Swiper 초기화
-            setTimeout(() => {
+            swiperInitTimeout = setTimeout(() => {
+                swiperInitTimeout = null;
+                
+                // 다시 한번 조건 체크
+                if (typeof Swiper === 'undefined' || spirits.length === 0 || window.innerWidth > 768) {
+                    return;
+                }
+                
                 // 3개 이상일 때만 무한 루프 활성화
                 const enableLoop = spirits.length >= 3;
                 
@@ -8784,14 +8806,12 @@
                     loop: enableLoop,
                     slidesPerView: 1,
                     spaceBetween: 0,
-                    initialSlide: savedIndex,
+                    initialSlide: validIndex,
                     grabCursor: true,
                     touchRatio: 1,
                     resistance: true,
                     resistanceRatio: 0.85,
                     watchOverflow: true,
-                    observer: true,
-                    observeParents: true,
                     pagination: {
                         el: '#spiritsPagination',
                         clickable: true,
@@ -8799,15 +8819,11 @@
                     on: {
                         slideChange: function() {
                             currentSpiritIndex = this.realIndex;
-                        },
-                        init: function() {
-                            // 초기화 후 크기 재계산
-                            this.update();
                         }
                     }
                 });
                 
-                currentSpiritIndex = savedIndex;
+                currentSpiritIndex = validIndex;
             }, 150);
         }
         
