@@ -2085,6 +2085,8 @@
         let darkModeLocked = false; // 다크 모드 고정 여부
         let lightModeLocked = false; // 라이트 모드 고정 여부
         let spiritCardExpanded = JSON.parse(localStorage.getItem('spiritGarden_cardExpanded') || '{}'); // 정령 카드 상세 정보 펼침 상태
+        let isMobileMode = false; // 모바일 레이아웃 상태
+        let mobileGatherExpanded = false; // 모바일 채집 섹션 펼침 상태
         let inventory = {
             music: [],
             decorations: [],
@@ -18778,8 +18780,6 @@
         });
         
         // ===== 모바일 레이아웃 함수들 =====
-        let isMobileMode = false;
-        let mobileGatherExpanded = false;
         
         function initMobileLayout() {
             const checkMobile = () => {
