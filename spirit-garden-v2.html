@@ -167,6 +167,33 @@
             box-shadow: 0 4px 20px var(--shadow);
             transform: translateY(-2px);
         }
+        
+        /* 정령 카드 상세 정보 접기/펼치기 */
+        .spirit-card-toggle {
+            width: calc(100% + 48px);
+            margin: 12px -24px -24px -24px;
+            padding: 6px;
+            background: #333;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+        
+        .spirit-card-toggle:hover {
+            background: #444;
+        }
+        
+        .spirit-detail-section {
+            display: none;
+        }
+        
+        .spirit-detail-section.show {
+            display: block;
+        }
 
         .spirit-header {
             display: flex;
@@ -953,36 +980,146 @@
                 flex-wrap: wrap;
                 padding: 8px 4px;
                 padding-bottom: calc(8px + env(safe-area-inset-bottom));
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            
+            .mobile-fixed-tabs::-webkit-scrollbar {
+                display: none;
             }
             
             .mobile-fixed-tabs .tab {
-                flex: 1;
-                padding: 8px 4px !important;
-                font-size: 0.75rem !important;
-                min-width: 0;
+                flex: 0 0 auto;
+                padding: 10px 16px !important;
+                font-size: 0.9rem !important;
                 white-space: nowrap;
             }
             
             .mobile-fixed-tabs .control-btns {
                 display: flex;
                 gap: 4px;
+                flex-shrink: 0;
+                margin-left: auto;
             }
             
             .mobile-fixed-tabs .control-btns button {
-                padding: 8px !important;
-                font-size: 1rem !important;
+                padding: 8px 12px !important;
+                font-size: 1.2rem !important;
             }
             
             /* 본문 패딩 조정 */
             body.mobile-layout {
-                padding-top: 70px !important;
-                padding-bottom: 80px !important;
+                padding-top: 120px !important;
+                padding-bottom: 70px !important;
+            }
+            
+            body.mobile-layout.gather-expanded {
+                padding-top: 320px !important;
             }
             
             /* 기존 헤더/탭 숨기기 */
             body.mobile-layout .desktop-header,
             body.mobile-layout .desktop-tabs {
                 display: none !important;
+            }
+            
+            /* 모바일에서 기존 인벤토리 패널 숨기기 */
+            body.mobile-layout .inventory-panel {
+                display: none !important;
+            }
+            
+            /* 모바일 고정 채집 섹션 */
+            .mobile-fixed-gather {
+                position: fixed;
+                top: 50px;
+                left: 0;
+                right: 0;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+                z-index: 999;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .mobile-gather-main {
+                padding: 12px 16px;
+                display: flex;
+                gap: 8px;
+            }
+            
+            .mobile-gather-content {
+                display: none;
+                padding: 0 16px 12px;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            
+            .mobile-gather-content.show {
+                display: block;
+            }
+            
+            .mobile-gather-toggle {
+                width: 100%;
+                padding: 8px;
+                background: #333;
+                border: none;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 0.9rem;
+            }
+            
+            .mobile-gather-toggle .arrow {
+                transition: transform 0.3s;
+            }
+            
+            .mobile-gather-toggle.expanded .arrow {
+                transform: rotate(180deg);
+            }
+            
+            /* 모바일 정령 그리드 슬라이드 */
+            body.mobile-layout .spirits-grid {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                gap: 16px;
+                padding: 8px 0;
+            }
+            
+            body.mobile-layout .spirits-grid::-webkit-scrollbar {
+                display: none;
+            }
+            
+            body.mobile-layout .spirits-grid .spirit-card {
+                flex: 0 0 calc(100% - 20px);
+                scroll-snap-align: start;
+                min-width: calc(100% - 20px);
+            }
+            
+            /* 정령 인디케이터 */
+            .mobile-spirit-dots {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                padding: 12px 0;
+            }
+            
+            .mobile-spirit-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--border);
+                cursor: pointer;
+            }
+            
+            .mobile-spirit-dot.active {
+                background: var(--fire);
             }
             
             /* 채집 영역 접기/펼치기 */
@@ -1141,6 +1278,38 @@
     <div id="mobileHeader" class="mobile-fixed-header" style="display: none;">
         <h1 style="margin: 0;">나의 작은 테라리움</h1>
         <button onclick="switchTab('settings')" style="position: absolute; right: 16px; background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+    </div>
+    
+    <!-- ===== 모바일 고정 채집 섹션 ===== -->
+    <div id="mobileGatherSection" class="mobile-fixed-gather" style="display: none;">
+        <div class="mobile-gather-main">
+            <button class="walk-btn" onclick="goGather()" style="flex: 1; margin: 0;">채집하기</button>
+        </div>
+        <div id="mobileGatherContent" class="mobile-gather-content">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; display: block;">칭호</label>
+                <select id="mobileTitleSelect" onchange="document.getElementById('titleSelect').value = this.value; changeTitle();" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                    <option value="none">자동채집 (확률 절반)</option>
+                    <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
+                    <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
+                    <option value="musician">음악가 (레코드 확률 2배)</option>
+                    <option value="collector">수집가 (테라리움 물품 확률 2배)</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; display: block;">채집 장소</label>
+                <select id="mobileLocationSelect" onchange="document.getElementById('gatherLocationSelect').value = this.value; changeGatherLocation();" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                    <option value="garden">🌸 정원 (모든 속성)</option>
+                    <option value="lake">🌊 호수 (물·바람)</option>
+                    <option value="forest">🌲 숲 (땅·불)</option>
+                </select>
+            </div>
+            <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">내 소지품</div>
+            <div id="mobileInventoryDisplay" style="font-size: 0.85rem;"></div>
+        </div>
+        <button class="mobile-gather-toggle" onclick="toggleMobileGatherSection()">
+            <span id="mobileGatherArrow">▼</span>
+        </button>
     </div>
     
     <!-- ===== 모바일 고정 탭바 ===== -->
@@ -1875,6 +2044,7 @@
         let encyclopediaDetails = {}; // 도감 상세: { evolutionKey: [정령 상세 정보 배열] } - 복구용 숨김 데이터
         let darkModeLocked = false; // 다크 모드 고정 여부
         let lightModeLocked = false; // 라이트 모드 고정 여부
+        let spiritCardExpanded = {}; // 정령 카드 상세 정보 펼침 상태
         let inventory = {
             music: [],
             decorations: [],
@@ -8252,6 +8422,9 @@
                 }
                 // 외형 묘사 가져오기
                 const appearance = getAppearanceDescription(spirit);
+                
+                // 상세 정보 펼침 상태 확인 (기본값: 펼침)
+                const isCollapsed = spiritCardExpanded[spirit.id] === false;
 
                 return `
                     <div class="spirit-card" style="position: relative;">
@@ -8279,81 +8452,85 @@
                             <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
                         </div>
                         <div class="progress-text">성장 ${spirit.growth} / ${nextReq}</div>
-                        <div class="parameters">
-                            <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}</div>
-                            <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength}</div>
-                            <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
-                            <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
+                        
+                        <!-- 상세 정보 섹션 (접으면 숨김) -->
+                        <div class="spirit-detail-section ${isCollapsed ? '' : 'show'}" id="spiritDetail-${spirit.id}">
+                            <div class="parameters">
+                                <div class="param"><span class="param-icon">🧠</span>지력 ${spirit.parameters.intelligence}</div>
+                                <div class="param"><span class="param-icon">💪</span>체력 ${spirit.parameters.strength}</div>
+                                <div class="param"><span class="param-icon">💖</span>매력 ${spirit.parameters.charm}</div>
+                                <div class="param"><span class="param-icon">❤️</span>애정 ${spirit.parameters.affection}</div>
+                            </div>
+                            ${(() => {
+                                const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                                const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
+                                const attrs = {};
+                                for (let attr in foodAttrs) {
+                                    attrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
+                                }
+                                const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
+                                const attrValues = Object.values(attrs);
+                                const maxAttr = Math.max(...attrValues);
+                                const minAttr = Math.min(...attrValues);
+                                const isImbalanced = maxAttr >= 50 && minAttr <= 10;
+                                
+                                return `
+                                    <div style="margin: 8px 0; padding: 8px; background: var(--bg); border: 1px solid ${isImbalanced ? '#f44336' : 'var(--border)'}; border-radius: 8px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">속성 (먹이+환경)</span>
+                                            ${isImbalanced ? '<span style="font-size: 0.75rem; color: #f44336; font-weight: 600;">⚠️ 불균형</span>' : ''}
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center;">
+                                            ${Object.entries(attrs).map(([key, val]) => {
+                                                const isMax = val === maxAttr && maxAttr > 0;
+                                                const isLow = isImbalanced && val < 10;
+                                                const isPerfect = val >= 90;
+                                                return `
+                                                    <div style="font-size: 0.75rem; ${isPerfect ? 'color: #ff6f00; font-weight: 700;' : isLow ? 'color: #f44336; font-weight: 700;' : isMax ? 'color: #4caf50; font-weight: 700;' : ''}">
+                                                        <div>${attrIcons[key]}</div>
+                                                        <div>${Math.floor(val)}</div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            })()}
+                            ${(() => {
+                                const keywords = getStatusKeywords(spirit);
+                                if (keywords.length === 0) return '';
+                                return `
+                                    <div style="margin: 12px 0; padding: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px;">
+                                        ${keywords.map((kw) => `
+                                            <span 
+                                                class="keyword-tag"
+                                                title="${kw.desc || ''}"
+                                                onclick="showKeywordDesc('${kw.text.replace(/'/g, "\\'")}', '${(kw.desc || '').replace(/'/g, "\\'")}')"
+                                                style="
+                                                    display: inline-flex;
+                                                    align-items: center;
+                                                    padding: 4px 10px;
+                                                    background: #f5f5f5;
+                                                    border: 1px solid #ddd;
+                                                    font-size: 0.8rem;
+                                                    font-weight: 600;
+                                                    color: ${kw.color};
+                                                    cursor: pointer;
+                                                    transition: all 0.2s;
+                                                "
+                                                onmouseover="this.style.background='#e8e8e8'; this.style.transform='scale(1.02)';"
+                                                onmouseout="this.style.background='#f5f5f5'; this.style.transform='scale(1)';"
+                                            >
+                                                ${kw.text}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                `;
+                            })()}
                         </div>
-                        ${(() => {
-                            const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-                            const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
-                            // 최종 속성 = (먹이 × 0.7) + (테라리움 × 0.3)
-                            const attrs = {};
-                            for (let attr in foodAttrs) {
-                                attrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
-                            }
-                            const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
-                            const attrNames = { fire: '불', water: '물', wind: '바람', earth: '땅', light: '빛', dark: '어둠' };
-                            const attrValues = Object.values(attrs);
-                            const maxAttr = Math.max(...attrValues);
-                            const minAttr = Math.min(...attrValues);
-                            const isImbalanced = maxAttr >= 50 && minAttr <= 10;
-                            
-                            return `
-                                <div style="margin: 8px 0; padding: 8px; background: var(--bg); border: 1px solid ${isImbalanced ? '#f44336' : 'var(--border)'}; border-radius: 8px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">속성 (먹이+환경)</span>
-                                        ${isImbalanced ? '<span style="font-size: 0.75rem; color: #f44336; font-weight: 600;">⚠️ 불균형</span>' : ''}
-                                    </div>
-                                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center;">
-                                        ${Object.entries(attrs).map(([key, val]) => {
-                                            const isMax = val === maxAttr && maxAttr > 0;
-                                            const isLow = isImbalanced && val < 10; // 불균형 시 10 미만은 빨간색
-                                            const isPerfect = val >= 90;
-                                            return `
-                                                <div style="font-size: 0.75rem; ${isPerfect ? 'color: #ff6f00; font-weight: 700;' : isLow ? 'color: #f44336; font-weight: 700;' : isMax ? 'color: #4caf50; font-weight: 700;' : ''}">
-                                                    <div>${attrIcons[key]}</div>
-                                                    <div>${Math.floor(val)}</div>
-                                                </div>
-                                            `;
-                                        }).join('')}
-                                    </div>
-                                </div>
-                            `;
-                        })()}
-                        ${(() => {
-                            const keywords = getStatusKeywords(spirit);
-                            if (keywords.length === 0) return '';
-                            return `
-                                <div style="margin: 12px 0; padding: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px;">
-                                    ${keywords.map((kw, idx) => `
-                                        <span 
-                                            class="keyword-tag"
-                                            title="${kw.desc || ''}"
-                                            onclick="showKeywordDesc('${kw.text.replace(/'/g, "\\'")}', '${(kw.desc || '').replace(/'/g, "\\'")}')"
-                                            style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 4px 10px;
-                                                background: #f5f5f5;
-                                                border: 1px solid #ddd;
-                                                font-size: 0.8rem;
-                                                font-weight: 600;
-                                                color: ${kw.color};
-                                                cursor: pointer;
-                                                transition: all 0.2s;
-                                            "
-                                            onmouseover="this.style.background='#e8e8e8'; this.style.transform='scale(1.02)';"
-                                            onmouseout="this.style.background='#f5f5f5'; this.style.transform='scale(1)';"
-                                        >
-                                            ${kw.text}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            `;
-                        })()}
+                        
                         <div class="spirit-status">${spirit.status}</div>
+                        
                         ${spirit.logs && spirit.logs.length > 0 ? `
                             <div style="margin-top: 6px; margin-bottom: 16px; border-top: 1px solid var(--border); padding-top: 6px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 8px; background: var(--bg); border-radius: 6px;" onclick="toggleLogs(${spirit.id})">
@@ -8369,6 +8546,7 @@
                                 </div>
                             </div>
                         ` : ''}
+                        
                         <div class="action-buttons">
                             ${spirit.isSick ? `
                                 <button onclick="giveMedicine(${spirit.id})" style="background: var(--earth); color: white; font-weight: 700;">
@@ -8393,6 +8571,11 @@
                                 보내기
                             </button>
                         </div>
+                        
+                        <!-- 카드 하단 접기/펼치기 버튼 -->
+                        <div class="spirit-card-toggle" onclick="toggleSpiritCardDetail(${spirit.id})">
+                            <span>${isCollapsed ? '▼' : '▲'}</span>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -8412,6 +8595,27 @@
                         checkImbalanceAndTutorial(spirit);
                     }
                 });
+            }
+        }
+        
+        // 정령 카드 상세 정보 펼치기/접기 (기본값: 펼침)
+        function toggleSpiritCardDetail(spiritId) {
+            // 현재 상태 반전 (undefined나 true면 false로, false면 true로)
+            const currentState = spiritCardExpanded[spiritId];
+            spiritCardExpanded[spiritId] = currentState === false ? true : false;
+            
+            const section = document.getElementById(`spiritDetail-${spiritId}`);
+            const card = section?.closest('.spirit-card');
+            const toggle = card?.querySelector('.spirit-card-toggle span');
+            
+            if (spiritCardExpanded[spiritId] === false) {
+                // 접힘 상태
+                if (section) section.classList.remove('show');
+                if (toggle) toggle.textContent = '▼';
+            } else {
+                // 펼침 상태
+                if (section) section.classList.add('show');
+                if (toggle) toggle.textContent = '▲';
             }
         }
 
@@ -18451,6 +18655,7 @@
         
         // ===== 모바일 레이아웃 함수들 =====
         let isMobileMode = false;
+        let mobileGatherExpanded = false;
         
         function initMobileLayout() {
             const checkMobile = () => {
@@ -18468,6 +18673,7 @@
         
         function applyMobileLayout(isMobile) {
             const mobileHeader = document.getElementById('mobileHeader');
+            const mobileGather = document.getElementById('mobileGatherSection');
             const mobileTabs = document.getElementById('mobileTabs');
             const desktopHeaders = document.querySelectorAll('.desktop-header');
             const desktopTabs = document.querySelector('.desktop-tabs');
@@ -18475,31 +18681,148 @@
             if (isMobile) {
                 document.body.classList.add('mobile-layout');
                 if (mobileHeader) mobileHeader.style.display = 'flex';
+                if (mobileGather) mobileGather.style.display = 'flex';
                 if (mobileTabs) mobileTabs.style.display = 'flex';
                 desktopHeaders.forEach(el => el.style.display = 'none');
                 if (desktopTabs) desktopTabs.style.display = 'none';
+                
+                // 인벤토리 동기화
+                updateMobileInventoryDisplay();
+                syncMobileSelects();
             } else {
                 document.body.classList.remove('mobile-layout');
+                document.body.classList.remove('gather-expanded');
                 if (mobileHeader) mobileHeader.style.display = 'none';
+                if (mobileGather) mobileGather.style.display = 'none';
                 if (mobileTabs) mobileTabs.style.display = 'none';
                 desktopHeaders.forEach(el => el.style.display = '');
                 if (desktopTabs) desktopTabs.style.display = '';
             }
         }
         
-        // 모바일 탭 활성화 상태 동기화
-        function syncMobileTabs(activeTab) {
-            const mobileTabs = document.querySelectorAll('#mobileTabs .tab');
-            mobileTabs.forEach(tab => {
-                const tabName = tab.textContent.trim().replace('상점', 'shop')
-                    .replace('육성', 'garden')
-                    .replace('테라리움', 'terrarium')
-                    .replace('연구실', 'lab')
-                    .replace('게임', 'minigame')
-                    .replace('일지', 'journal');
-                // 간단하게 active 클래스 토글
-            });
+        function toggleMobileGatherSection() {
+            mobileGatherExpanded = !mobileGatherExpanded;
+            const content = document.getElementById('mobileGatherContent');
+            const arrow = document.getElementById('mobileGatherArrow');
+            const toggle = document.querySelector('.mobile-gather-toggle');
+            
+            if (mobileGatherExpanded) {
+                content.classList.add('show');
+                arrow.textContent = '▲';
+                toggle.classList.add('expanded');
+                document.body.classList.add('gather-expanded');
+                updateMobileInventoryDisplay();
+            } else {
+                content.classList.remove('show');
+                arrow.textContent = '▼';
+                toggle.classList.remove('expanded');
+                document.body.classList.remove('gather-expanded');
+            }
         }
+        
+        function updateMobileInventoryDisplay() {
+            const display = document.getElementById('mobileInventoryDisplay');
+            if (!display) return;
+            
+            // 먹이 인벤토리 표시
+            let html = '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🍎 먹이:</span> ';
+            if (inventory.food && inventory.food.length > 0) {
+                html += inventory.food.map(item => {
+                    const foodData = FOODS[item.type];
+                    return `${foodData?.icon || '🍎'}${item.count}`;
+                }).join(' ');
+            } else {
+                html += '<span style="color: var(--text-muted);">없음</span>';
+            }
+            html += '</div>';
+            
+            // 레코드 인벤토리 표시
+            html += '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🎼 레코드:</span> ';
+            if (inventory.music && inventory.music.length > 0) {
+                html += inventory.music.map(item => {
+                    const musicData = MUSIC[item.type];
+                    return `${musicData?.icon || '🎵'}${item.count}`;
+                }).join(' ');
+            } else {
+                html += '<span style="color: var(--text-muted);">없음</span>';
+            }
+            html += '</div>';
+            
+            // 코인 표시
+            html += `<div><span style="color: var(--text-muted);">💰 코인:</span> ${coins}</div>`;
+            
+            display.innerHTML = html;
+        }
+        
+        function syncMobileSelects() {
+            const desktopTitle = document.getElementById('titleSelect');
+            const mobileTitle = document.getElementById('mobileTitleSelect');
+            const desktopLocation = document.getElementById('gatherLocationSelect');
+            const mobileLocation = document.getElementById('mobileLocationSelect');
+            
+            if (desktopTitle && mobileTitle) {
+                mobileTitle.value = desktopTitle.value;
+            }
+            if (desktopLocation && mobileLocation) {
+                mobileLocation.value = desktopLocation.value;
+            }
+        }
+        
+        // 인벤토리 업데이트 시 모바일 표시도 업데이트
+        const originalRenderInventory = typeof renderInventory === 'function' ? renderInventory : null;
+        if (originalRenderInventory) {
+            renderInventory = function() {
+                originalRenderInventory();
+                if (isMobileMode) {
+                    updateMobileInventoryDisplay();
+                }
+            };
+        }
+        
+        // 코인 업데이트 시 모바일도 업데이트
+        const originalUpdateCoinDisplay = typeof updateCoinDisplay === 'function' ? updateCoinDisplay : null;
+        if (originalUpdateCoinDisplay) {
+            updateCoinDisplay = function() {
+                originalUpdateCoinDisplay();
+                if (isMobileMode) {
+                    updateMobileInventoryDisplay();
+                }
+            };
+        }
+        
+        // 탭 전환 시 채집 섹션 표시/숨김
+        const originalSwitchTab = switchTab;
+        switchTab = function(tabName) {
+            originalSwitchTab(tabName);
+            
+            if (isMobileMode) {
+                const mobileGather = document.getElementById('mobileGatherSection');
+                if (tabName === 'garden') {
+                    if (mobileGather) mobileGather.style.display = 'flex';
+                    document.body.classList.add('mobile-layout');
+                    if (mobileGatherExpanded) {
+                        document.body.classList.add('gather-expanded');
+                    }
+                } else {
+                    if (mobileGather) mobileGather.style.display = 'none';
+                    document.body.classList.remove('gather-expanded');
+                }
+                
+                // 탭 활성화 상태 동기화
+                document.querySelectorAll('#mobileTabs .tab').forEach(tab => {
+                    const tabText = tab.textContent.trim();
+                    const tabMap = {
+                        '육성': 'garden',
+                        '테라리움': 'terrarium', 
+                        '연구실': 'lab',
+                        '상점': 'shop',
+                        '게임': 'minigame',
+                        '일지': 'journal'
+                    };
+                    tab.classList.toggle('active', tabMap[tabText] === tabName);
+                });
+            }
+        };
         
         // 초기화 시 모바일 레이아웃 체크
         setTimeout(() => {
