@@ -155,6 +155,11 @@
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
         }
+        
+        /* 모바일 정령 슬라이더 네비게이션 - 기본 숨김 */
+        .mobile-spirit-nav {
+            display: none;
+        }
 
         .spirit-card {
             background: var(--card);
@@ -8673,17 +8678,21 @@
             
             if (!indicator || !nav) return;
             
-            if (spirits.length === 0) {
+            // 모바일이 아니거나, 육성 탭이 아니거나, 정령이 없으면 숨기기
+            if (!isMobileMode || currentTab !== 'garden' || spirits.length === 0) {
                 nav.style.display = 'none';
                 return;
             }
             
-            if (isMobileMode) {
-                nav.style.display = 'flex';
-                indicator.textContent = `${currentSpiritIndex + 1} / ${spirits.length}`;
-            } else {
-                nav.style.display = 'none';
+            // 모바일 + 육성 탭 + 정령 있음 → 표시
+            nav.style.display = 'flex';
+            
+            // 인덱스가 범위를 벗어나면 조정
+            if (currentSpiritIndex >= spirits.length) {
+                currentSpiritIndex = 0;
             }
+            
+            indicator.textContent = `${currentSpiritIndex + 1} / ${spirits.length}`;
         }
         
         // 스크롤 시 현재 인덱스 업데이트
@@ -13070,6 +13079,9 @@
                     document.getElementById('settingsSection').classList.add('active');
                     updateSettingsInfo();
                 }
+                
+                // 모바일 정령 슬라이더 인디케이터 업데이트
+                updateSpiritSliderIndicator();
             } catch (error) {
                 console.error('탭 전환 오류:', error);
                 console.error('오류 스택:', error.stack);
