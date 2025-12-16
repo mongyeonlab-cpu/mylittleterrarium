@@ -157,13 +157,13 @@
         }
         
         /* PC에서 Swiper 스타일 완전 무시 - 그리드 레이아웃 유지 */
-        .spirits-swiper {
+        body:not(.mobile-layout) .spirits-swiper {
             overflow: visible !important;
         }
         
         /* PC에서 swiper-wrapper(spirits-grid)는 그리드로 작동 */
-        .swiper-wrapper.spirits-grid,
-        .spirits-swiper .swiper-wrapper {
+        body:not(.mobile-layout) .swiper-wrapper.spirits-grid,
+        body:not(.mobile-layout) .spirits-swiper .swiper-wrapper {
             display: grid !important;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
             gap: 20px !important;
@@ -172,8 +172,8 @@
         }
         
         /* PC에서 swiper-slide는 그리드 아이템처럼 작동 */
-        .spirits-grid .swiper-slide,
-        .spirits-swiper .swiper-slide {
+        body:not(.mobile-layout) .spirits-grid .swiper-slide,
+        body:not(.mobile-layout) .spirits-swiper .swiper-slide {
             width: auto !important;
             min-width: auto !important;
             max-width: none !important;
