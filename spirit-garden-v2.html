@@ -1100,7 +1100,7 @@
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
                 gap: 16px;
-                padding: 8px 0;
+                padding: 8px 16px;
             }
             
             body.mobile-layout .spirits-grid::-webkit-scrollbar {
@@ -1108,9 +1108,49 @@
             }
             
             body.mobile-layout .spirits-grid .spirit-card {
-                flex: 0 0 calc(100% - 20px);
-                scroll-snap-align: start;
-                min-width: calc(100% - 20px);
+                flex: 0 0 calc(100vw - 48px);
+                max-width: calc(100vw - 48px);
+                scroll-snap-align: center;
+            }
+            
+            /* 정령 슬라이더 네비게이션 */
+            .mobile-spirit-nav {
+                display: none;
+                justify-content: center;
+                align-items: center;
+                gap: 16px;
+                padding: 8px 16px;
+                background: var(--card);
+                border-bottom: 1px solid var(--border);
+            }
+            
+            body.mobile-layout .mobile-spirit-nav {
+                display: flex;
+            }
+            
+            .mobile-spirit-nav-btn {
+                width: 36px;
+                height: 36px;
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 1.2rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .mobile-spirit-nav-btn:active {
+                background: var(--border);
+            }
+            
+            .mobile-spirit-indicator {
+                font-size: 0.9rem;
+                color: var(--text-muted);
+                min-width: 60px;
+                text-align: center;
             }
             
             /* 정령 인디케이터 */
@@ -1396,6 +1436,12 @@
             </div>
 
             <div>
+                <!-- 모바일 정령 슬라이더 네비게이션 -->
+                <div class="mobile-spirit-nav" id="mobileSpiritNav">
+                    <button class="mobile-spirit-nav-btn" onclick="navigateSpirit(-1)">◀</button>
+                    <span class="mobile-spirit-indicator" id="mobileSpiritIndicator">1 / 1</span>
+                    <button class="mobile-spirit-nav-btn" onclick="navigateSpirit(1)">▶</button>
+                </div>
                 <div class="spirits-grid" id="spiritsGrid"></div>
                 <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
             </div>
@@ -2038,7 +2084,7 @@
         let encyclopediaDetails = {}; // 도감 상세: { evolutionKey: [정령 상세 정보 배열] } - 복구용 숨김 데이터
         let darkModeLocked = false; // 다크 모드 고정 여부
         let lightModeLocked = false; // 라이트 모드 고정 여부
-        let spiritCardExpanded = {}; // 정령 카드 상세 정보 펼침 상태
+        let spiritCardExpanded = JSON.parse(localStorage.getItem('spiritGarden_cardExpanded') || '{}'); // 정령 카드 상세 정보 펼침 상태
         let inventory = {
             music: [],
             decorations: [],
@@ -8592,6 +8638,85 @@
                     }
                 });
             }
+            
+            // 모바일 정령 슬라이더 인디케이터 업데이트
+            updateSpiritSliderIndicator();
+        }
+        
+        // 현재 보고 있는 정령 인덱스
+        let currentSpiritIndex = 0;
+        
+        // 정령 슬라이더 네비게이션
+        function navigateSpirit(direction) {
+            const grid = document.getElementById('spiritsGrid');
+            if (!grid || spirits.length === 0) return;
+            
+            const cards = grid.querySelectorAll('.spirit-card');
+            if (cards.length === 0) return;
+            
+            // 새 인덱스 계산 (무한 루프)
+            currentSpiritIndex = (currentSpiritIndex + direction + cards.length) % cards.length;
+            
+            // 해당 카드로 스크롤
+            cards[currentSpiritIndex].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            
+            // 인디케이터 업데이트
+            updateSpiritSliderIndicator();
+        }
+        
+        // 슬라이더 인디케이터 업데이트
+        function updateSpiritSliderIndicator() {
+            const indicator = document.getElementById('mobileSpiritIndicator');
+            const nav = document.getElementById('mobileSpiritNav');
+            
+            if (!indicator || !nav) return;
+            
+            if (spirits.length === 0) {
+                nav.style.display = 'none';
+                return;
+            }
+            
+            if (isMobileMode) {
+                nav.style.display = 'flex';
+                indicator.textContent = `${currentSpiritIndex + 1} / ${spirits.length}`;
+            } else {
+                nav.style.display = 'none';
+            }
+        }
+        
+        // 스크롤 시 현재 인덱스 업데이트
+        function initSpiritSliderScroll() {
+            const grid = document.getElementById('spiritsGrid');
+            if (!grid) return;
+            
+            grid.addEventListener('scroll', () => {
+                if (!isMobileMode) return;
+                
+                const cards = grid.querySelectorAll('.spirit-card');
+                if (cards.length === 0) return;
+                
+                const gridRect = grid.getBoundingClientRect();
+                const gridCenter = gridRect.left + gridRect.width / 2;
+                
+                let closestIndex = 0;
+                let closestDistance = Infinity;
+                
+                cards.forEach((card, index) => {
+                    const cardRect = card.getBoundingClientRect();
+                    const cardCenter = cardRect.left + cardRect.width / 2;
+                    const distance = Math.abs(gridCenter - cardCenter);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestIndex = index;
+                    }
+                });
+                
+                if (currentSpiritIndex !== closestIndex) {
+                    currentSpiritIndex = closestIndex;
+                    updateSpiritSliderIndicator();
+                }
+            });
         }
         
         // 정령 카드 상세 정보 펼치기/접기 (기본값: 펼침)
@@ -8599,6 +8724,9 @@
             // 현재 상태 반전 (undefined나 true면 false로, false면 true로)
             const currentState = spiritCardExpanded[spiritId];
             spiritCardExpanded[spiritId] = currentState === false ? true : false;
+            
+            // localStorage에 저장
+            localStorage.setItem('spiritGarden_cardExpanded', JSON.stringify(spiritCardExpanded));
             
             const section = document.getElementById(`spiritDetail-${spiritId}`);
             const card = section?.closest('.spirit-card');
@@ -18661,10 +18789,16 @@
                 if (isMobileMode !== wasMobile) {
                     applyMobileLayout(isMobileMode);
                 }
+                
+                // 슬라이더 인디케이터 업데이트
+                updateSpiritSliderIndicator();
             };
             
             checkMobile();
             window.addEventListener('resize', checkMobile);
+            
+            // 슬라이더 스크롤 이벤트 초기화
+            initSpiritSliderScroll();
         }
         
         function applyMobileLayout(isMobile) {
@@ -18685,6 +18819,9 @@
                 // 인벤토리 동기화
                 updateMobileInventoryDisplay();
                 syncMobileSelects();
+                
+                // 슬라이더 인디케이터 업데이트
+                updateSpiritSliderIndicator();
             } else {
                 document.body.classList.remove('mobile-layout');
                 document.body.classList.remove('gather-expanded');
@@ -18693,6 +18830,10 @@
                 if (mobileTabs) mobileTabs.style.display = 'none';
                 desktopHeaders.forEach(el => el.style.display = '');
                 if (desktopTabs) desktopTabs.style.display = '';
+                
+                // PC에서는 네비게이션 숨기기
+                const nav = document.getElementById('mobileSpiritNav');
+                if (nav) nav.style.display = 'none';
             }
         }
         
