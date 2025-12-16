@@ -5164,7 +5164,7 @@
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
             renderInventory();
-            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
+            const bonusText = spirit.satisfaction === 'high' ? '' : '';
             showNotification(`${musicData.name}을(를) 들려주었습니다${bonusText}`);
             
             // 튜토리얼 체크
@@ -5312,7 +5312,7 @@
 
             saveGame();
             renderSpirits();  // 전체 렌더링으로 쿨타임 표시 업데이트
-            const bonusText = spirit.satisfaction === 'high' ? ' (만족 보너스!)' : '';
+            const bonusText = spirit.satisfaction === 'high' ? '' : '';
             showNotification(`쓰다듬었습니다 (애정 +${affectionBonus}${bonusText})`);
             
             // 튜토리얼 체크
