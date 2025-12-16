@@ -1137,32 +1137,42 @@
                 transform: rotate(180deg);
             }
             
-            /* 모바일 Swiper 스타일 */
+            /* 모바일 정령 카드 스크롤 스타일 */
             body.mobile-layout .spirits-swiper {
                 width: 100% !important;
                 max-width: 100vw !important;
-                overflow: hidden !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            body.mobile-layout .spirits-swiper::-webkit-scrollbar {
+                display: none;
             }
             
             body.mobile-layout .swiper-wrapper {
                 display: flex !important;
-                width: 100% !important;
+                width: max-content !important;
             }
             
             body.mobile-layout .swiper-slide {
-                width: 100% !important;
-                min-width: 100% !important;
-                max-width: 100% !important;
+                width: 100vw !important;
+                min-width: 100vw !important;
+                max-width: 100vw !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
                 padding: 8px 10px 8px 14px !important;
+                scroll-snap-align: start;
             }
             
             body.mobile-layout .spirit-card {
                 width: 100% !important;
-                max-width: 100% !important;
+                max-width: calc(100vw - 24px) !important;
                 margin: 0 !important;
                 padding: 16px !important;
                 box-sizing: border-box !important;
@@ -1344,8 +1354,7 @@
     </style>
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    <!-- Swiper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
 </head>
 <body>
     <!-- 오프닝 스토리 팝업 -->
@@ -8707,137 +8716,111 @@
             updateSpiritSliderIndicator();
         }
         
-        // Swiper 인스턴스
-        let spiritsSwiper = null;
-        let lastSpiritCount = 0;
-        let swiperInitTimeout = null; // 디바운스용
+        // 현재 보고 있는 정령 인덱스
+        let currentSpiritIndex = 0;
         
-        // Swiper 초기화 또는 업데이트
+        // 모바일 스크롤 슬라이더 초기화
         function initOrUpdateSpiritsSwiper() {
-            // Swiper가 로드되지 않았으면 무시
-            if (typeof Swiper === 'undefined') {
-                return;
-            }
-            
             const paginationContainer = document.getElementById('swiperPaginationContainer');
             const swiperEl = document.querySelector('.spirits-swiper');
             const gridEl = document.querySelector('.spirits-grid');
             const isMobile = window.innerWidth <= 768;
             
-            // PC 모드: Swiper 완전 비활성화 및 그리드 복원
+            // PC 모드: 그리드 복원
             if (!isMobile) {
-                // 대기 중인 초기화 취소
-                if (swiperInitTimeout) {
-                    clearTimeout(swiperInitTimeout);
-                    swiperInitTimeout = null;
-                }
-                if (spiritsSwiper) {
-                    spiritsSwiper.destroy(true, true);
-                    spiritsSwiper = null;
-                }
                 if (paginationContainer) paginationContainer.style.display = 'none';
                 if (swiperEl) {
                     swiperEl.style.overflow = 'visible';
+                    swiperEl.style.scrollSnapType = 'none';
                 }
-                // 그리드 스타일 강제 복원
                 if (gridEl) {
                     gridEl.style.display = '';
                     gridEl.style.transform = '';
                     gridEl.style.width = '';
                 }
-                // swiper-slide 스타일도 초기화
                 document.querySelectorAll('.spirits-grid .swiper-slide').forEach(slide => {
                     slide.style.width = '';
                     slide.style.marginRight = '';
                 });
-                lastSpiritCount = 0;
                 return;
             }
             
-            // 정령이 없으면 Swiper 초기화하지 않음
+            // 정령이 없으면 무시
             if (spirits.length === 0) {
-                if (swiperInitTimeout) {
-                    clearTimeout(swiperInitTimeout);
-                    swiperInitTimeout = null;
-                }
-                if (spiritsSwiper) {
-                    spiritsSwiper.destroy(true, true);
-                    spiritsSwiper = null;
-                }
                 if (paginationContainer) paginationContainer.style.display = 'none';
-                lastSpiritCount = 0;
                 return;
             }
             
-            // 모바일 모드: Swiper 활성화
+            // 모바일 모드: 페이지네이션 표시 및 스크롤 위치 복원
             if (paginationContainer) paginationContainer.style.display = 'block';
-            if (swiperEl) swiperEl.style.overflow = 'hidden';
             
-            // 현재 슬라이드 인덱스 저장 (Swiper에서 가져오거나 전역 변수 사용)
-            const savedIndex = spiritsSwiper ? spiritsSwiper.realIndex : currentSpiritIndex;
-            const validIndex = Math.min(Math.max(0, savedIndex), spirits.length - 1);
+            // 유효한 인덱스 확인
+            const validIndex = Math.min(Math.max(0, currentSpiritIndex), spirits.length - 1);
             
-            // 기존 Swiper가 있으면 파괴
-            if (spiritsSwiper) {
-                spiritsSwiper.destroy(true, true);
-                spiritsSwiper = null;
-            }
-            
-            // 대기 중인 초기화가 있으면 취소 (디바운스)
-            if (swiperInitTimeout) {
-                clearTimeout(swiperInitTimeout);
-            }
-            
-            lastSpiritCount = spirits.length;
-            
-            // DOM이 완전히 렌더링된 후 Swiper 초기화
-            swiperInitTimeout = setTimeout(() => {
-                swiperInitTimeout = null;
-                
-                // 다시 한번 조건 체크
-                if (typeof Swiper === 'undefined' || spirits.length === 0 || window.innerWidth > 768) {
-                    return;
+            // 스크롤 위치 복원 (약간의 딜레이 후)
+            setTimeout(() => {
+                if (swiperEl && spirits.length > 0) {
+                    const slideWidth = window.innerWidth;
+                    swiperEl.scrollLeft = validIndex * slideWidth;
+                    updateMobilePagination(validIndex);
                 }
+            }, 50);
+            
+            // 스크롤 이벤트 리스너 (중복 방지)
+            if (!swiperEl.hasAttribute('data-scroll-listener')) {
+                swiperEl.setAttribute('data-scroll-listener', 'true');
                 
-                // 3개 이상일 때만 무한 루프 활성화
-                const enableLoop = spirits.length >= 3;
-                
-                spiritsSwiper = new Swiper('.spirits-swiper', {
-                    loop: enableLoop,
-                    slidesPerView: 1,
-                    spaceBetween: 0,
-                    initialSlide: validIndex,
-                    grabCursor: true,
-                    touchRatio: 1,
-                    resistance: true,
-                    resistanceRatio: 0.85,
-                    watchOverflow: true,
-                    pagination: {
-                        el: '#spiritsPagination',
-                        clickable: true,
-                    },
-                    on: {
-                        slideChange: function() {
-                            currentSpiritIndex = this.realIndex;
+                let scrollTimeout;
+                swiperEl.addEventListener('scroll', function() {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        const slideWidth = window.innerWidth;
+                        const newIndex = Math.round(this.scrollLeft / slideWidth);
+                        if (newIndex !== currentSpiritIndex && newIndex >= 0 && newIndex < spirits.length) {
+                            currentSpiritIndex = newIndex;
+                            updateMobilePagination(newIndex);
                         }
-                    }
+                    }, 50);
                 });
-                
-                currentSpiritIndex = validIndex;
-            }, 150);
+            }
         }
         
-        // 현재 보고 있는 정령 인덱스
-        let currentSpiritIndex = 0;
+        // 모바일 페이지네이션 업데이트
+        function updateMobilePagination(activeIndex) {
+            const pagination = document.getElementById('spiritsPagination');
+            if (!pagination) return;
+            
+            // 페이지네이션 HTML 생성
+            let html = '';
+            for (let i = 0; i < spirits.length; i++) {
+                const activeClass = i === activeIndex ? 'swiper-pagination-bullet-active' : '';
+                html += `<span class="swiper-pagination-bullet ${activeClass}" onclick="scrollToSpirit(${i})"></span>`;
+            }
+            pagination.innerHTML = html;
+        }
         
-        // 슬라이더 인디케이터 업데이트 (Swiper용 - 더 이상 사용 안함)
+        // 특정 정령으로 스크롤
+        function scrollToSpirit(index) {
+            const swiperEl = document.querySelector('.spirits-swiper');
+            if (swiperEl) {
+                const slideWidth = window.innerWidth;
+                swiperEl.scrollTo({
+                    left: index * slideWidth,
+                    behavior: 'smooth'
+                });
+                currentSpiritIndex = index;
+                updateMobilePagination(index);
+            }
+        }
+        
+        // 슬라이더 인디케이터 업데이트
         function updateSpiritSliderIndicator() {
-            // Swiper가 자동으로 처리
+            // CSS scroll-snap이 자동으로 처리
         }
         
-        // 스크롤 시 현재 인덱스 업데이트 (Swiper용 - 더 이상 사용 안함)
+        // 스크롤 시 현재 인덱스 업데이트
         function initSpiritSliderScroll() {
-            // Swiper가 자동으로 처리
+            // CSS scroll-snap이 자동으로 처리
         }
         
         // 정령 카드 상세 정보 펼치기/접기 (기본값: 펼침)
@@ -18963,11 +18946,9 @@
                 updateMobileInventoryDisplay();
                 syncMobileSelects();
                 
-                // Swiper 초기화 (Swiper JS 로드 후)
+                // 스크롤 슬라이더 초기화
                 setTimeout(() => {
-                    if (typeof Swiper !== 'undefined') {
-                        initOrUpdateSpiritsSwiper();
-                    }
+                    initOrUpdateSpiritsSwiper();
                     // 인벤토리 다시 업데이트
                     updateMobileInventoryDisplay();
                 }, 200);
@@ -18980,10 +18961,8 @@
                 desktopHeaders.forEach(el => el.style.display = '');
                 if (desktopTabs) desktopTabs.style.display = '';
                 
-                // PC에서는 Swiper 비활성화
-                if (typeof Swiper !== 'undefined') {
-                    initOrUpdateSpiritsSwiper();
-                }
+                // PC에서는 그리드 복원
+                initOrUpdateSpiritsSwiper();
             }
         }
         
