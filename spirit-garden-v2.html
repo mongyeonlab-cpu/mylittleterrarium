@@ -1422,7 +1422,7 @@
         <button class="tab active" onclick="switchTab('garden')">육성</button>
         <button class="tab" onclick="switchTab('terrarium')">테라리움</button>
         <button class="tab" onclick="switchTab('lab')">연구실</button>
-        <button class="tab" onclick="switchTab('shop')">상점</button>
+        <button class="tab" onclick="switchTab('shop')">상점 💰<span id="mobileCoinDisplay">0</span></button>
         <button class="tab" onclick="switchTab('minigame')">게임</button>
         <button class="tab" onclick="switchTab('journal')">일지</button>
         <div class="control-btns">
@@ -8888,6 +8888,9 @@
         function updateCoinDisplay() {
             const display = document.getElementById('coinDisplay');
             if (display) display.textContent = coins;
+            // 모바일 코인 표시도 업데이트
+            const mobileDisplay = document.getElementById('mobileCoinDisplay');
+            if (mobileDisplay) mobileDisplay.textContent = coins;
         }
 
         function changeSellFilter() {
@@ -19064,53 +19067,130 @@
             // inventory가 초기화되지 않았으면 기본값 사용
             if (typeof inventory === 'undefined') return;
             
+            let html = '';
+            
             // 먹이 인벤토리 표시
-            let html = '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🍎 먹이:</span> ';
+            html += '<div style="margin-bottom: 12px;">';
+            html += '<div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">🍎 먹이</div>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+            
             if (inventory.food && inventory.food.length > 0) {
                 const foodCounts = {};
                 inventory.food.forEach(f => {
                     foodCounts[f] = (foodCounts[f] || 0) + 1;
                 });
-                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
-                const foodDisplay = foodOrder
-                    .filter(type => foodCounts[type])
-                    .map(type => `${(typeof ENV_ICONS !== 'undefined' && ENV_ICONS[type]) || '🍎'}${foodCounts[type]}`)
-                    .join(' ');
-                html += foodDisplay || '';
-                // 기타 먹이 추가
-                Object.keys(foodCounts).forEach(key => {
-                    if (!foodOrder.includes(key)) {
-                        const icon = (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[key]?.icon) || 
-                                    (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]?.icon) || '🍎';
-                        html += ` ${icon}${foodCounts[key]}`;
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark', 'medicine', 'reconciliation_flower', 'acacia_honey'];
+                
+                // 기본 먹이
+                foodOrder.forEach(type => {
+                    if (foodCounts[type]) {
+                        let icon;
+                        if (type === 'medicine') {
+                            icon = (typeof MEDICINE !== 'undefined' && MEDICINE.icon) || '💊';
+                        } else if (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[type]) {
+                            icon = SYNTH_ITEMS[type].icon;
+                        } else {
+                            icon = (typeof ENV_ICONS !== 'undefined' && ENV_ICONS[type]) || '🍎';
+                        }
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;">${icon} ×${foodCounts[type]}</div>`;
                     }
                 });
-                if (Object.keys(foodCounts).length === 0) {
-                    html += '<span style="color: var(--text-muted);">없음</span>';
-                }
+                
+                // 이벤트 먹이
+                Object.keys(foodCounts).forEach(key => {
+                    if (!foodOrder.includes(key)) {
+                        let icon = '🍎';
+                        let borderColor = 'var(--border)';
+                        if (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]) {
+                            icon = EVENT_ITEMS[key].icon;
+                            borderColor = '#c41e3a';
+                        } else if (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[key]) {
+                            icon = SYNTH_ITEMS[key].icon;
+                            borderColor = '#9b59b6';
+                        }
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid ${borderColor}; border-radius: 4px; font-size: 0.8rem;">${icon} ×${foodCounts[key]}</div>`;
+                    }
+                });
             } else {
-                html += '<span style="color: var(--text-muted);">없음</span>';
+                html += '<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; color: var(--text-muted);">없음</div>';
             }
-            html += '</div>';
+            html += '</div></div>';
             
             // 레코드 인벤토리 표시
-            html += '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🎼 레코드:</span> ';
+            html += '<div style="margin-bottom: 12px;">';
+            html += '<div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">🎼 레코드</div>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+            
             if (inventory.music && inventory.music.length > 0) {
                 const musicCounts = {};
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                html += Object.entries(musicCounts).map(([type, count]) => {
-                    const icon = (typeof MUSIC !== 'undefined' && MUSIC[type]?.icon) || '🎵';
-                    return `${icon}${count}`;
-                }).join(' ');
+                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
+                
+                // 기본 음악
+                musicOrder.forEach(type => {
+                    if (musicCounts[type]) {
+                        const icon = (typeof MUSIC_TYPES !== 'undefined' && MUSIC_TYPES[type]?.icon) || '🎵';
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;">${icon} ×${musicCounts[type]}</div>`;
+                    }
+                });
+                
+                // 이벤트 음악
+                Object.keys(musicCounts).forEach(key => {
+                    if (!musicOrder.includes(key) && typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]) {
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid #c41e3a; border-radius: 4px; font-size: 0.8rem;">${EVENT_ITEMS[key].icon} ×${musicCounts[key]}</div>`;
+                    }
+                });
             } else {
-                html += '<span style="color: var(--text-muted);">없음</span>';
+                html += '<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; color: var(--text-muted);">없음</div>';
             }
-            html += '</div>';
+            html += '</div></div>';
+            
+            // 미니어쳐 인벤토리 표시
+            html += '<div style="margin-bottom: 12px;">';
+            html += '<div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">🪴 미니어쳐</div>';
+            html += '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+            
+            if (inventory.decorations && inventory.decorations.length > 0) {
+                const decorCounts = {};
+                inventory.decorations.forEach(d => {
+                    decorCounts[d] = (decorCounts[d] || 0) + 1;
+                });
+                
+                Object.keys(decorCounts).forEach(key => {
+                    let icon = '🪴';
+                    let borderColor = 'var(--border)';
+                    let qualityLabel = '';
+                    
+                    // 일반 미니어처
+                    if (typeof DECORATION_TYPES !== 'undefined' && DECORATION_TYPES[key]) {
+                        const decoData = DECORATION_TYPES[key];
+                        icon = decoData.icon;
+                        qualityLabel = decoData.quality === 'legendary' ? '👑' : decoData.quality === 'epic' ? '⭐' : decoData.quality === 'rare' ? '💎' : '';
+                        borderColor = decoData.quality === 'legendary' ? '#ffd700' : decoData.quality === 'epic' ? '#9b59b6' : decoData.quality === 'rare' ? '#3498db' : 'var(--border)';
+                    }
+                    // 합성 미니어처
+                    else if (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[key] && SYNTH_ITEMS[key].type === 'decoration') {
+                        icon = SYNTH_ITEMS[key].icon;
+                        borderColor = '#9b59b6';
+                    }
+                    // 이벤트 미니어처
+                    else if (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key] && EVENT_ITEMS[key].type === 'decoration') {
+                        icon = EVENT_ITEMS[key].icon;
+                        qualityLabel = EVENT_ITEMS[key].quality === 'legendary' ? '👑' : EVENT_ITEMS[key].quality === 'epic' ? '⭐' : EVENT_ITEMS[key].quality === 'rare' ? '💎' : '';
+                        borderColor = EVENT_ITEMS[key].quality === 'legendary' ? '#ffd700' : EVENT_ITEMS[key].quality === 'epic' ? '#9b59b6' : EVENT_ITEMS[key].quality === 'rare' ? '#3498db' : '#c41e3a';
+                    }
+                    
+                    html += `<div style="padding: 4px 8px; background: var(--bg); border: 2px solid ${borderColor}; border-radius: 4px; font-size: 0.8rem;">${qualityLabel}${icon} ×${decorCounts[key]}</div>`;
+                });
+            } else {
+                html += '<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; color: var(--text-muted);">없음</div>';
+            }
+            html += '</div></div>';
             
             // 코인 표시
-            html += `<div><span style="color: var(--text-muted);">💰 코인:</span> ${typeof coins !== 'undefined' ? coins : 0}</div>`;
+            html += `<div style="font-size: 0.9rem; font-weight: 600;">💰 코인: ${typeof coins !== 'undefined' ? coins : 0}</div>`;
             
             display.innerHTML = html;
         }
