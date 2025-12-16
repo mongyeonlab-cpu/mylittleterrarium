@@ -7264,8 +7264,10 @@
                 }
             }
             // 일반 정령(ATTRIBUTE_NAMES)인 경우도 최신 아이콘으로 업데이트
-            else if (item.type && ATTRIBUTE_NAMES[item.type]) {
-                const attrData = ATTRIBUTE_NAMES[item.type];
+            // attributeType을 확인해야 함 (type은 스탯 레벨임)
+            // 이벤트 정령이 아닌 경우에만 적용
+            else if (item.attributeType && ATTRIBUTE_NAMES[item.attributeType]) {
+                const attrData = ATTRIBUTE_NAMES[item.attributeType];
                 if (attrData && attrData.icon) {
                     // wingType 결정
                     let wingType = item.wingType;
@@ -13093,8 +13095,10 @@
                     }
                 }
                 // 일반 정령(ATTRIBUTE_NAMES)인 경우도 최신 아이콘으로 업데이트
-                else if (item.type && ATTRIBUTE_NAMES[item.type]) {
-                    const attrData = ATTRIBUTE_NAMES[item.type];
+                // attributeType을 확인해야 함 (type은 스탯 레벨임)
+                // 이벤트 정령이 아닌 경우에만 적용
+                else if (item.attributeType && ATTRIBUTE_NAMES[item.attributeType]) {
+                    const attrData = ATTRIBUTE_NAMES[item.attributeType];
                     if (attrData && attrData.icon) {
                         // wingType 결정
                         let wingType = item.wingType;
