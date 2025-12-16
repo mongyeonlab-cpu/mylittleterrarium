@@ -7031,17 +7031,14 @@
                 : '';
             
             friendPreview.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="font-size: 2rem;">${attr.icon}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700;">✅ ${friendData.name}</div>
-                        ${originalNameDisplay}
-                        <div style="font-size: 0.85rem; color: #888;">${attr.name}</div>
-                        <div style="font-size: 0.85rem; margin-top: 4px;">
-                            🧠${friendData.parameters.intelligence} | 💪${friendData.parameters.strength} | 💖${friendData.parameters.charm}
-                        </div>
-                        ${attrDisplay.length > 0 ? `<div style="font-size: 0.8rem; margin-top: 4px;">${attrDisplay.join(' ')}</div>` : ''}
+                <div style="flex: 1;">
+                    <div style="font-weight: 700;">✅ ${friendData.name}</div>
+                    ${originalNameDisplay}
+                    <div style="font-size: 0.85rem; color: #888;">${attr.name}</div>
+                    <div style="font-size: 0.85rem; margin-top: 4px;">
+                        🧠${friendData.parameters.intelligence} | 💪${friendData.parameters.strength} | 💖${friendData.parameters.charm}
                     </div>
+                    ${attrDisplay.length > 0 ? `<div style="font-size: 0.8rem; margin-top: 4px;">${attrDisplay.join(' ')}</div>` : ''}
                 </div>
             `;
             friendPreview.style.display = 'block';
@@ -7061,10 +7058,37 @@
                 charm: Math.floor(((item.parameters?.charm || 0) + (friendData.parameters?.charm || 0)) / 2)
             };
             
+            // 아이콘 처리 (객체면 나비 아이콘 사용)
+            let displayIcon = prediction.icon;
+            if (typeof displayIcon === 'object' && displayIcon !== null) {
+                displayIcon = displayIcon.butterfly || '🥚';
+            }
+            // 이미지 태그면 이모지로 대체
+            if (typeof displayIcon === 'string' && displayIcon.includes('<img')) {
+                displayIcon = '🥚';
+            }
+            
+            // 미발견 정령 체크 (도감에 없으면 미발견)
+            let isDiscovered = false;
+            let displayName = prediction.name;
+            if (prediction.key) {
+                // fusion 정령
+                isDiscovered = encyclopedia[prediction.key] && encyclopedia[prediction.key] > 0;
+            } else if (prediction.isEventResult && prediction.eventType) {
+                // 이벤트 정령
+                const eventKeys = [`event_${prediction.eventType}`, `event_${prediction.eventType}_butterfly`, `event_${prediction.eventType}_moth`];
+                isDiscovered = eventKeys.some(key => encyclopedia[key] && encyclopedia[key] > 0);
+            }
+            
+            if (!isDiscovered && prediction.key) {
+                displayName = '???';
+                displayIcon = '❓';
+            }
+            
             resultPreview.innerHTML = `
                 <div style="font-size: 0.85rem; color: #888; margin-bottom: 8px;">🥚 예상 결과</div>
-                <div style="font-size: 2rem;">${prediction.icon}</div>
-                <div style="font-weight: 700; margin: 4px 0;">${prediction.name}</div>
+                <div style="font-size: 2rem;">${displayIcon}</div>
+                <div style="font-weight: 700; margin: 4px 0;">${displayName}${!isDiscovered && prediction.key ? ' <span style="font-size: 0.75rem; color: #e67e22;">(미발견)</span>' : ''}</div>
                 <div style="font-size: 0.8rem; color: ${getRarityColor(prediction.rarity)}; margin-bottom: 8px;">${getRarityText(prediction.rarity)}</div>
                 <div style="font-size: 0.8rem; color: #888;">
                     📊 상속 스탯: 🧠${inheritParams.intelligence} | 💪${inheritParams.strength} | 💖${inheritParams.charm}
@@ -7148,8 +7172,21 @@
             closeBreedWithCodeModal();
             closeAlbumDetail();
             
+            // 미발견 정령 체크
+            let isDiscovered = false;
+            let displayName = prediction.name;
+            if (prediction.key) {
+                isDiscovered = encyclopedia[prediction.key] && encyclopedia[prediction.key] > 0;
+            } else if (prediction.isEventResult && prediction.eventType) {
+                const eventKeys = [`event_${prediction.eventType}`, `event_${prediction.eventType}_butterfly`, `event_${prediction.eventType}_moth`];
+                isDiscovered = eventKeys.some(key => encyclopedia[key] && encyclopedia[key] > 0);
+            }
+            if (!isDiscovered && prediction.key) {
+                displayName = '??? (미발견)';
+            }
+            
             const confirmed = await showConfirm('연결 확인',
-                `${item.name}와(과) ${friendData.name}을(를) 연결하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
+                `${item.name}와(과) ${friendData.name}을(를) 연결하시겠습니까?\n\n예상 결과: ${displayName} (${getRarityText(prediction.rarity)})\n비용: ${BREED_COST}💰`);
             
             if (!confirmed) return;
             
@@ -11258,8 +11295,21 @@
             // 결과 예측
             const prediction = predictBreedResult(mySpirit, friendData);
             
+            // 미발견 정령 체크
+            let isDiscovered = false;
+            let displayName = prediction.name;
+            if (prediction.key) {
+                isDiscovered = encyclopedia[prediction.key] && encyclopedia[prediction.key] > 0;
+            } else if (prediction.isEventResult && prediction.eventType) {
+                const eventKeys = [`event_${prediction.eventType}`, `event_${prediction.eventType}_butterfly`, `event_${prediction.eventType}_moth`];
+                isDiscovered = eventKeys.some(key => encyclopedia[key] && encyclopedia[key] > 0);
+            }
+            if (!isDiscovered && prediction.key) {
+                displayName = '??? (미발견)';
+            }
+            
             const confirm = await showConfirm('연결 확인',
-                `${mySpirit.name}와(과) ${friendData.name}(친구 정령)을(를) 연결하시겠습니까?\n\n예상 결과: ${prediction.name} (${getRarityText(prediction.rarity)})\n내 정령은 유지되고 새 알이 태어납니다.\n비용: ${BREED_COST}💰`);
+                `${mySpirit.name}와(과) ${friendData.name}(친구 정령)을(를) 연결하시겠습니까?\n\n예상 결과: ${displayName} (${getRarityText(prediction.rarity)})\n내 정령은 유지되고 새 알이 태어납니다.\n비용: ${BREED_COST}💰`);
             
             if (!confirm) return;
             
@@ -11625,10 +11675,37 @@
                 if (avg > 0) inheritAttrs.push(`${ENV_ICONS[attr]}${avg}`);
             });
             
+            // 아이콘 처리 (객체면 나비 아이콘 사용)
+            let displayIcon = prediction.icon;
+            if (typeof displayIcon === 'object' && displayIcon !== null) {
+                displayIcon = displayIcon.butterfly || '🥚';
+            }
+            // 이미지 태그면 이모지로 대체
+            if (typeof displayIcon === 'string' && displayIcon.includes('<img')) {
+                displayIcon = '🥚';
+            }
+            
+            // 미발견 정령 체크 (도감에 없으면 미발견)
+            let isDiscovered = false;
+            let displayName = prediction.name;
+            if (prediction.key) {
+                // fusion 정령
+                isDiscovered = encyclopedia[prediction.key] && encyclopedia[prediction.key] > 0;
+            } else if (prediction.isEventResult && prediction.eventType) {
+                // 이벤트 정령
+                const eventKeys = [`event_${prediction.eventType}`, `event_${prediction.eventType}_butterfly`, `event_${prediction.eventType}_moth`];
+                isDiscovered = eventKeys.some(key => encyclopedia[key] && encyclopedia[key] > 0);
+            }
+            
+            if (!isDiscovered && prediction.key) {
+                displayName = '???';
+                displayIcon = '❓';
+            }
+            
             preview.innerHTML = `
                 <div style="font-size: 0.85rem; color: #888; margin-bottom: 8px;">🥚 예상 결과</div>
-                <div style="font-size: 2rem;">${prediction.icon}</div>
-                <div style="font-weight: 700; margin: 4px 0;">${prediction.name}</div>
+                <div style="font-size: 2rem;">${displayIcon}</div>
+                <div style="font-weight: 700; margin: 4px 0;">${displayName}${!isDiscovered && prediction.key ? ' <span style="font-size: 0.75rem; color: #e67e22;">(미발견)</span>' : ''}</div>
                 <div style="font-size: 0.8rem; color: ${getRarityColor(prediction.rarity)}; margin-bottom: 8px;">${getRarityText(prediction.rarity)}</div>
                 <div style="font-size: 0.8rem; color: #888; border-top: 1px solid var(--border); padding-top: 8px;">
                     <div style="margin-bottom: 4px;">📊 상속 스탯</div>
