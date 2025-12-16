@@ -1113,28 +1113,32 @@
             
             /* 모바일 Swiper 스타일 */
             body.mobile-layout .spirits-swiper {
+                width: 100% !important;
                 overflow: hidden !important;
-                width: 100%;
-                padding: 8px 0;
             }
             
-            body.mobile-layout .spirits-grid {
+            body.mobile-layout .swiper-wrapper {
                 display: flex !important;
-                flex-wrap: nowrap !important;
             }
             
             body.mobile-layout .swiper-slide {
                 width: 100% !important;
-                flex-shrink: 0;
-                box-sizing: border-box;
-                padding: 0 12px;
+                flex-shrink: 0 !important;
+                padding: 8px 12px !important;
+                box-sizing: border-box !important;
             }
             
-            body.mobile-layout .spirits-grid .spirit-card {
+            body.mobile-layout .spirit-card {
                 width: 100% !important;
                 max-width: 100% !important;
-                box-sizing: border-box;
                 margin: 0 !important;
+                padding: 16px !important;
+                box-sizing: border-box !important;
+            }
+            
+            body.mobile-layout .spirit-card-toggle {
+                width: calc(100% + 32px) !important;
+                margin: 12px -16px -16px -16px !important;
             }
             
             /* Swiper 페이지네이션 스타일 */
@@ -8671,20 +8675,21 @@
         
         // Swiper 인스턴스
         let spiritsSwiper = null;
+        let lastSpiritCount = 0; // 마지막 정령 수 (재초기화 필요 여부 판단용)
         
         // Swiper 초기화 또는 업데이트
         function initOrUpdateSpiritsSwiper() {
-            const swiperContainer = document.querySelector('.spirits-swiper');
             const paginationContainer = document.getElementById('swiperPaginationContainer');
             const isMobile = window.innerWidth <= 768;
             
+            // PC 모드: Swiper 비활성화
             if (!isMobile) {
-                // PC 모드: Swiper 비활성화
                 if (spiritsSwiper) {
                     spiritsSwiper.destroy(true, true);
                     spiritsSwiper = null;
                 }
                 if (paginationContainer) paginationContainer.style.display = 'none';
+                lastSpiritCount = 0;
                 return;
             }
             
@@ -8695,40 +8700,44 @@
                     spiritsSwiper = null;
                 }
                 if (paginationContainer) paginationContainer.style.display = 'none';
+                lastSpiritCount = 0;
                 return;
             }
             
             // 모바일 모드: Swiper 활성화
             if (paginationContainer) paginationContainer.style.display = 'block';
             
-            // 현재 슬라이드 인덱스 저장
-            const savedIndex = spiritsSwiper ? spiritsSwiper.realIndex : currentSpiritIndex;
+            // 정령 수가 변경되지 않았으면 update만 호출
+            if (spiritsSwiper && lastSpiritCount === spirits.length) {
+                spiritsSwiper.update();
+                return;
+            }
             
-            // 기존 Swiper가 있으면 파괴 후 재생성
+            // 현재 슬라이드 인덱스 저장
+            const savedIndex = Math.min(currentSpiritIndex, spirits.length - 1);
+            
+            // 기존 Swiper가 있으면 파괴
             if (spiritsSwiper) {
                 spiritsSwiper.destroy(true, true);
                 spiritsSwiper = null;
             }
+            
+            lastSpiritCount = spirits.length;
             
             // DOM이 완전히 렌더링된 후 Swiper 초기화
             setTimeout(() => {
                 // 3개 이상일 때만 무한 루프 활성화
                 const enableLoop = spirits.length >= 3;
                 
-                // 저장된 인덱스가 유효한지 확인
-                const initialSlide = Math.min(savedIndex, spirits.length - 1);
-                
                 spiritsSwiper = new Swiper('.spirits-swiper', {
                     loop: enableLoop,
-                    loopAdditionalSlides: enableLoop ? 2 : 0,
                     slidesPerView: 1,
                     spaceBetween: 0,
-                    centeredSlides: false,
+                    initialSlide: savedIndex,
                     grabCursor: true,
                     touchRatio: 1,
-                    threshold: 5,
-                    speed: 300,
-                    initialSlide: initialSlide,
+                    resistance: true,
+                    resistanceRatio: 0.85,
                     pagination: {
                         el: '#spiritsPagination',
                         clickable: true,
@@ -8740,8 +8749,8 @@
                     }
                 });
                 
-                currentSpiritIndex = initialSlide;
-            }, 50);
+                currentSpiritIndex = savedIndex;
+            }, 100);
         }
         
         // 현재 보고 있는 정령 인덱스
@@ -8880,6 +8889,9 @@
             const buyPage = document.getElementById('shopBuyPage');
             const sellTabBtn = document.getElementById('shopTabSell');
             const buyTabBtn = document.getElementById('shopTabBuy');
+            
+            // null 체크
+            if (!sellPage || !buyPage || !sellTabBtn || !buyTabBtn) return;
             
             if (tab === 'sell') {
                 sellPage.style.display = 'block';
@@ -13076,12 +13088,24 @@
                 } else if (tab === 'shop') {
                     activateTab('.desktop-tabs .tab:nth-child(4)');
                     document.getElementById('shopSection')?.classList.add('active');
-                    renderShop();
+                    try {
+                        renderShop();
+                    } catch (e) {
+                        console.error('renderShop 오류:', e);
+                    }
                     // 질병 튜토리얼: 상점 탭 열기 액션 체크 + 구매 탭으로 전환
                     if (sickTutorialActive) {
-                        switchShopTab('buy');
+                        try {
+                            switchShopTab('buy');
+                        } catch (e) {
+                            console.error('switchShopTab 오류:', e);
+                        }
                     }
-                    checkSickTutorialAction('openShop');
+                    try {
+                        checkSickTutorialAction('openShop');
+                    } catch (e) {
+                        console.error('checkSickTutorialAction 오류:', e);
+                    }
                 } else if (tab === 'minigame') {
                     activateTab('.desktop-tabs .tab:nth-child(5)');
                     document.getElementById('minigameSection')?.classList.add('active');
@@ -13118,7 +13142,7 @@
             } catch (error) {
                 console.error('탭 전환 오류:', error);
                 console.error('오류 스택:', error.stack);
-                showNotification('탭 전환 중 오류가 발생했습니다');
+                // 기능에는 문제 없으므로 알림 표시하지 않음
             }
         }
 
