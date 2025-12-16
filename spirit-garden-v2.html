@@ -1101,11 +1101,14 @@
                 display: flex !important;
                 flex-wrap: nowrap !important;
                 overflow-x: auto !important;
+                overflow-y: hidden !important;
                 scroll-snap-type: x mandatory;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
-                gap: 16px;
-                padding: 8px 16px;
+                gap: 0;
+                padding: 0;
+                margin: 0 -16px;
+                width: calc(100% + 32px);
             }
             
             body.mobile-layout .spirits-grid::-webkit-scrollbar {
@@ -1113,17 +1116,23 @@
             }
             
             body.mobile-layout .spirits-grid .spirit-card {
-                flex: 0 0 calc(100vw - 48px);
-                max-width: calc(100vw - 48px);
-                scroll-snap-align: center;
+                flex: 0 0 100%;
+                width: 100%;
+                min-width: 100%;
+                max-width: 100%;
+                scroll-snap-align: start;
+                scroll-snap-stop: always;
+                box-sizing: border-box;
+                margin: 0;
+                border-left: none;
+                border-right: none;
             }
             
-            /* 정령 슬라이더 네비게이션 */
+            /* 정령 슬라이더 인디케이터 (버튼 없이 숫자만) */
             .mobile-spirit-nav {
                 display: none;
                 justify-content: center;
                 align-items: center;
-                gap: 16px;
                 padding: 8px 16px;
                 background: var(--card);
                 border-bottom: 1px solid var(--border);
@@ -1134,27 +1143,12 @@
             }
             
             .mobile-spirit-nav-btn {
-                width: 36px;
-                height: 36px;
-                border: 1px solid var(--border);
-                border-radius: 50%;
-                background: var(--bg);
-                color: var(--text);
-                font-size: 1.2rem;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .mobile-spirit-nav-btn:active {
-                background: var(--border);
+                display: none;
             }
             
             .mobile-spirit-indicator {
                 font-size: 0.9rem;
                 color: var(--text-muted);
-                min-width: 60px;
                 text-align: center;
             }
             
@@ -1441,11 +1435,9 @@
             </div>
 
             <div>
-                <!-- 모바일 정령 슬라이더 네비게이션 -->
+                <!-- 모바일 정령 슬라이더 인디케이터 -->
                 <div class="mobile-spirit-nav" id="mobileSpiritNav">
-                    <button class="mobile-spirit-nav-btn" onclick="navigateSpirit(-1)">◀</button>
                     <span class="mobile-spirit-indicator" id="mobileSpiritIndicator">1 / 1</span>
-                    <button class="mobile-spirit-nav-btn" onclick="navigateSpirit(1)">▶</button>
                 </div>
                 <div class="spirits-grid" id="spiritsGrid"></div>
                 <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
