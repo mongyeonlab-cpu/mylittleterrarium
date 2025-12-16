@@ -1171,9 +1171,9 @@
             }
             
             body.mobile-layout .spirit-card {
-                width: 100% !important;
-                max-width: 100% !important;
-                margin: 0 !important;
+                width: calc(100vw - 32px) !important;
+                max-width: calc(100vw - 32px) !important;
+                margin: 0 auto !important;
                 padding: 16px !important;
                 box-sizing: border-box !important;
             }
@@ -8795,6 +8795,7 @@
             // 스크롤 위치 복원 (약간의 딜레이 후)
             setTimeout(() => {
                 if (swiperEl && spirits.length > 0) {
+                    // 슬라이드 너비 = 100vw - 32px + margin 32px = 100vw
                     const slideWidth = window.innerWidth;
                     swiperEl.scrollLeft = validIndex * slideWidth;
                     updateMobilePagination(validIndex);
