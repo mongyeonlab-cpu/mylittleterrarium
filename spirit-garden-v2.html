@@ -1115,6 +1115,7 @@
             body.mobile-layout .spirits-swiper {
                 overflow: hidden !important;
                 width: 100%;
+                padding: 8px 0;
             }
             
             body.mobile-layout .spirits-grid {
@@ -1126,13 +1127,14 @@
                 width: 100% !important;
                 flex-shrink: 0;
                 box-sizing: border-box;
+                padding: 0 12px;
             }
             
             body.mobile-layout .spirits-grid .spirit-card {
-                width: calc(100% - 32px) !important;
-                max-width: calc(100% - 32px) !important;
+                width: 100% !important;
+                max-width: 100% !important;
                 box-sizing: border-box;
-                margin: 0 16px !important;
+                margin: 0 !important;
             }
             
             /* Swiper 페이지네이션 스타일 */
@@ -8699,6 +8701,9 @@
             // 모바일 모드: Swiper 활성화
             if (paginationContainer) paginationContainer.style.display = 'block';
             
+            // 현재 슬라이드 인덱스 저장
+            const savedIndex = spiritsSwiper ? spiritsSwiper.realIndex : currentSpiritIndex;
+            
             // 기존 Swiper가 있으면 파괴 후 재생성
             if (spiritsSwiper) {
                 spiritsSwiper.destroy(true, true);
@@ -8707,14 +8712,23 @@
             
             // DOM이 완전히 렌더링된 후 Swiper 초기화
             setTimeout(() => {
+                // 3개 이상일 때만 무한 루프 활성화
+                const enableLoop = spirits.length >= 3;
+                
+                // 저장된 인덱스가 유효한지 확인
+                const initialSlide = Math.min(savedIndex, spirits.length - 1);
+                
                 spiritsSwiper = new Swiper('.spirits-swiper', {
-                    loop: spirits.length > 1,
+                    loop: enableLoop,
+                    loopAdditionalSlides: enableLoop ? 2 : 0,
                     slidesPerView: 1,
                     spaceBetween: 0,
                     centeredSlides: false,
                     grabCursor: true,
                     touchRatio: 1,
                     threshold: 5,
+                    speed: 300,
+                    initialSlide: initialSlide,
                     pagination: {
                         el: '#spiritsPagination',
                         clickable: true,
@@ -8725,6 +8739,8 @@
                         }
                     }
                 });
+                
+                currentSpiritIndex = initialSlide;
             }, 50);
         }
         
@@ -13034,26 +13050,32 @@
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                 
+                // 안전하게 탭 활성화 (null 체크)
+                const activateTab = (selector) => {
+                    const tabEl = document.querySelector(selector);
+                    if (tabEl) tabEl.classList.add('active');
+                };
+                
                 if (tab === 'garden') {
-                    document.querySelector('.tab:nth-child(1)').classList.add('active');
-                    document.getElementById('gardenSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(1)');
+                    document.getElementById('gardenSection')?.classList.add('active');
                     // 질병 튜토리얼: 육성 탭 열기 액션 체크
                     checkSickTutorialAction('openGarden');
                 } else if (tab === 'terrarium') {
-                    document.querySelector('.tab:nth-child(2)').classList.add('active');
-                    document.getElementById('terrariumSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(2)');
+                    document.getElementById('terrariumSection')?.classList.add('active');
                     renderTerrariumManagement();
                 } else if (tab === 'lab') {
-                    document.querySelector('.tab:nth-child(3)').classList.add('active');
-                    document.getElementById('labSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(3)');
+                    document.getElementById('labSection')?.classList.add('active');
                     renderRecipeList();
                     updateLabUI();
                     checkRecipe();
                     // 연구실 튜토리얼: 연구실 탭 열기 액션 체크
                     checkLabTutorialAction('openLab');
                 } else if (tab === 'shop') {
-                    document.querySelector('.tab:nth-child(4)').classList.add('active');
-                    document.getElementById('shopSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(4)');
+                    document.getElementById('shopSection')?.classList.add('active');
                     renderShop();
                     // 질병 튜토리얼: 상점 탭 열기 액션 체크 + 구매 탭으로 전환
                     if (sickTutorialActive) {
@@ -13061,25 +13083,25 @@
                     }
                     checkSickTutorialAction('openShop');
                 } else if (tab === 'minigame') {
-                    document.querySelector('.tab:nth-child(5)').classList.add('active');
-                    document.getElementById('minigameSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(5)');
+                    document.getElementById('minigameSection')?.classList.add('active');
                     // 미니게임 탭 전환 시 게임 중이면 일시정지
                     if (minigameActive) {
                         pauseMinigame();
                     }
                 } else if (tab === 'encyclopedia') {
                     // 도감은 일지 탭의 서브탭으로 이동
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
-                    document.getElementById('journalSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(6)');
+                    document.getElementById('journalSection')?.classList.add('active');
                     switchJournalTab('encyclopedia');
                 } else if (tab === 'album') {
                     // 앨범은 일지 탭의 서브탭으로 이동
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
-                    document.getElementById('journalSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(6)');
+                    document.getElementById('journalSection')?.classList.add('active');
                     switchJournalTab('album');
                 } else if (tab === 'journal') {
-                    document.querySelector('.tab:nth-child(6)').classList.add('active');
-                    document.getElementById('journalSection').classList.add('active');
+                    activateTab('.desktop-tabs .tab:nth-child(6)');
+                    document.getElementById('journalSection')?.classList.add('active');
                     // 현재 서브탭 유지 또는 기본 도감 표시
                     switchJournalTab(currentJournalTab || 'encyclopedia');
                     checkAchievements();
@@ -13087,7 +13109,7 @@
                     checkTutorialAction('openJournal');
                 } else if (tab === 'settings') {
                     // 설정은 탭 바에 없으므로 active 처리 안함
-                    document.getElementById('settingsSection').classList.add('active');
+                    document.getElementById('settingsSection')?.classList.add('active');
                     updateSettingsInfo();
                 }
                 
