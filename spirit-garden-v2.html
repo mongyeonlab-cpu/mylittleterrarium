@@ -776,11 +776,11 @@
         }
 
         body.dark-mode {
-            --bg: #1a1a1a;
-            --card: #2d2d2d;
+            --bg: #0d0d14;
+            --card: #1a1a24;
             --text: #e0e0e0;
             --text-muted: #b0b0b0;
-            --border: #404040;
+            --border: #2a2a3a;
         }
 
         body.dark-mode .spirit-name,
@@ -1243,6 +1243,19 @@
             <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
                 <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">화면 설정</h3>
                 
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 12px;">
+                    <div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">라이트 모드 고정</div>
+                        <div style="font-size: 0.85rem; color: #888;">활성화 시 조명 상태와 무관하게 라이트 모드 유지</div>
+                    </div>
+                    <label style="position: relative; display: inline-block; width: 60px; height: 32px;">
+                        <input type="checkbox" id="lightModeToggle" onchange="toggleLightModeLock()" style="opacity: 0; width: 0; height: 0;">
+                        <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 32px;">
+                            <span id="lightModeSlider" style="position: absolute; content: ''; height: 24px; width: 24px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                        </span>
+                    </label>
+                </div>
+                
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border-radius: 8px;">
                     <div>
                         <div style="font-weight: 700; margin-bottom: 4px;">다크 모드 고정</div>
@@ -1638,6 +1651,7 @@
         let encyclopedia = {}; // 도감: { evolutionKey: count }
         let encyclopediaDetails = {}; // 도감 상세: { evolutionKey: [정령 상세 정보 배열] } - 복구용 숨김 데이터
         let darkModeLocked = false; // 다크 모드 고정 여부
+        let lightModeLocked = false; // 라이트 모드 고정 여부
         let inventory = {
             music: [],
             decorations: [],
@@ -3610,6 +3624,7 @@
                 currentGatherLocation = data.currentGatherLocation || 'garden';
                 isPaused = data.isPaused || false;
                 darkModeLocked = data.darkModeLocked || false;
+                lightModeLocked = data.lightModeLocked || false;
                 activatedEvents = data.activatedEvents || [];
                 lowSatisfactionStartTime = data.lowSatisfactionStartTime || {};
                 hasVisitedShop = data.hasVisitedShop || false;
@@ -3691,6 +3706,7 @@
                 currentGatherLocation,
                 isPaused,
                 darkModeLocked,
+                lightModeLocked,
                 activatedEvents,
                 lowSatisfactionStartTime,
                 hasVisitedShop,
@@ -12410,6 +12426,20 @@
 
         // 설정 정보 업데이트
         function updateSettingsInfo() {
+            // 라이트모드 토글 상태 업데이트
+            const lightToggle = document.getElementById('lightModeToggle');
+            const lightSlider = document.getElementById('lightModeSlider');
+            if (lightToggle) {
+                lightToggle.checked = lightModeLocked;
+                if (lightModeLocked) {
+                    lightSlider.style.transform = 'translateX(28px)';
+                    lightSlider.parentElement.style.backgroundColor = '#FFD700';
+                } else {
+                    lightSlider.style.transform = 'translateX(0)';
+                    lightSlider.parentElement.style.backgroundColor = '#ccc';
+                }
+            }
+            
             // 다크모드 토글 상태 업데이트
             const toggle = document.getElementById('darkModeToggle');
             const slider = document.getElementById('darkModeSlider');
@@ -12484,9 +12514,52 @@
             switchTab('garden');
         }
         
+        // 라이트 모드 고정 토글
+        function toggleLightModeLock() {
+            lightModeLocked = !lightModeLocked;
+            
+            // 라이트 모드 고정 시 다크 모드 고정 해제
+            if (lightModeLocked && darkModeLocked) {
+                darkModeLocked = false;
+                const darkSlider = document.getElementById('darkModeSlider');
+                const darkToggle = document.getElementById('darkModeToggle');
+                if (darkSlider) {
+                    darkSlider.style.transform = 'translateX(0)';
+                    darkSlider.parentElement.style.backgroundColor = '#ccc';
+                }
+                if (darkToggle) darkToggle.checked = false;
+            }
+            
+            const slider = document.getElementById('lightModeSlider');
+            if (lightModeLocked) {
+                slider.style.transform = 'translateX(28px)';
+                slider.parentElement.style.backgroundColor = '#FFD700';
+                showNotification('☀️ 라이트 모드가 고정되었습니다');
+            } else {
+                slider.style.transform = 'translateX(0)';
+                slider.parentElement.style.backgroundColor = '#ccc';
+                showNotification('🌓 조명에 따라 테마가 변경됩니다');
+            }
+            
+            applyLightMode();
+            saveGame();
+        }
+        
         // 다크 모드 고정 토글
         function toggleDarkModeLock() {
             darkModeLocked = !darkModeLocked;
+            
+            // 다크 모드 고정 시 라이트 모드 고정 해제
+            if (darkModeLocked && lightModeLocked) {
+                lightModeLocked = false;
+                const lightSlider = document.getElementById('lightModeSlider');
+                const lightToggle = document.getElementById('lightModeToggle');
+                if (lightSlider) {
+                    lightSlider.style.transform = 'translateX(0)';
+                    lightSlider.parentElement.style.backgroundColor = '#ccc';
+                }
+                if (lightToggle) lightToggle.checked = false;
+            }
             
             const slider = document.getElementById('darkModeSlider');
             if (darkModeLocked) {
@@ -13628,6 +13701,7 @@
                 lightMode: lightMode,
                 isPaused: isPaused,
                 darkModeLocked: darkModeLocked,
+                lightModeLocked: lightModeLocked,
                 lowSatisfactionStartTime: lowSatisfactionStartTime,
                 discoveredRecipes: discoveredRecipes,
                 purchasedRecipeBooks: purchasedRecipeBooks,
@@ -13886,6 +13960,7 @@
             lightMode = gameData.lightMode !== undefined ? gameData.lightMode : true;
             isPaused = gameData.isPaused || false;
             darkModeLocked = gameData.darkModeLocked || false;
+            lightModeLocked = gameData.lightModeLocked || false;
             lowSatisfactionStartTime = gameData.lowSatisfactionStartTime || {};
             discoveredRecipes = gameData.discoveredRecipes || [];
             purchasedRecipeBooks = gameData.purchasedRecipeBooks || [];
@@ -14092,15 +14167,25 @@
         function applyLightMode() {
             const lightIcon = document.getElementById('lightIcon');
             
-            // 다크 모드 고정이 활성화되어 있으면 조명 상태 무시
-            if (darkModeLocked) {
-                document.body.classList.add('dark-mode');
-                if (lightIcon) lightIcon.textContent = '🌙';
+            // 다크모드 클래스 제거
+            document.body.classList.remove('dark-mode');
+            
+            // 라이트 모드 고정이 활성화되어 있으면
+            if (lightModeLocked) {
+                // 항상 기본 라이트 모드 유지
+                if (lightIcon) lightIcon.textContent = lightMode ? '☀️' : '🌙';
                 return;
             }
             
+            // 다크 모드 고정이 활성화되어 있으면
+            if (darkModeLocked) {
+                document.body.classList.add('dark-mode');
+                if (lightIcon) lightIcon.textContent = lightMode ? '☀️' : '🌙';
+                return;
+            }
+            
+            // 둘 다 고정 안 됨 - 조명에 따라 테마 변경
             if (lightMode) {
-                document.body.classList.remove('dark-mode');
                 if (lightIcon) lightIcon.textContent = '☀️';
             } else {
                 document.body.classList.add('dark-mode');
@@ -14208,6 +14293,7 @@
             lowSatisfactionStartTime = {};
             hasVisitedShop = false;
             darkModeLocked = false;
+            lightModeLocked = false;
             
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
