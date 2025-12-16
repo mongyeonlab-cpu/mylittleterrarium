@@ -1114,7 +1114,7 @@
             /* 모바일 Swiper 스타일 */
             body.mobile-layout .spirits-swiper {
                 overflow: hidden !important;
-                padding: 0 16px;
+                width: 100%;
             }
             
             body.mobile-layout .spirits-grid {
@@ -1125,11 +1125,14 @@
             body.mobile-layout .swiper-slide {
                 width: 100% !important;
                 flex-shrink: 0;
+                box-sizing: border-box;
             }
             
             body.mobile-layout .spirits-grid .spirit-card {
-                width: 100%;
+                width: calc(100% - 32px) !important;
+                max-width: calc(100% - 32px) !important;
                 box-sizing: border-box;
+                margin: 0 16px !important;
             }
             
             /* Swiper 페이지네이션 스타일 */
@@ -1137,10 +1140,15 @@
                 background: var(--card);
                 border-bottom: 1px solid var(--border);
                 padding: 12px;
+                text-align: center;
             }
             
             body.mobile-layout .swiper-pagination-container {
                 display: block !important;
+            }
+            
+            #spiritsPagination {
+                position: static !important;
             }
             
             .swiper-pagination-bullet {
@@ -1148,6 +1156,7 @@
                 opacity: 0.5;
                 width: 10px;
                 height: 10px;
+                margin: 0 4px !important;
             }
             
             .swiper-pagination-bullet-active {
@@ -8663,31 +8672,49 @@
         
         // Swiper 초기화 또는 업데이트
         function initOrUpdateSpiritsSwiper() {
-            if (!isMobileMode) {
+            const swiperContainer = document.querySelector('.spirits-swiper');
+            const paginationContainer = document.getElementById('swiperPaginationContainer');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (!isMobile) {
                 // PC 모드: Swiper 비활성화
                 if (spiritsSwiper) {
                     spiritsSwiper.destroy(true, true);
                     spiritsSwiper = null;
                 }
-                document.getElementById('swiperPaginationContainer')?.style.setProperty('display', 'none');
+                if (paginationContainer) paginationContainer.style.display = 'none';
+                return;
+            }
+            
+            // 정령이 없으면 Swiper 초기화하지 않음
+            if (spirits.length === 0) {
+                if (spiritsSwiper) {
+                    spiritsSwiper.destroy(true, true);
+                    spiritsSwiper = null;
+                }
+                if (paginationContainer) paginationContainer.style.display = 'none';
                 return;
             }
             
             // 모바일 모드: Swiper 활성화
-            const container = document.getElementById('swiperPaginationContainer');
-            if (container) container.style.display = 'block';
+            if (paginationContainer) paginationContainer.style.display = 'block';
             
+            // 기존 Swiper가 있으면 파괴 후 재생성
             if (spiritsSwiper) {
-                // 기존 Swiper 업데이트
-                spiritsSwiper.update();
-                spiritsSwiper.slideTo(0, 0);
-            } else {
-                // 새 Swiper 초기화
+                spiritsSwiper.destroy(true, true);
+                spiritsSwiper = null;
+            }
+            
+            // DOM이 완전히 렌더링된 후 Swiper 초기화
+            setTimeout(() => {
                 spiritsSwiper = new Swiper('.spirits-swiper', {
-                    loop: true,
+                    loop: spirits.length > 1,
                     slidesPerView: 1,
-                    spaceBetween: 16,
-                    centeredSlides: true,
+                    spaceBetween: 0,
+                    centeredSlides: false,
+                    grabCursor: true,
+                    touchRatio: 1,
+                    threshold: 5,
                     pagination: {
                         el: '#spiritsPagination',
                         clickable: true,
@@ -8698,7 +8725,7 @@
                         }
                     }
                 });
-            }
+            }, 50);
         }
         
         // 현재 보고 있는 정령 인덱스
