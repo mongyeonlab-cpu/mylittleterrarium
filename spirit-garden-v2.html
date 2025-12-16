@@ -16054,14 +16054,20 @@
                 if (shopNotificationData.timeout) {
                     clearTimeout(shopNotificationData.timeout);
                 }
+                
+                const currentElement = shopNotificationData.element;
                 shopNotificationData.timeout = setTimeout(() => {
-                    if (shopNotificationData.element) {
-                        shopNotificationData.element.style.animation = 'slideOut 0.3s ease-out';
+                    // 현재 element가 저장된 element와 같을 때만 처리
+                    if (currentElement && currentElement === shopNotificationData.element) {
+                        currentElement.style.animation = 'slideOut 0.3s ease-out';
                         setTimeout(() => {
-                            if (shopNotificationData.element) {
-                                shopNotificationData.element.remove();
+                            if (currentElement.parentNode) {
+                                currentElement.remove();
                             }
-                            shopNotificationData = { element: null, itemName: null, action: null, count: 0, price: 0, timeout: null };
+                            // 아직 같은 element를 가리키고 있을 때만 초기화
+                            if (shopNotificationData.element === currentElement) {
+                                shopNotificationData = { element: null, itemName: null, action: null, count: 0, price: 0, timeout: null };
+                            }
                         }, 300);
                     }
                 }, 2000);
@@ -16071,7 +16077,9 @@
             
             // 기존 상점 알림이 있으면 즉시 제거
             if (shopNotificationData.element) {
-                shopNotificationData.element.remove();
+                if (shopNotificationData.element.parentNode) {
+                    shopNotificationData.element.remove();
+                }
                 if (shopNotificationData.timeout) {
                     clearTimeout(shopNotificationData.timeout);
                 }
@@ -16092,11 +16100,19 @@
                 count: 1,
                 price: price,
                 timeout: setTimeout(() => {
-                    notif.style.animation = 'slideOut 0.3s ease-out';
-                    setTimeout(() => {
-                        notif.remove();
-                        shopNotificationData = { element: null, itemName: null, action: null, count: 0, price: 0, timeout: null };
-                    }, 300);
+                    // 현재 notif가 저장된 element와 같을 때만 처리
+                    if (notif === shopNotificationData.element) {
+                        notif.style.animation = 'slideOut 0.3s ease-out';
+                        setTimeout(() => {
+                            if (notif.parentNode) {
+                                notif.remove();
+                            }
+                            // 아직 같은 element를 가리키고 있을 때만 초기화
+                            if (shopNotificationData.element === notif) {
+                                shopNotificationData = { element: null, itemName: null, action: null, count: 0, price: 0, timeout: null };
+                            }
+                        }, 300);
+                    }
                 }, 2000)
             };
         }
