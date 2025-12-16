@@ -1061,7 +1061,7 @@
             
             .mobile-gather-toggle {
                 width: 100%;
-                padding: 8px;
+                padding: 6px;
                 background: #333;
                 border: none;
                 cursor: pointer;
@@ -1069,7 +1069,7 @@
                 align-items: center;
                 justify-content: center;
                 color: white;
-                font-size: 0.9rem;
+                font-size: 0.8rem;
             }
             
             .mobile-gather-toggle .arrow {
@@ -1142,23 +1142,6 @@
             .mobile-gather-header .walk-btn {
                 flex: 1;
                 margin: 0 !important;
-            }
-            
-            .mobile-gather-toggle {
-                width: 32px;
-                height: 32px;
-                background: var(--bg);
-                border: 1px solid var(--border);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: transform 0.3s;
-            }
-            
-            .mobile-gather-toggle.expanded {
-                transform: rotate(180deg);
             }
             
             .mobile-gather-content {
@@ -18729,10 +18712,25 @@
             // 먹이 인벤토리 표시
             let html = '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🍎 먹이:</span> ';
             if (inventory.food && inventory.food.length > 0) {
-                html += inventory.food.map(item => {
-                    const foodData = FOODS[item.type];
-                    return `${foodData?.icon || '🍎'}${item.count}`;
-                }).join(' ');
+                const foodCounts = {};
+                inventory.food.forEach(f => {
+                    foodCounts[f] = (foodCounts[f] || 0) + 1;
+                });
+                const foodOrder = ['fire', 'water', 'wind', 'earth', 'light', 'dark'];
+                html += foodOrder
+                    .filter(type => foodCounts[type])
+                    .map(type => `${ENV_ICONS[type] || '🍎'}${foodCounts[type]}`)
+                    .join(' ');
+                // 기타 먹이 추가
+                Object.keys(foodCounts).forEach(key => {
+                    if (!foodOrder.includes(key)) {
+                        const icon = (SYNTH_ITEMS && SYNTH_ITEMS[key]?.icon) || (EVENT_ITEMS && EVENT_ITEMS[key]?.icon) || '🍎';
+                        html += ` ${icon}${foodCounts[key]}`;
+                    }
+                });
+                if (Object.keys(foodCounts).length === 0) {
+                    html += '<span style="color: var(--text-muted);">없음</span>';
+                }
             } else {
                 html += '<span style="color: var(--text-muted);">없음</span>';
             }
@@ -18741,9 +18739,13 @@
             // 레코드 인벤토리 표시
             html += '<div style="margin-bottom: 8px;"><span style="color: var(--text-muted);">🎼 레코드:</span> ';
             if (inventory.music && inventory.music.length > 0) {
-                html += inventory.music.map(item => {
-                    const musicData = MUSIC[item.type];
-                    return `${musicData?.icon || '🎵'}${item.count}`;
+                const musicCounts = {};
+                inventory.music.forEach(m => {
+                    musicCounts[m] = (musicCounts[m] || 0) + 1;
+                });
+                html += Object.entries(musicCounts).map(([type, count]) => {
+                    const icon = (MUSIC && MUSIC[type]?.icon) || '🎵';
+                    return `${icon}${count}`;
                 }).join(' ');
             } else {
                 html += '<span style="color: var(--text-muted);">없음</span>';
