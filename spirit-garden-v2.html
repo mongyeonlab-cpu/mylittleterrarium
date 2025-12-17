@@ -1575,6 +1575,7 @@
                             <option value="all">📋 전체</option>
                             <option value="food">🍎 먹이</option>
                             <option value="decoration">🌳 미니어처</option>
+                            <option value="music">🎵 레코드</option>
                         </select>
                         <select id="recipeAttrFilter" onchange="applyRecipeFilters()" style="padding: 6px 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.85rem; cursor: pointer;">
                             <option value="all">속성</option>
@@ -2900,14 +2901,40 @@
             dark: '어둠'
         };
 
+        // 기본 악기 레코드 (채집/상점)
         const MUSIC_TYPES = {
-            classic: { name: '클래식 🎻', icon: '🎻', effect: '지력 +10' },
-            jazz: { name: '재즈 🎷', icon: '🎷', effect: '매력 +10' },
-            rock: { name: '록 🎸', icon: '🎸', effect: '체력 +10' },
-            pop: { name: '팝 🎤', icon: '🎤', effect: '지력 +5, 매력 +5' },
-            ballad: { name: '발라드 🎹', icon: '🎹', effect: '체력 +5, 매력 +5' },
-            edm: { name: 'EDM 🎧', icon: '🎧', effect: '지력 +5, 체력 +5' }
+            // 1단계: 기본 악기 (채집/상점에서 획득)
+            piano: { name: '피아노', icon: '🎹', effect: '지력 +3', stats: { intelligence: 3 }, tier: 1 },
+            violin: { name: '바이올린', icon: '🎻', effect: '지력 +3', stats: { intelligence: 3 }, tier: 1 },
+            guitar: { name: '기타', icon: '🎸', effect: '체력 +3', stats: { strength: 3 }, tier: 1 },
+            drum: { name: '드럼', icon: '🥁', effect: '체력 +3', stats: { strength: 3 }, tier: 1 },
+            trumpet: { name: '트럼펫', icon: '🎺', effect: '매력 +3', stats: { charm: 3 }, tier: 1 },
+            synth: { name: '신스', icon: '🎧', effect: '매력 +3', stats: { charm: 3 }, tier: 1 },
+            
+            // 2단계: 장르 레코드 (합성으로 획득) - 기존 레코드 호환
+            classic: { name: '클래식', icon: '🎼', effect: '지력 +10', stats: { intelligence: 10 }, tier: 2 },
+            jazz: { name: '재즈', icon: '🎷', effect: '매력 +10', stats: { charm: 10 }, tier: 2 },
+            rock: { name: '록', icon: '🤘', effect: '체력 +10', stats: { strength: 10 }, tier: 2 },
+            pop: { name: '팝', icon: '🎤', effect: '지력 +5, 매력 +5', stats: { intelligence: 5, charm: 5 }, tier: 2 },
+            ballad: { name: '발라드', icon: '💕', effect: '체력 +5, 매력 +5', stats: { strength: 5, charm: 5 }, tier: 2 },
+            edm: { name: 'EDM', icon: '⚡', effect: '지력 +5, 체력 +5', stats: { intelligence: 5, strength: 5 }, tier: 2 },
+            
+            // 3단계: 프리미엄 장르 (장르 합성으로 획득)
+            symphonic_metal: { name: '심포닉 메탈', icon: '🔥🎻', effect: '지력 +10, 체력 +5', stats: { intelligence: 10, strength: 5 }, tier: 3 },
+            future_jazz: { name: '퓨처 재즈', icon: '🎷⚡', effect: '매력 +10, 지력 +5', stats: { charm: 10, intelligence: 5 }, tier: 3 },
+            pop_ballad: { name: '팝 발라드', icon: '💝', effect: '매력 +10, 체력 +5', stats: { charm: 10, strength: 5 }, tier: 3 },
+            electro_rock: { name: '일렉트로 록', icon: '⚡🎸', effect: '체력 +10, 지력 +5', stats: { strength: 10, intelligence: 5 }, tier: 3 },
+            crossover: { name: '크로스오버', icon: '🎩', effect: '지력 +10, 매력 +5', stats: { intelligence: 10, charm: 5 }, tier: 3 },
+            jazz_ballad: { name: '재즈 발라드', icon: '🌙', effect: '매력 +10, 체력 +5', stats: { charm: 10, strength: 5 }, tier: 3 },
+            
+            // 4단계: 전설 장르 (프리미엄 합성으로 획득)
+            maestro: { name: '마에스트로', icon: '👑🎵', effect: '지력 +10, 매력 +10', stats: { intelligence: 10, charm: 10 }, tier: 4 },
+            cyberpunk: { name: '사이버펑크', icon: '🤖🎸', effect: '지력 +10, 체력 +10', stats: { intelligence: 10, strength: 10 }, tier: 4 },
+            serenade: { name: '세레나데', icon: '💕🌹', effect: '매력 +10, 체력 +10', stats: { charm: 10, strength: 10 }, tier: 4 }
         };
+        
+        // 채집/상점용 기본 악기 목록
+        const BASIC_MUSIC = ['piano', 'violin', 'guitar', 'drum', 'trumpet', 'synth'];
 
         const DECORATION_TYPES = {
             // 불 속성 (6개)
@@ -3007,6 +3034,20 @@
                 recipes: [
                     'flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'
                 ]
+            },
+            music: {
+                name: '레코드 레시피북',
+                icon: '📘',
+                price: 400,
+                desc: '모든 레코드 합성 레시피가 담긴 책',
+                recipes: [
+                    // 티어 2: 장르 레코드
+                    'classic', 'jazz', 'rock', 'pop', 'ballad', 'edm',
+                    // 티어 3: 프리미엄 장르
+                    'symphonic_metal', 'future_jazz', 'pop_ballad', 'electro_rock', 'crossover', 'jazz_ballad',
+                    // 티어 4: 전설 장르
+                    'maestro', 'cyberpunk', 'serenade'
+                ]
             }
         };
 
@@ -3020,7 +3061,14 @@
             earth_pie: { name: '대지버섯 볶음', icon: '🥘', type: 'food', attr: 'earth', attrGain: 6, affectionGain: 3, growthGain: 2 },
             light_cookie: { name: '넥타르', icon: '🍯', type: 'food', attr: 'light', attrGain: 6, affectionGain: 3, growthGain: 2 },
             dark_chocolate: { name: '다크 초콜릿', icon: '🍫', type: 'food', attr: 'dark', attrGain: 6, affectionGain: 3, growthGain: 2 },
-            rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'all', attrGain: 3, affectionGain: 5, growthGain: 2 },
+            rainbow_cake: { name: '무지개 케이크', icon: '🎂', type: 'food', attr: 'dual', dualAttr: ['light', 'dark'], attrGain: 4, affectionGain: 3, growthGain: 2 },
+            
+            // 희귀 합성 재료 (효과 없음)
+            moon_cheese: { name: '달치즈', icon: '🧀🌙', type: 'food', attr: 'dark', attrGain: 0, affectionGain: 0, growthGain: 0 },
+            golden_apple: { name: '황금사과', icon: '🍎✨', type: 'food', attr: 'light', attrGain: 0, affectionGain: 0, growthGain: 0 },
+            
+            // 전설 합성 먹이
+            celestial_sandwich: { name: '천체의 샌드위치', icon: '🥪🌌', type: 'food', attr: 'all', attrGain: 5, affectionGain: 5, growthGain: 2 },
             
             // 먹이 합성 결과물 (혼합 속성)
             fire_water_steam: { name: '스팀 푸딩', icon: '♨️', type: 'food', attr: 'dual', dualAttr: ['fire', 'water'], attrGain: 4, affectionGain: 3, growthGain: 2 },
@@ -3285,6 +3333,142 @@
                 ],
                 result: { type: 'dark_nectar', count: 2 },
                 category: 'food'
+            },
+            // 전설 먹이 - 천체의 샌드위치
+            celestial_sandwich: {
+                ingredients: [
+                    { type: 'moon_cheese', category: 'food', count: 1 },
+                    { type: 'golden_apple', category: 'food', count: 1 }
+                ],
+                result: { type: 'celestial_sandwich', count: 1 },
+                category: 'food'
+            },
+            
+            // ===== 레코드 합성 레시피 =====
+            // 2단계: 장르 레코드 (악기 3+3 = 장르 2개)
+            classic: {
+                ingredients: [
+                    { type: 'piano', category: 'music', count: 3 },
+                    { type: 'violin', category: 'music', count: 3 }
+                ],
+                result: { type: 'classic', count: 2 },
+                category: 'music'
+            },
+            jazz: {
+                ingredients: [
+                    { type: 'trumpet', category: 'music', count: 3 },
+                    { type: 'synth', category: 'music', count: 3 }
+                ],
+                result: { type: 'jazz', count: 2 },
+                category: 'music'
+            },
+            rock: {
+                ingredients: [
+                    { type: 'guitar', category: 'music', count: 3 },
+                    { type: 'drum', category: 'music', count: 3 }
+                ],
+                result: { type: 'rock', count: 2 },
+                category: 'music'
+            },
+            pop: {
+                ingredients: [
+                    { type: 'piano', category: 'music', count: 3 },
+                    { type: 'trumpet', category: 'music', count: 3 }
+                ],
+                result: { type: 'pop', count: 2 },
+                category: 'music'
+            },
+            ballad: {
+                ingredients: [
+                    { type: 'guitar', category: 'music', count: 3 },
+                    { type: 'synth', category: 'music', count: 3 }
+                ],
+                result: { type: 'ballad', count: 2 },
+                category: 'music'
+            },
+            edm: {
+                ingredients: [
+                    { type: 'violin', category: 'music', count: 3 },
+                    { type: 'drum', category: 'music', count: 3 }
+                ],
+                result: { type: 'edm', count: 2 },
+                category: 'music'
+            },
+            
+            // 3단계: 프리미엄 장르 (장르 1+1 = 프리미엄 1개)
+            symphonic_metal: {
+                ingredients: [
+                    { type: 'classic', category: 'music', count: 1 },
+                    { type: 'rock', category: 'music', count: 1 }
+                ],
+                result: { type: 'symphonic_metal', count: 1 },
+                category: 'music'
+            },
+            future_jazz: {
+                ingredients: [
+                    { type: 'jazz', category: 'music', count: 1 },
+                    { type: 'edm', category: 'music', count: 1 }
+                ],
+                result: { type: 'future_jazz', count: 1 },
+                category: 'music'
+            },
+            pop_ballad: {
+                ingredients: [
+                    { type: 'pop', category: 'music', count: 1 },
+                    { type: 'ballad', category: 'music', count: 1 }
+                ],
+                result: { type: 'pop_ballad', count: 1 },
+                category: 'music'
+            },
+            electro_rock: {
+                ingredients: [
+                    { type: 'rock', category: 'music', count: 1 },
+                    { type: 'edm', category: 'music', count: 1 }
+                ],
+                result: { type: 'electro_rock', count: 1 },
+                category: 'music'
+            },
+            crossover: {
+                ingredients: [
+                    { type: 'classic', category: 'music', count: 1 },
+                    { type: 'jazz', category: 'music', count: 1 }
+                ],
+                result: { type: 'crossover', count: 1 },
+                category: 'music'
+            },
+            jazz_ballad: {
+                ingredients: [
+                    { type: 'ballad', category: 'music', count: 1 },
+                    { type: 'jazz', category: 'music', count: 1 }
+                ],
+                result: { type: 'jazz_ballad', count: 1 },
+                category: 'music'
+            },
+            
+            // 4단계: 전설 장르 (프리미엄 1+1 = 전설 1개)
+            maestro: {
+                ingredients: [
+                    { type: 'symphonic_metal', category: 'music', count: 1 },
+                    { type: 'crossover', category: 'music', count: 1 }
+                ],
+                result: { type: 'maestro', count: 1 },
+                category: 'music'
+            },
+            cyberpunk: {
+                ingredients: [
+                    { type: 'electro_rock', category: 'music', count: 1 },
+                    { type: 'future_jazz', category: 'music', count: 1 }
+                ],
+                result: { type: 'cyberpunk', count: 1 },
+                category: 'music'
+            },
+            serenade: {
+                ingredients: [
+                    { type: 'pop_ballad', category: 'music', count: 1 },
+                    { type: 'jazz_ballad', category: 'music', count: 1 }
+                ],
+                result: { type: 'serenade', count: 1 },
+                category: 'music'
             }
         };
         
@@ -5115,8 +5299,10 @@
             const eventFoods = [];
             const normalFoods = [];
             const synthFoods = [];
+            const legendaryMaterials = []; // 전설 합성 재료 (달치즈, 황금사과)
             const etcFoods = []; // 기타 먹이 (수선화 꽃잎, 아카시아 꿀)
             const ETC_FOOD_TYPES = ['reconciliation_flower', 'acacia_honey'];
+            const LEGENDARY_MATERIAL_TYPES = ['moon_cheese', 'golden_apple'];
             
             // 고정된 순서대로 정렬
             FOOD_ORDER.forEach(type => {
@@ -5132,11 +5318,13 @@
                 }
             });
             
-            // 합성 먹이 (수선화 꽃잎, 아카시아 꿀 제외)
+            // 합성 먹이 (수선화 꽃잎, 아카시아 꿀, 전설 재료 제외)
             Object.keys(SYNTH_ITEMS).forEach(type => {
                 if (foodCounts[type] && SYNTH_ITEMS[type].type === 'food') {
                     if (ETC_FOOD_TYPES.includes(type)) {
                         etcFoods.push([type, foodCounts[type]]);
+                    } else if (LEGENDARY_MATERIAL_TYPES.includes(type)) {
+                        legendaryMaterials.push([type, foodCounts[type]]);
                     } else {
                         synthFoods.push([type, foodCounts[type]]);
                     }
@@ -5205,6 +5393,23 @@
                         `;
                     }).join('')}
                 </div>
+                ${legendaryMaterials.length > 0 ? `
+                    <div style="font-weight: 600; margin: 15px 0 10px 0; color: #ffd700;">🌌 전설 재료 (합성용)</div>
+                    <div class="food-grid">
+                        ${legendaryMaterials.map(([type, count]) => {
+                            const item = SYNTH_ITEMS[type];
+                            return `
+                                <button class="option-btn" style="border: 2px solid #ffd700;" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
+                                    <span class="option-icon">${item.icon}</span>
+                                    <div class="option-info">
+                                        <div class="option-name">${item.name} ×${count}</div>
+                                        <div class="option-effect" style="color: #888;">효과 없음 (합성 재료)</div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : ''}
                 ${etcFoods.length > 0 ? `
                     <div style="font-weight: 600; margin: 15px 0 10px 0; color: var(--text);">📦 기타</div>
                     <div class="food-grid">
@@ -5387,7 +5592,10 @@
                 renderInventory();
                 
                 let effectMsg;
-                if (synthItem.attr === 'all') {
+                const isLegendaryMaterial = foodType === 'moon_cheese' || foodType === 'golden_apple';
+                if (isLegendaryMaterial) {
+                    effectMsg = '효과 없음 (합성 재료)';
+                } else if (synthItem.attr === 'all') {
                     effectMsg = `전속성 +${synthItem.attrGain}`;
                 } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
                     effectMsg = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
@@ -5402,8 +5610,9 @@
                 } else {
                     effectMsg = `${synthItem.attr} +${synthItem.attrGain}`;
                 }
-                const growthText = synthItem.growthGain ? `, 성장 ${synthItem.growthGain > 0 ? '+' : ''}${synthItem.growthGain}` : '';
-                showNotification(`${synthItem.icon} ${synthItem.name}을(를) 주었습니다! (${effectMsg}, 애정도 +${synthItem.affectionGain}${growthText})`);
+                const growthText = (!isLegendaryMaterial && synthItem.growthGain) ? `, 성장 ${synthItem.growthGain > 0 ? '+' : ''}${synthItem.growthGain}` : '';
+                const affectionText = (!isLegendaryMaterial && synthItem.affectionGain) ? `, 애정도 +${synthItem.affectionGain}` : '';
+                showNotification(`${synthItem.icon} ${synthItem.name}을(를) 주었습니다! (${effectMsg}${affectionText}${growthText})`);
                 
                 // 튜토리얼 체크
                 checkTutorialAction('feed');
@@ -5482,15 +5691,26 @@
                 musicCounts[m] = (musicCounts[m] || 0) + 1;
             });
             
-            // 이벤트 음악과 일반 음악 분리 (고정 순서)
+            // 이벤트 음악과 일반 음악 분리 (티어별 정렬)
             const eventMusic = [];
-            const normalMusic = [];
+            const tier1Music = []; // 기본 악기
+            const tier2Music = []; // 장르
+            const tier3Music = []; // 프리미엄
+            const tier4Music = []; // 전설
             
-            // 일반 음악 순서
-            const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
-            musicOrder.forEach(type => {
+            // MUSIC_TYPES에서 모든 레코드 분류
+            Object.keys(MUSIC_TYPES).forEach(type => {
                 if (musicCounts[type]) {
-                    normalMusic.push([type, musicCounts[type]]);
+                    const musicData = MUSIC_TYPES[type];
+                    if (musicData.tier === 1) {
+                        tier1Music.push([type, musicCounts[type]]);
+                    } else if (musicData.tier === 2) {
+                        tier2Music.push([type, musicCounts[type]]);
+                    } else if (musicData.tier === 3) {
+                        tier3Music.push([type, musicCounts[type]]);
+                    } else if (musicData.tier === 4) {
+                        tier4Music.push([type, musicCounts[type]]);
+                    }
                 }
             });
             
@@ -5515,29 +5735,60 @@
                 `;
             }).join('');
             
-            // 일반 음악 HTML
-            const musicHTML = normalMusic.map(([type, count]) => {
-                const musicData = MUSIC_TYPES[type];
-                return `
-                    <button class="option-btn" onclick="playMusicByType('${type}')">
-                        <span class="option-icon">${musicData.icon}</span>
-                        <div class="option-info">
-                            <div class="option-name">${musicData.name} ×${count}</div>
-                            <div class="option-effect">${musicData.effect}</div>
-                        </div>
-                    </button>
-                `;
-            }).join('');
+            // 티어별 음악 HTML 생성 함수
+            function makeMusicHTML(musicArray, borderColor = 'var(--border)') {
+                return musicArray.map(([type, count]) => {
+                    const musicData = MUSIC_TYPES[type];
+                    return `
+                        <button class="option-btn" style="border: 2px solid ${borderColor};" onclick="playMusicByType('${type}')">
+                            <span class="option-icon">${musicData.icon}</span>
+                            <div class="option-info">
+                                <div class="option-name">${musicData.name} ×${count}</div>
+                                <div class="option-effect">${musicData.effect}</div>
+                            </div>
+                        </button>
+                    `;
+                }).join('');
+            }
             
             let html = '<div class="music-grid">';
+            
+            // 이벤트 음악
             if (eventMusicHTML) {
                 html += `<div style="width: 100%; font-weight: 600; color: #c41e3a; margin-bottom: 10px;">🎄 이벤트 음악</div>`;
                 html += eventMusicHTML;
-                if (musicHTML) {
-                    html += `<div style="width: 100%; font-weight: 600; color: var(--text); margin: 15px 0 10px;">🎵 일반 음악</div>`;
-                }
             }
-            html += musicHTML + '</div>';
+            
+            // 전설 레코드 (티어 4)
+            if (tier4Music.length > 0) {
+                html += `<div style="width: 100%; font-weight: 600; color: #ffd700; margin: 15px 0 10px;">👑 전설 레코드</div>`;
+                html += makeMusicHTML(tier4Music, '#ffd700');
+            }
+            
+            // 프리미엄 레코드 (티어 3)
+            if (tier3Music.length > 0) {
+                html += `<div style="width: 100%; font-weight: 600; color: #9b59b6; margin: 15px 0 10px;">✨ 프리미엄 레코드</div>`;
+                html += makeMusicHTML(tier3Music, '#9b59b6');
+            }
+            
+            // 장르 레코드 (티어 2)
+            if (tier2Music.length > 0) {
+                html += `<div style="width: 100%; font-weight: 600; color: #3498db; margin: 15px 0 10px;">🎵 장르 레코드</div>`;
+                html += makeMusicHTML(tier2Music, '#3498db');
+            }
+            
+            // 기본 악기 (티어 1)
+            if (tier1Music.length > 0) {
+                html += `<div style="width: 100%; font-weight: 600; color: var(--text); margin: 15px 0 10px;">🎹 악기 레코드</div>`;
+                html += makeMusicHTML(tier1Music, 'var(--border)');
+            }
+            
+            html += '</div>';
+            
+            if (!eventMusicHTML && tier1Music.length === 0 && tier2Music.length === 0 && tier3Music.length === 0 && tier4Music.length === 0) {
+                html = '<p style="text-align: center; color: #888;">레코드가 없습니다</p>';
+            }
+            
             container.innerHTML = html;
         }
 
@@ -5600,31 +5851,53 @@
             }
 
             const musicData = MUSIC_TYPES[musicType];
+            if (!musicData) {
+                showNotification('알 수 없는 음악입니다');
+                return;
+            }
             
             // 만족도 즉시 계산
             spirit.satisfaction = calculateSatisfaction(spirit);
-            const singleStatBonus = spirit.satisfaction === 'high' ? 2 : 0; // 단일 스탯 +2
-            const dualStatBonus = spirit.satisfaction === 'high' ? 1 : 0;   // 복수 스탯 각 +1
             
             // 지력 50 이상이면 "똑똑한" 효과: 모든 스탯 보너스 +2
             const smartBonus = spirit.parameters.intelligence >= 50 ? 2 : 0;
             
-            // 효과 적용 (만족도 높으면 보너스 + 똑똑한 보너스)
-            if (musicType === 'classic') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + singleStatBonus + smartBonus);
-            } else if (musicType === 'jazz') {
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + singleStatBonus + smartBonus);
-            } else if (musicType === 'rock') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + singleStatBonus + smartBonus);
-            } else if (musicType === 'pop') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus + smartBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus + smartBonus);
-            } else if (musicType === 'ballad') {
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus + smartBonus);
-                spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus + smartBonus);
-            } else if (musicType === 'edm') {
-                spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus + smartBonus);
-                spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus + smartBonus);
+            // stats 기반 동적 효과 적용
+            if (musicData.stats) {
+                const statCount = Object.keys(musicData.stats).length;
+                // 단일 스탯이면 +2 보너스, 복수 스탯이면 +1 보너스 (만족도 높을 때)
+                const satisfactionBonus = spirit.satisfaction === 'high' ? (statCount === 1 ? 2 : 1) : 0;
+                
+                if (musicData.stats.intelligence) {
+                    spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + musicData.stats.intelligence + satisfactionBonus + smartBonus);
+                }
+                if (musicData.stats.strength) {
+                    spirit.parameters.strength = Math.min(100, spirit.parameters.strength + musicData.stats.strength + satisfactionBonus + smartBonus);
+                }
+                if (musicData.stats.charm) {
+                    spirit.parameters.charm = Math.min(100, spirit.parameters.charm + musicData.stats.charm + satisfactionBonus + smartBonus);
+                }
+            } else {
+                // 이전 버전 호환 (stats가 없는 레코드) - 기존 하드코딩
+                const singleStatBonus = spirit.satisfaction === 'high' ? 2 : 0;
+                const dualStatBonus = spirit.satisfaction === 'high' ? 1 : 0;
+                
+                if (musicType === 'classic') {
+                    spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 10 + singleStatBonus + smartBonus);
+                } else if (musicType === 'jazz') {
+                    spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 10 + singleStatBonus + smartBonus);
+                } else if (musicType === 'rock') {
+                    spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 10 + singleStatBonus + smartBonus);
+                } else if (musicType === 'pop') {
+                    spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus + smartBonus);
+                    spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus + smartBonus);
+                } else if (musicType === 'ballad') {
+                    spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus + smartBonus);
+                    spirit.parameters.charm = Math.min(100, spirit.parameters.charm + 5 + dualStatBonus + smartBonus);
+                } else if (musicType === 'edm') {
+                    spirit.parameters.intelligence = Math.min(100, spirit.parameters.intelligence + 5 + dualStatBonus + smartBonus);
+                    spirit.parameters.strength = Math.min(100, spirit.parameters.strength + 5 + dualStatBonus + smartBonus);
+                }
             }
 
             // 애정도 증가 (만족도 높으면 +1 보너스)
@@ -5999,6 +6272,8 @@
             
             const baseBonus = currentTitle !== 'none' && titleBonus[currentTitle] ? titleBonus[currentTitle] : 1.0;
             const foodBonus = currentTitle === 'gatherer' ? 2.0 : baseBonus;
+            const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
+            const musicBonus = currentTitle === 'musician' ? 2.0 : baseBonus;
             
             // 장소별 먹이 타입
             let locationFoodTypes = [];
@@ -6015,28 +6290,34 @@
                 locationDecoTypes = ['earth', 'fire'];
             }
             
-            // 80% 확률로 일반 먹이 발견 (장소 고정)
+            // 합성 전용 미니어처 목록 (채집 불가)
+            const synthOnlyDecos = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
+            
+            // ===== 자동채집 가능 =====
+            
+            // 1. 80% 확률로 일반 먹이 발견 (불물땅바람)
             if (Math.random() < (0.8 * foodBonus * autoGatherMultiplier)) {
                 const randomFood = locationFoodTypes[Math.floor(Math.random() * locationFoodTypes.length)];
                 inventory.food.push(randomFood);
                 discoveries.push(`🍎 ${FOOD_NAMES[randomFood]}`);
             }
 
-            // 40% 확률로 희귀 먹이 발견 (빛암)
-            if (Math.random() < (0.4 * foodBonus * autoGatherMultiplier)) {
+            // 2. 50% 확률로 희귀 먹이 발견 (빛어둠)
+            if (Math.random() < (0.5 * foodBonus * autoGatherMultiplier)) {
                 const rareFoodTypes = ['light', 'dark'];
                 const randomRareFood = rareFoodTypes[Math.floor(Math.random() * rareFoodTypes.length)];
                 inventory.food.push(randomRareFood);
                 discoveries.push(`${FOOD_NAMES[randomRareFood]}`);
             }
-
-            // 미니어처 채집 (장소별 + 등급별 확률)
-            const decoBonus = currentTitle === 'collector' ? 2.0 : baseBonus;
             
-            // 합성 전용 미니어처 목록 (채집 불가)
-            const synthOnlyDecos = ['flame_lamp', 'aqua_fountain', 'wind_chime', 'earth_statue', 'light_orb', 'shadow_crystal'];
+            // 3. 35% 확률로 악기 레코드 발견
+            if (Math.random() < (0.35 * musicBonus * autoGatherMultiplier)) {
+                const randomMusic = BASIC_MUSIC[Math.floor(Math.random() * BASIC_MUSIC.length)];
+                inventory.music.push(randomMusic);
+                discoveries.push(`${MUSIC_TYPES[randomMusic].icon} ${MUSIC_TYPES[randomMusic].name}`);
+            }
             
-            // 50% 확률로 일반(common) 미니어처 (장소 고정)
+            // 4. 50% 확률로 일반(common) 미니어처 (불물땅바람)
             if (Math.random() < (0.5 * decoBonus * autoGatherMultiplier)) {
                 const commonDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
@@ -6049,39 +6330,50 @@
                 }
             }
             
-            // 20% 확률로 희귀(rare) 미니어처 (장소 고정)
+            // 5. 20% 확률로 빛/어둠 속성 미니어처 (common)
             if (Math.random() < (0.2 * decoBonus * autoGatherMultiplier)) {
-                const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
+                const lightDarkDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'rare' && locationDecoTypes.includes(deco.attr) && !synthOnlyDecos.includes(key);
+                    return deco.quality === 'common' && ['light', 'dark'].includes(deco.attr) && !synthOnlyDecos.includes(key);
                 });
-                if (rareDecos.length > 0) {
-                    const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
+                if (lightDarkDecos.length > 0) {
+                    const randomDeco = lightDarkDecos[Math.floor(Math.random() * lightDarkDecos.length)];
                     inventory.decorations.push(randomDeco);
                     discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name}`);
                 }
             }
             
-            // 8% 확률로 최상급(epic) 미니어처 (장소 고정) - 자동 채집에서는 제외
-            if (!isAuto && Math.random() < (0.08 * decoBonus)) {
-                const epicDecos = Object.keys(DECORATION_TYPES).filter(key => {
+            // ===== 자동채집 불가 =====
+            
+            // 6. 20% 확률로 희귀(rare/epic) 미니어처 - 자동 채집 불가
+            if (!isAuto && Math.random() < (0.2 * decoBonus)) {
+                const rareDecos = Object.keys(DECORATION_TYPES).filter(key => {
                     const deco = DECORATION_TYPES[key];
-                    return deco.quality === 'epic' && locationDecoTypes.includes(deco.attr) && !synthOnlyDecos.includes(key);
+                    return (deco.quality === 'rare' || deco.quality === 'epic') && !synthOnlyDecos.includes(key);
                 });
-                if (epicDecos.length > 0) {
-                    const randomDeco = epicDecos[Math.floor(Math.random() * epicDecos.length)];
+                if (rareDecos.length > 0) {
+                    const randomDeco = rareDecos[Math.floor(Math.random() * rareDecos.length)];
+                    const qualityLabel = DECORATION_TYPES[randomDeco].quality === 'epic' ? '(최상급!)' : '(희귀)';
                     inventory.decorations.push(randomDeco);
-                    discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name} (최상급!)`);
+                    discoveries.push(`${DECORATION_TYPES[randomDeco].icon} ${DECORATION_TYPES[randomDeco].name} ${qualityLabel}`);
                 }
             }
-
-            // 15% 확률로 음악 레코드 발견
-            const musicBonus = currentTitle === 'musician' ? 2.0 : baseBonus;
-            if (Math.random() < (0.15 * musicBonus * autoGatherMultiplier)) {
-                const musicKeys = Object.keys(MUSIC_TYPES);
-                const randomMusic = musicKeys[Math.floor(Math.random() * musicKeys.length)];
-                inventory.music.push(randomMusic);
-                discoveries.push(`${MUSIC_TYPES[randomMusic].name}`);
+            
+            // 7. 10% 확률로 장르 레코드 발견 - 자동 채집 불가
+            if (!isAuto && Math.random() < (0.1 * musicBonus)) {
+                const genreRecords = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
+                const randomGenre = genreRecords[Math.floor(Math.random() * genreRecords.length)];
+                inventory.music.push(randomGenre);
+                discoveries.push(`${MUSIC_TYPES[randomGenre].icon} ${MUSIC_TYPES[randomGenre].name} (장르!)`);
+            }
+            
+            // 8. 5% 확률로 전설 재료 발견 (달치즈/황금사과) - 자동 채집 불가
+            if (!isAuto && Math.random() < (0.05 * foodBonus)) {
+                const legendaryFoods = ['moon_cheese', 'golden_apple'];
+                const randomLegendary = legendaryFoods[Math.floor(Math.random() * legendaryFoods.length)];
+                inventory.food.push(randomLegendary);
+                const legendaryItem = SYNTH_ITEMS[randomLegendary];
+                discoveries.push(`${legendaryItem.icon} ${legendaryItem.name} (전설!)`);
             }
 
             if (discoveries.length === 0) {
@@ -6293,11 +6585,14 @@
                 
                 // 합성 먹이 아이템 추가 (수선화 꽃잎, 아카시아 꿀은 일반 먹이로 분류되어 제외)
                 const etcFoods = ['reconciliation_flower', 'acacia_honey'];
+                const legendaryMaterials = ['moon_cheese', 'golden_apple'];
                 Object.keys(foodCounts).forEach(key => {
                     if (SYNTH_ITEMS[key] && SYNTH_ITEMS[key].type === 'food' && !etcFoods.includes(key)) {
+                        const borderColor = legendaryMaterials.includes(key) ? '#ffd700' : '#9b59b6';
+                        const label = legendaryMaterials.includes(key) ? '🌌' : '';
                         foodHTML += `
-                            <div class="inventory-item" title="${SYNTH_ITEMS[key].name}" style="border: 1px solid #9b59b6;">
-                                ${SYNTH_ITEMS[key].icon} ×${foodCounts[key]}
+                            <div class="inventory-item" title="${SYNTH_ITEMS[key].name}" style="border: 2px solid ${borderColor};">
+                                ${label}${SYNTH_ITEMS[key].icon} ×${foodCounts[key]}
                             </div>
                         `;
                     }
@@ -6317,20 +6612,27 @@
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
-                let musicHTML = musicOrder
-                    .filter(type => musicCounts[type])
-                    .map(type => `
-                        <div class="inventory-item">
-                            ${MUSIC_TYPES[type].icon} ×${musicCounts[type]}
-                        </div>
-                    `).join('');
+                
+                // 티어별로 정렬하여 표시
+                let musicHTML = '';
+                Object.keys(musicCounts).forEach(type => {
+                    const musicData = MUSIC_TYPES[type];
+                    if (musicData) {
+                        const tierColor = musicData.tier === 4 ? '#ffd700' : musicData.tier === 3 ? '#9b59b6' : musicData.tier === 2 ? '#3498db' : 'var(--border)';
+                        const tierLabel = musicData.tier === 4 ? '👑' : musicData.tier === 3 ? '✨' : musicData.tier === 2 ? '★' : '';
+                        musicHTML += `
+                            <div class="inventory-item" title="${musicData.name} (${musicData.effect})" style="border: 2px solid ${tierColor};">
+                                ${tierLabel}${musicData.icon} ×${musicCounts[type]}
+                            </div>
+                        `;
+                    }
+                });
                 
                 // 이벤트 음악 아이템 추가
                 Object.keys(musicCounts).forEach(key => {
                     if (EVENT_ITEMS[key] && EVENT_ITEMS[key].type === 'music') {
                         musicHTML += `
-                            <div class="inventory-item" title="${EVENT_ITEMS[key].name}">
+                            <div class="inventory-item" title="${EVENT_ITEMS[key].name}" style="border: 2px solid #c41e3a;">
                                 ${EVENT_ITEMS[key].icon} ×${musicCounts[key]}
                             </div>
                         `;
@@ -7034,7 +7336,8 @@
                     backups.unshift({
                         timestamp: Date.now(),
                         collection: [...collection],
-                        encyclopedia: {...encyclopedia}
+                        encyclopedia: {...encyclopedia},
+                        encyclopediaDetails: JSON.parse(JSON.stringify(encyclopediaDetails))
                     });
                     // 최근 10개만 유지
                     if (backups.length > 10) backups.length = 10;
@@ -9131,7 +9434,10 @@
                         const isLocked = lockedItems.food.includes(type);
                         
                         let effectText;
-                        if (synthItem.attr === 'all') {
+                        const isLegendaryMaterial = ['moon_cheese', 'golden_apple'].includes(type);
+                        if (isLegendaryMaterial) {
+                            effectText = '효과 없음 (합성 재료)';
+                        } else if (synthItem.attr === 'all') {
                             effectText = `전속성 +${synthItem.attrGain}`;
                         } else if (synthItem.attr === 'dual') {
                             effectText = `${synthItem.dualAttr.join('+')} 각 +${synthItem.attrGain}`;
@@ -9141,7 +9447,8 @@
                             effectText = `${synthItem.attr} +${synthItem.attrGain}`;
                         }
                         
-                        const labelText = isEtcItem ? '<span style="font-size: 0.75rem; color: #888;">기타</span>' : '<span style="font-size: 0.75rem; color: #9b59b6;">합성</span>';
+                        const labelText = isLegendaryMaterial ? '<span style="font-size: 0.75rem; color: #ffd700;">🌌전설재료</span>' : isEtcItem ? '<span style="font-size: 0.75rem; color: #888;">기타</span>' : '<span style="font-size: 0.75rem; color: #9b59b6;">합성</span>';
+                        const borderColor = isLegendaryMaterial ? '#ffd700' : isEtcItem ? '#888' : '#9b59b6';
                         
                         let actionButton;
                         if (isLockMode) {
@@ -9155,12 +9462,12 @@
                         }
                         
                         const itemHtml = `
-                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : '#9b59b6'}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#e74c3c' : borderColor}; border-radius: 8px; ${isLocked && !isLockMode ? 'opacity: 0.7;' : ''}">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                    <span style="font-size: 1.5rem;">${isEtcItem ? '' : '🔬'}${synthItem.icon}</span>
+                                    <span style="font-size: 1.5rem;">${isLegendaryMaterial ? '' : isEtcItem ? '' : '🔬'}${synthItem.icon}</span>
                                     <div style="flex: 1; min-width: 0;">
                                         <div style="font-weight: 700; font-size: 0.9rem;">${synthItem.name} ×${count} ${labelText}${isLocked ? ' 🔒' : ''}</div>
-                                        <div style="font-size: 0.75rem; color: #9b59b6;">${effectText}</div>
+                                        <div style="font-size: 0.75rem; color: ${isLegendaryMaterial ? '#888' : '#9b59b6'};">${effectText}</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: 8💰</div>
                                     </div>
                                 </div>
@@ -9382,26 +9689,28 @@
             
 
             if (currentShopCategory === 'all' || currentShopCategory === 'music') {
-                // 음악 판매 (순서 고정)
+                // 음악 판매 (모든 MUSIC_TYPES 레코드)
                 if (inventory.music && inventory.music.length > 0) {
                     const musicCounts = {};
                     inventory.music.forEach(m => {
                         musicCounts[m] = (musicCounts[m] || 0) + 1;
                     });
 
-                    const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
-                    musicOrder.filter(type => musicCounts[type]).forEach(type => {
+                    // 모든 MUSIC_TYPES 레코드 표시 (티어순 정렬)
+                    Object.keys(MUSIC_TYPES).forEach(type => {
+                        if (!musicCounts[type]) return;
+                        
                         const musicData = MUSIC_TYPES[type];
                         
-                        // 스탯 필터 체크 (음악 전용, 복합 스탯 음악도 해당 필터에 표시)
+                        // 스탯 필터 체크 (stats 기반 동적 필터링)
                         if (sellFilter === 'all') {
-                            // 전체 보기일 때는 필터링 안 함
+                            // 전체 보기
                         } else if (sellFilter === 'intelligence') {
-                            if (!['classic', 'pop', 'edm'].includes(type)) return;
+                            if (!musicData.stats?.intelligence) return;
                         } else if (sellFilter === 'strength') {
-                            if (!['rock', 'ballad', 'edm'].includes(type)) return;
+                            if (!musicData.stats?.strength) return;
                         } else if (sellFilter === 'charm') {
-                            if (!['jazz', 'pop', 'ballad'].includes(type)) return;
+                            if (!musicData.stats?.charm) return;
                         } else if (['fire', 'water', 'wind', 'earth', 'light', 'dark'].includes(sellFilter)) {
                             return; // 속성 필터 시 음악 숨김
                         }
@@ -9409,26 +9718,30 @@
                         const count = musicCounts[type];
                         const isLocked = lockedItems.music.includes(type);
                         
+                        // 티어별 색상
+                        const tierColor = musicData.tier === 4 ? '#ffd700' : musicData.tier === 3 ? '#9b59b6' : musicData.tier === 2 ? '#3498db' : 'var(--border)';
+                        const tierLabel = musicData.tier === 4 ? ' <span style="color: #ffd700;">👑전설</span>' : 
+                                         musicData.tier === 3 ? ' <span style="color: #9b59b6;">✨프리미엄</span>' : 
+                                         musicData.tier === 2 ? ' <span style="color: #3498db;">★장르</span>' : '';
+                        
                         // 잠금 모드에 따른 버튼 결정
                         let actionBtn;
                         if (isLockMode) {
-                            // 잠금 모드: 잠금/해제 버튼
                             actionBtn = isLocked 
                                 ? `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">해제</button>`
                                 : `<button onclick="toggleItemLock('music', '${type}')" style="padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">잠금</button>`;
                         } else {
-                            // 일반 모드: 판매 버튼 또는 잠금 표시
                             actionBtn = isLocked 
                                 ? `<button disabled style="padding: 8px 16px; background: #95a5a6; color: white; border: none; border-radius: 4px; cursor: not-allowed;">🔒 잠금</button>`
                                 : `<button onclick="sellItem('music', '${type}')" style="padding: 8px 16px; background: var(--fire); color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">판매</button>`;
                         }
                         
                         musicItems.push(`
-                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid ${isLocked ? '#27ae60' : 'var(--border)'}; border-radius: 8px;">
+                            <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${isLocked ? '#27ae60' : tierColor}; border-radius: 8px;">
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                    <span style="font-size: 1.5rem;">🎵</span>
+                                    <span style="font-size: 1.5rem;">${musicData.icon}</span>
                                     <div style="flex: 1; min-width: 0;">
-                                        <div style="font-weight: 700; font-size: 0.9rem;">${musicData.name} ×${count}</div>
+                                        <div style="font-weight: 700; font-size: 0.9rem;">${musicData.name} ×${count}${tierLabel}</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);">${musicData.effect}</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);">판매가: ${SHOP_PRICES.sell.music}💰</div>
                                     </div>
@@ -9760,6 +10073,24 @@
                                 : `<button onclick="buyRecipeBook('decoration')" style="padding: 8px 16px; width: 100%; background: #9b59b6; color: white;">구매</button>`}
                         </div>
                     `);
+                    
+                    // 레시피북 (레코드)
+                    const musicBookPurchased = purchasedRecipeBooks.includes('music');
+                    etcItems.push(`
+                        <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 2px solid ${musicBookPurchased ? '#27ae60' : '#9b59b6'}; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 1.5rem;">${RECIPE_BOOKS.music.icon}</span>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; font-size: 0.9rem;">${RECIPE_BOOKS.music.name} <span style="font-size: 0.7rem; color: #9b59b6;">레시피</span></div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">${RECIPE_BOOKS.music.desc} (${RECIPE_BOOKS.music.recipes.length}개)</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${RECIPE_BOOKS.music.price}💰</div>
+                                </div>
+                            </div>
+                            ${musicBookPurchased 
+                                ? '<span style="padding: 8px 16px; color: #27ae60; font-weight: 700; text-align: center; display: block;">✓ 구매완료</span>'
+                                : `<button onclick="buyRecipeBook('music')" style="padding: 8px 16px; width: 100%; background: #9b59b6; color: white;">구매</button>`}
+                        </div>
+                    `);
                 }
             }
             
@@ -9807,21 +10138,23 @@
                 });
             }
 
-            // 음악 구매 (카테고리가 all 또는 music, 스탯 필터 적용)
+            // 음악 구매 (기본 악기 레코드만 판매)
             if ((currentShopCategory === 'all' || currentShopCategory === 'music') &&
                 (buyFilter === 'all' || ['intelligence', 'strength', 'charm'].includes(buyFilter))) {
-                Object.keys(MUSIC_TYPES).forEach(type => {
-                    // 스탯별 필터링 (복합 스탯 음악도 해당 필터에 표시)
-                    if (buyFilter === 'intelligence' && !['classic', 'pop', 'edm'].includes(type)) return;
-                    if (buyFilter === 'strength' && !['rock', 'ballad', 'edm'].includes(type)) return;
-                    if (buyFilter === 'charm' && !['jazz', 'pop', 'ballad'].includes(type)) return;
-                    
+                BASIC_MUSIC.forEach(type => {
                     const musicData = MUSIC_TYPES[type];
+                    if (!musicData) return;
+                    
+                    // 스탯별 필터링
+                    if (buyFilter === 'intelligence' && !musicData.stats?.intelligence) return;
+                    if (buyFilter === 'strength' && !musicData.stats?.strength) return;
+                    if (buyFilter === 'charm' && !musicData.stats?.charm) return;
+                    
                     const ownedCount = inventory.music ? inventory.music.filter(m => m === type).length : 0;
                     musicItems.push(`
                         <div style="display: flex; flex-direction: column; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <span style="font-size: 1.5rem;">🎵</span>
+                                <span style="font-size: 1.5rem;">${musicData.icon}</span>
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 700; font-size: 0.9rem;">${musicData.name} <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">${musicData.effect}</div>
@@ -10030,10 +10363,15 @@
         // 아이템 표시 이름 가져오기
         function getItemDisplayName(category, type) {
             if (category === 'food') {
-                return FOOD_NAMES[type] || type;
+                if (FOOD_NAMES[type]) return FOOD_NAMES[type];
+                if (SYNTH_ITEMS[type]) return SYNTH_ITEMS[type].name;
+                if (EVENT_ITEMS[type]) return EVENT_ITEMS[type].name;
+                return type;
             } else if (category === 'decoration') {
                 const deco = DECORATION_TYPES[type];
-                return deco ? deco.name : type;
+                if (deco) return deco.name;
+                if (SYNTH_ITEMS[type]) return SYNTH_ITEMS[type].name;
+                return type;
             } else if (category === 'music') {
                 const music = MUSIC_TYPES[type];
                 if (music) return music.name;
@@ -10221,6 +10559,10 @@
                 return;
             }
             if (category === 'decoration' && lockedItems.decorations.includes(type)) {
+                showNotification('🔒 이 아이템은 판매 잠금 상태입니다');
+                return;
+            }
+            if (category === 'music' && lockedItems.music.includes(type)) {
                 showNotification('🔒 이 아이템은 판매 잠금 상태입니다');
                 return;
             }
@@ -10958,15 +11300,17 @@
                 const albumCount = backup.collection ? backup.collection.length : 0;
                 const encyclopediaCount = backup.encyclopedia ? Object.keys(backup.encyclopedia).length : 0;
                 const eventCount = backup.collection ? backup.collection.filter(item => item.type && item.type.startsWith('event_')).length : 0;
+                const hasDetails = backup.encyclopediaDetails && Object.keys(backup.encyclopediaDetails).length > 0;
                 
                 const eventText = eventCount > 0 ? ' · <span style="color: #c41e3a;">🎄 이벤트 ' + eventCount + '마리</span>' : '';
+                const detailsText = hasDetails ? ' · <span style="color: #27ae60;">📋 상세정보</span>' : '';
                 
                 backupListHtml += '<div style="padding: 16px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">' +
                     '<div style="display: flex; justify-content: space-between; align-items: center;">' +
                         '<div>' +
                             '<div style="font-weight: 700; margin-bottom: 4px;">' + dateStr + '</div>' +
                             '<div style="font-size: 0.85rem; color: #888;">' +
-                                '앨범: ' + albumCount + '마리 · 도감: ' + encyclopediaCount + '종' + eventText +
+                                '앨범: ' + albumCount + '마리 · 도감: ' + encyclopediaCount + '종' + eventText + detailsText +
                             '</div>' +
                         '</div>' +
                         '<button onclick="restoreAlbumBackup(' + index + ')" style="padding: 8px 16px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">' +
@@ -11027,6 +11371,9 @@
             
             collection = backup.collection || [];
             encyclopedia = backup.encyclopedia || {};
+            if (backup.encyclopediaDetails) {
+                encyclopediaDetails = backup.encyclopediaDetails;
+            }
             saveGame();
             
             closeBackupModal();
@@ -11039,7 +11386,8 @@
             const backupData = {
                 exportDate: new Date().toISOString(),
                 collection: collection,
-                encyclopedia: encyclopedia
+                encyclopedia: encyclopedia,
+                encyclopediaDetails: encyclopediaDetails
             };
             
             const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -11081,6 +11429,9 @@
                     
                     collection = data.collection;
                     encyclopedia = data.encyclopedia || {};
+                    if (data.encyclopediaDetails) {
+                        encyclopediaDetails = data.encyclopediaDetails;
+                    }
                     
                     // 도감이 비어있으면 앨범에서 재구성
                     if (Object.keys(encyclopedia).length === 0 && collection.length > 0) {
@@ -13448,6 +13799,8 @@
                 }
                 // 기본 미니어처
                 return DECORATION_TYPES[type]?.icon || '❓';
+            } else if (category === 'music') {
+                return MUSIC_TYPES[type]?.icon || '🎵';
             }
             return '❓';
         }
@@ -13464,6 +13817,8 @@
                     return SYNTH_ITEMS[type].name;
                 }
                 return DECORATION_TYPES[type]?.name || type;
+            } else if (category === 'music') {
+                return MUSIC_TYPES[type]?.name || type;
             }
             return type;
         }
@@ -13475,6 +13830,8 @@
                 count = inventory.food.filter(f => f === type).length;
             } else if (category === 'decoration') {
                 count = inventory.decorations.filter(d => d === type).length;
+            } else if (category === 'music') {
+                count = inventory.music ? inventory.music.filter(m => m === type).length : 0;
             }
             return count;
         }
@@ -13524,6 +13881,7 @@
                     decoCounts[otherSlot.type] = (decoCounts[otherSlot.type] || 0) - otherSlot.count;
                     if (decoCounts[otherSlot.type] < 0) decoCounts[otherSlot.type] = 0;
                 }
+                // music 카테고리는 레코드 섹션에서 별도 처리
             }
             
             // 레시피에서 필요한 개수 가져오기 (한 슬롯당)
@@ -13658,6 +14016,61 @@
             
             if (!hasDeco) {
                 html += `<div style="color: #888; font-size: 0.85rem;">미니어처가 없습니다</div>`;
+            }
+            
+            html += `
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 15px;">
+                            <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.95rem;">🎵 레코드</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            `;
+            
+            // 레코드 카운트
+            const musicCounts = {};
+            if (inventory.music) {
+                inventory.music.forEach(m => {
+                    musicCounts[m] = (musicCounts[m] || 0) + 1;
+                });
+            }
+            
+            // 다른 슬롯에 올린 레코드 가용량에서 제외
+            if (otherSlot && otherSlot.category === 'music') {
+                musicCounts[otherSlot.type] = (musicCounts[otherSlot.type] || 0) - otherSlot.count;
+                if (musicCounts[otherSlot.type] < 0) musicCounts[otherSlot.type] = 0;
+            }
+            
+            // 레코드 버튼들 (모든 티어 표시)
+            let hasMusic = false;
+            Object.keys(MUSIC_TYPES).forEach(type => {
+                const count = musicCounts[type] || 0;
+                if (count > 0) {
+                    hasMusic = true;
+                    const musicData = MUSIC_TYPES[type];
+                    const needed = getNeededCount(type, 'music');
+                    const isInsufficient = count < needed;
+                    const tierLabel = musicData.tier === 1 ? '' : musicData.tier === 2 ? '★' : musicData.tier === 3 ? '★★' : '★★★';
+                    const tierColor = musicData.tier === 1 ? 'var(--border)' : musicData.tier === 2 ? '#3498db' : musicData.tier === 3 ? '#9b59b6' : '#ffd700';
+                    
+                    if (isInsufficient) {
+                        html += `
+                            <button onclick="showNotification('⚠️ ${musicData.name} 부족! (보유: ${count}개, 필요: ${needed}개)')" style="padding: 8px 12px; border: 2px solid ${tierColor}; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; opacity: 0.5; font-size: 0.85rem;">
+                                ${musicData.icon} ${musicData.name} ×${count} <span style="color: #e74c3c; font-size: 0.7rem;">(${needed}개 필요)</span>
+                            </button>
+                        `;
+                    } else {
+                        html += `
+                            <button onclick="selectLabItem('${type}', 'music')" style="padding: 8px 12px; border: 2px solid ${tierColor}; background: var(--bg); cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                                ${musicData.icon} ${musicData.name} ${tierLabel} ×${count}
+                            </button>
+                        `;
+                    }
+                }
+            });
+            
+            if (!hasMusic) {
+                html += `<div style="color: #888; font-size: 0.85rem;">레코드가 없습니다</div>`;
             }
             
             html += `
@@ -13926,15 +14339,24 @@
                 
                 if (match1 || match2) {
                     // 레시피 발견!
-                    const resultItem = SYNTH_ITEMS[recipe.result.type];
+                    let resultIcon, resultName;
+                    if (recipe.category === 'music') {
+                        const musicItem = MUSIC_TYPES[recipe.result.type];
+                        resultIcon = musicItem?.icon || '🎵';
+                        resultName = musicItem?.name || recipe.result.type;
+                    } else {
+                        const resultItem = SYNTH_ITEMS[recipe.result.type];
+                        resultIcon = resultItem?.icon || '❓';
+                        resultName = resultItem?.name || recipe.result.type;
+                    }
                     const isDiscovered = discoveredRecipes.includes(recipeId);
                     
                     if (resultSlot) {
                         if (isDiscovered) {
                             // 발견한 레시피 - 결과물 표시
                             resultSlot.innerHTML = `
-                                <div style="font-size: 1.3rem; margin-bottom: 1px;">${resultItem.icon}</div>
-                                <div style="font-size: 0.6rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${resultItem.name}</div>
+                                <div style="font-size: 1.3rem; margin-bottom: 1px;">${resultIcon}</div>
+                                <div style="font-size: 0.6rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px;">${resultName}</div>
                                 <div style="font-size: 0.65rem; color: #9b59b6;">×${recipe.result.count}</div>
                             `;
                         } else {
@@ -14002,6 +14424,11 @@
                         const idx = inventory.decorations.indexOf(labSlot1.type);
                         if (idx !== -1) inventory.decorations.splice(idx, 1);
                     }
+                } else if (labSlot1.category === 'music') {
+                    for (let i = 0; i < labSlot1.count; i++) {
+                        const idx = inventory.music.indexOf(labSlot1.type);
+                        if (idx !== -1) inventory.music.splice(idx, 1);
+                    }
                 }
             }
             
@@ -14016,16 +14443,33 @@
                         const idx = inventory.decorations.indexOf(labSlot2.type);
                         if (idx !== -1) inventory.decorations.splice(idx, 1);
                     }
+                } else if (labSlot2.category === 'music') {
+                    for (let i = 0; i < labSlot2.count; i++) {
+                        const idx = inventory.music.indexOf(labSlot2.type);
+                        if (idx !== -1) inventory.music.splice(idx, 1);
+                    }
                 }
             }
             
             // 결과물 추가
-            const resultItem = SYNTH_ITEMS[recipe.result.type];
-            for (let i = 0; i < recipe.result.count; i++) {
-                if (resultItem.type === 'food') {
-                    inventory.food.push(recipe.result.type);
-                } else if (resultItem.type === 'decoration') {
-                    inventory.decorations.push(recipe.result.type);
+            let resultIcon, resultName;
+            if (recipe.category === 'music') {
+                const musicItem = MUSIC_TYPES[recipe.result.type];
+                resultIcon = musicItem?.icon || '🎵';
+                resultName = musicItem?.name || recipe.result.type;
+                for (let i = 0; i < recipe.result.count; i++) {
+                    inventory.music.push(recipe.result.type);
+                }
+            } else {
+                const resultItem = SYNTH_ITEMS[recipe.result.type];
+                resultIcon = resultItem?.icon || '❓';
+                resultName = resultItem?.name || recipe.result.type;
+                for (let i = 0; i < recipe.result.count; i++) {
+                    if (resultItem.type === 'food') {
+                        inventory.food.push(recipe.result.type);
+                    } else if (resultItem.type === 'decoration') {
+                        inventory.decorations.push(recipe.result.type);
+                    }
                 }
             }
             
@@ -14050,7 +14494,7 @@
             applyRecipeFilters(); // 현재 필터 유지하면서 레시피 목록 갱신
             saveGame();
             
-            showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${recipe.result.count} 합성 성공!`);
+            showNotification(`✨ ${resultIcon} ${resultName} ×${recipe.result.count} 합성 성공!`);
             
             // 연구실 튜토리얼: 합성 액션 체크
             checkLabTutorialAction('synthesize');
@@ -14065,7 +14509,16 @@
             currentSynthMaxCount = maxCount;
             
             const recipe = RECIPES[recipeId];
-            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            let resultIcon, resultName;
+            if (recipe.category === 'music') {
+                const musicItem = MUSIC_TYPES[recipe.result.type];
+                resultIcon = musicItem?.icon || '🎵';
+                resultName = musicItem?.name || recipe.result.type;
+            } else {
+                const resultItem = SYNTH_ITEMS[recipe.result.type];
+                resultIcon = resultItem?.icon || '❓';
+                resultName = resultItem?.name || recipe.result.type;
+            }
             
             const modal = document.createElement('div');
             modal.id = 'synthesizeModal';
@@ -14076,8 +14529,8 @@
             modal.innerHTML = `
                 <div style="background: var(--card); padding: 24px; border-radius: 12px; max-width: 350px; width: 90%; border: 2px solid var(--border);">
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <span style="font-size: 2.5rem;">${resultItem.icon}</span>
-                        <h3 style="font-family: 'Nanum Myeongjo', serif; margin-top: 8px; font-size: 1.2rem;">${resultItem.name} 제작</h3>
+                        <span style="font-size: 2.5rem;">${resultIcon}</span>
+                        <h3 style="font-family: 'Nanum Myeongjo', serif; margin-top: 8px; font-size: 1.2rem;">${resultName} 제작</h3>
                         <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">1회 제작 시 ${recipe.result.count}개 획득</div>
                     </div>
                     
@@ -14139,7 +14592,16 @@
             if (!preview || !currentSynthRecipeId) return;
             
             const recipe = RECIPES[currentSynthRecipeId];
-            const resultItem = SYNTH_ITEMS[recipe.result.type];
+            let resultIcon, resultName;
+            if (recipe.category === 'music') {
+                const musicItem = MUSIC_TYPES[recipe.result.type];
+                resultIcon = musicItem?.icon || '🎵';
+                resultName = musicItem?.name || recipe.result.type;
+            } else {
+                const resultItem = SYNTH_ITEMS[recipe.result.type];
+                resultIcon = resultItem?.icon || '❓';
+                resultName = resultItem?.name || recipe.result.type;
+            }
             const count = parseInt(document.getElementById('synthCountInput').value) || 1;
             
             const ing1 = recipe.ingredients[0];
@@ -14173,7 +14635,7 @@
                 </div>
                 <div style="border-top: 1px solid var(--border); padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
                     <span style="color: #888;">획득:</span>
-                    <span style="font-weight: 700; color: #9b59b6; font-size: 1.1rem;">${resultItem.icon} ${resultItem.name} ×${totalResult}</span>
+                    <span style="font-weight: 700; color: #9b59b6; font-size: 1.1rem;">${resultIcon} ${resultName} ×${totalResult}</span>
                 </div>
             `;
         }
@@ -14236,6 +14698,11 @@
                         const idx = inventory.decorations.indexOf(ing1.type);
                         if (idx !== -1) inventory.decorations.splice(idx, 1);
                     }
+                } else if (ing1.category === 'music') {
+                    for (let i = 0; i < totalToRemove; i++) {
+                        const idx = inventory.music.indexOf(ing1.type);
+                        if (idx !== -1) inventory.music.splice(idx, 1);
+                    }
                 }
             } else {
                 // 다른 재료: 각각 차감
@@ -14252,6 +14719,11 @@
                         const idx = inventory.decorations.indexOf(ing1.type);
                         if (idx !== -1) inventory.decorations.splice(idx, 1);
                     }
+                } else if (ing1.category === 'music') {
+                    for (let i = 0; i < ing1Total; i++) {
+                        const idx = inventory.music.indexOf(ing1.type);
+                        if (idx !== -1) inventory.music.splice(idx, 1);
+                    }
                 }
                 
                 if (ing2.category === 'food') {
@@ -14264,18 +14736,38 @@
                         const idx = inventory.decorations.indexOf(ing2.type);
                         if (idx !== -1) inventory.decorations.splice(idx, 1);
                     }
+                } else if (ing2.category === 'music') {
+                    for (let i = 0; i < ing2Total; i++) {
+                        const idx = inventory.music.indexOf(ing2.type);
+                        if (idx !== -1) inventory.music.splice(idx, 1);
+                    }
                 }
             }
             
             // 결과물 추가
-            const resultItem = SYNTH_ITEMS[recipe.result.type];
             const totalResult = recipe.result.count * actualTimes;
             
-            for (let i = 0; i < totalResult; i++) {
-                if (resultItem.type === 'food') {
-                    inventory.food.push(recipe.result.type);
-                } else if (resultItem.type === 'decoration') {
-                    inventory.decorations.push(recipe.result.type);
+            // 결과물 정보 가져오기 (카테고리에 따라)
+            let resultItem;
+            let resultIcon, resultName;
+            
+            if (recipe.category === 'music') {
+                resultItem = MUSIC_TYPES[recipe.result.type];
+                resultIcon = resultItem?.icon || '🎵';
+                resultName = resultItem?.name || recipe.result.type;
+                for (let i = 0; i < totalResult; i++) {
+                    inventory.music.push(recipe.result.type);
+                }
+            } else {
+                resultItem = SYNTH_ITEMS[recipe.result.type];
+                resultIcon = resultItem?.icon || '❓';
+                resultName = resultItem?.name || recipe.result.type;
+                for (let i = 0; i < totalResult; i++) {
+                    if (resultItem.type === 'food') {
+                        inventory.food.push(recipe.result.type);
+                    } else if (resultItem.type === 'decoration') {
+                        inventory.decorations.push(recipe.result.type);
+                    }
                 }
             }
             
@@ -14300,7 +14792,7 @@
             applyRecipeFilters(); // 현재 필터 유지하면서 레시피 목록 갱신
             saveGame();
             
-            showNotification(`✨ ${resultItem.icon} ${resultItem.name} ×${totalResult} 합성 성공! (${actualTimes}회)`);
+            showNotification(`✨ ${resultIcon} ${resultName} ×${totalResult} 합성 성공! (${actualTimes}회)`);
             
             // 연구실 튜토리얼: 합성 액션 체크
             checkLabTutorialAction('synthesize');
@@ -14318,8 +14810,19 @@
                 // 발견한 레시피만 표시
                 if (!discoveredRecipes.includes(recipeId)) return;
                 
-                const resultItem = SYNTH_ITEMS[recipe.result.type];
-                if (!resultItem) return;
+                // 결과물 정보 가져오기 (카테고리에 따라)
+                let resultItem, resultIcon, resultName;
+                if (recipe.category === 'music') {
+                    resultItem = MUSIC_TYPES[recipe.result.type];
+                    if (!resultItem) return;
+                    resultIcon = resultItem.icon;
+                    resultName = resultItem.name;
+                } else {
+                    resultItem = SYNTH_ITEMS[recipe.result.type];
+                    if (!resultItem) return;
+                    resultIcon = resultItem.icon;
+                    resultName = resultItem.name;
+                }
                 
                 // 카테고리 필터
                 if (categoryFilter !== 'all' && recipe.category !== categoryFilter) return;
@@ -14376,7 +14879,9 @@
                 
                 // 효과 텍스트
                 let effectText = '';
-                if (resultItem.type === 'food') {
+                if (recipe.category === 'music') {
+                    effectText = resultItem.effect || '';
+                } else if (resultItem.type === 'food') {
                     const effects = [];
                     if (resultItem.attrGain) {
                         if (resultItem.attr === 'all') {
@@ -14409,7 +14914,7 @@
                 }
                 
                 // 결과물 보유량
-                const resultCategory = resultItem.type === 'decoration' ? 'decoration' : 'food';
+                const resultCategory = recipe.category === 'music' ? 'music' : (resultItem.type === 'decoration' ? 'decoration' : 'food');
                 const resultCount = countInventoryItem(recipe.result.type, resultCategory);
                 
                 // 직접 발견 vs 레시피북 해금 체크
@@ -14430,13 +14935,19 @@
                     `;
                 }
                 
+                // 티어 표시 (레코드)
+                const tierBadge = recipe.category === 'music' && resultItem.tier > 1 
+                    ? `<span style="font-size: 0.65rem; background: ${resultItem.tier === 2 ? '#3498db' : resultItem.tier === 3 ? '#9b59b6' : '#ffd700'}; color: white; padding: 2px 5px; border-radius: 3px; margin-left: 6px;">Tier ${resultItem.tier}</span>`
+                    : '';
+                
                 html += `
                     <div onclick="autoFillRecipe('${recipeId}')" style="background: var(--bg); border: 2px solid ${canCraft ? '#27ae60' : 'var(--border)'}; padding: 12px; cursor: pointer; transition: all 0.2s; ${canCraft ? 'box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);' : ''}" 
                          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';" 
                          onmouseout="this.style.transform=''; this.style.boxShadow='${canCraft ? '0 0 8px rgba(39, 174, 96, 0.3)' : ''}';">
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 1.5rem;">${resultItem.icon}</span>
-                            <span style="font-weight: 600;">${resultItem.name}</span>
+                            <span style="font-size: 1.5rem;">${resultIcon}</span>
+                            <span style="font-weight: 600;">${resultName}</span>
+                            ${tierBadge}
                             ${discoveryTag}
                             <span style="color: #9b59b6; font-size: 0.85rem;">×${recipe.result.count}</span>
                             <span style="color: #888; font-size: 0.75rem; margin-left: 4px;">(보유: ${resultCount})</span>
@@ -17197,6 +17708,11 @@
                 const newSatisfaction = calculateSatisfaction(spirit);
                 spirit.satisfaction = newSatisfaction;
                 
+                // 만족도 높을 때 애정도 증가
+                if (newSatisfaction === 'high') {
+                    spirit.parameters.affection += 1;
+                }
+                
                 // 만족도 낮을 때 애정도 감소
                 if (newSatisfaction === 'low') {
                     spirit.parameters.affection = Math.max(0, spirit.parameters.affection - 1);
@@ -19101,14 +19617,21 @@
                     if (!foodOrder.includes(key)) {
                         let icon = '🍎';
                         let borderColor = 'var(--border)';
+                        let label = '';
+                        const legendaryMaterials = ['moon_cheese', 'golden_apple'];
                         if (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]) {
                             icon = EVENT_ITEMS[key].icon;
                             borderColor = '#c41e3a';
                         } else if (typeof SYNTH_ITEMS !== 'undefined' && SYNTH_ITEMS[key]) {
                             icon = SYNTH_ITEMS[key].icon;
-                            borderColor = '#9b59b6';
+                            if (legendaryMaterials.includes(key)) {
+                                borderColor = '#ffd700';
+                                label = '🌌';
+                            } else {
+                                borderColor = '#9b59b6';
+                            }
                         }
-                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid ${borderColor}; border-radius: 4px; font-size: 0.8rem;">${icon} ×${foodCounts[key]}</div>`;
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 2px solid ${borderColor}; border-radius: 4px; font-size: 0.8rem;">${label}${icon} ×${foodCounts[key]}</div>`;
                     }
                 });
             } else {
@@ -19126,20 +19649,21 @@
                 inventory.music.forEach(m => {
                     musicCounts[m] = (musicCounts[m] || 0) + 1;
                 });
-                const musicOrder = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
                 
-                // 기본 음악
-                musicOrder.forEach(type => {
-                    if (musicCounts[type]) {
-                        const icon = (typeof MUSIC_TYPES !== 'undefined' && MUSIC_TYPES[type]?.icon) || '🎵';
-                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;">${icon} ×${musicCounts[type]}</div>`;
+                // 모든 MUSIC_TYPES 레코드 표시
+                Object.keys(musicCounts).forEach(type => {
+                    if (typeof MUSIC_TYPES !== 'undefined' && MUSIC_TYPES[type]) {
+                        const musicData = MUSIC_TYPES[type];
+                        const tierColor = musicData.tier === 4 ? '#ffd700' : musicData.tier === 3 ? '#9b59b6' : musicData.tier === 2 ? '#3498db' : 'var(--border)';
+                        const tierLabel = musicData.tier === 4 ? '👑' : musicData.tier === 3 ? '✨' : musicData.tier === 2 ? '★' : '';
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 2px solid ${tierColor}; border-radius: 4px; font-size: 0.8rem;">${tierLabel}${musicData.icon} ×${musicCounts[type]}</div>`;
                     }
                 });
                 
                 // 이벤트 음악
                 Object.keys(musicCounts).forEach(key => {
-                    if (!musicOrder.includes(key) && typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key]) {
-                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 1px solid #c41e3a; border-radius: 4px; font-size: 0.8rem;">${EVENT_ITEMS[key].icon} ×${musicCounts[key]}</div>`;
+                    if (typeof EVENT_ITEMS !== 'undefined' && EVENT_ITEMS[key] && EVENT_ITEMS[key].type === 'music') {
+                        html += `<div style="padding: 4px 8px; background: var(--bg); border: 2px solid #c41e3a; border-radius: 4px; font-size: 0.8rem;">${EVENT_ITEMS[key].icon} ×${musicCounts[key]}</div>`;
                     }
                 });
             } else {
