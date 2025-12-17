@@ -6772,12 +6772,7 @@
                         isShiny: isShiny
                     };
                     
-                    // 도감 등록
-                    if (!encyclopedia[eventTypeKey]) {
-                        encyclopedia[eventTypeKey] = 0;
-                        showNotification(`🎉 새로운 이벤트 정령 "${spiritName}" 도감 등록!`);
-                    }
-                    encyclopedia[eventTypeKey]++;
+                    // 도감 등록은 confirmEvolution에서 수행 (이중 등록 방지)
                     
                     saveGame();
                     renderSpirits();
@@ -6814,49 +6809,48 @@
                 
                 spirit.evolutionData = evolutionData;
                 
-                // 도감 등록 (숫자 형식으로 통일)
-                if (!encyclopedia[spirit.fusionType] || typeof encyclopedia[spirit.fusionType] === 'object') {
-                    // 객체 형식이면 숫자로 변환, 없으면 초기화
-                    const prevCount = typeof encyclopedia[spirit.fusionType] === 'object' 
-                        ? (encyclopedia[spirit.fusionType].count || 0) 
-                        : (encyclopedia[spirit.fusionType] || 0);
-                    encyclopedia[spirit.fusionType] = prevCount + 1;
-                    if (prevCount === 0) {
-                        showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
-                    }
-                } else {
-                    encyclopedia[spirit.fusionType]++;
-                }
-                
-                // 도감 상세 정보 저장 (복구용)
-                if (!encyclopediaDetails[spirit.fusionType]) {
-                    encyclopediaDetails[spirit.fusionType] = [];
-                }
-                encyclopediaDetails[spirit.fusionType].push({
-                    originalName: spirit.name,
-                    parameters: { ...spirit.parameters },
-                    hiddenAttributes: { ...spirit.hiddenAttributes },
-                    wingType: wingType,
-                    lightTime: spirit.lightTime || 0,
-                    darkTime: spirit.darkTime || 0,
-                    completedAt: Date.now(),
-                    isFusion: true,
-                    fusionRarity: fusion.rarity,
-                    type: spirit.fusionType,
-                    attributeType: spirit.fusionType,
-                    name: fusion.name,
-                    icon: fusion.icon,
-                    desc: fusion.desc
-                });
-                
                 saveGame();
                 renderSpirits();
                 
-                // 앨범 추가 및 정령 제거를 위한 확인창
+                // 앨범 추가 및 정령 제거를 위한 확인창 (도감 등록은 여기서 수행)
                 showConfirm(
                     '합성 정령 완성',
                     `🧬 ${fusion.name}이(가) 완성되었습니다!\n연결의 힘이 발현되었어요!`,
                     () => {
+                        // 도감 등록 (숫자 형식으로 통일) - 떠나보내기 시에만 등록
+                        if (!encyclopedia[spirit.fusionType] || typeof encyclopedia[spirit.fusionType] === 'object') {
+                            const prevCount = typeof encyclopedia[spirit.fusionType] === 'object' 
+                                ? (encyclopedia[spirit.fusionType].count || 0) 
+                                : (encyclopedia[spirit.fusionType] || 0);
+                            encyclopedia[spirit.fusionType] = prevCount + 1;
+                            if (prevCount === 0) {
+                                showNotification(`🎉 새로운 합성 정령 "${fusion.name}" 도감 등록!`);
+                            }
+                        } else {
+                            encyclopedia[spirit.fusionType]++;
+                        }
+                        
+                        // 도감 상세 정보 저장 (복구용)
+                        if (!encyclopediaDetails[spirit.fusionType]) {
+                            encyclopediaDetails[spirit.fusionType] = [];
+                        }
+                        encyclopediaDetails[spirit.fusionType].push({
+                            originalName: spirit.name,
+                            parameters: { ...spirit.parameters },
+                            hiddenAttributes: { ...spirit.hiddenAttributes },
+                            wingType: wingType,
+                            lightTime: spirit.lightTime || 0,
+                            darkTime: spirit.darkTime || 0,
+                            completedAt: Date.now(),
+                            isFusion: true,
+                            fusionRarity: fusion.rarity,
+                            type: spirit.fusionType,
+                            attributeType: spirit.fusionType,
+                            name: fusion.name,
+                            icon: fusion.icon,
+                            desc: fusion.desc
+                        });
+                        
                         // 앨범에 추가
                         collection.push({
                             id: `album-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -6890,8 +6884,7 @@
                         
                         showNotification(`✨ ${fusion.name}이(가) 앨범에 등록되고 떠났습니다. (+25코인)`);
                     },
-                    '떠나보내기',
-                    '조금 더 함께하기'
+                    '떠나보내기'
                 );
                 return;
             }
@@ -7286,10 +7279,20 @@
                     encyclopediaKey = `${evolutionData.type}-${evolutionData.attributeType}-${evolutionData.wingType}`;
                 }
                 
+                // 도감에 등록 (새로운 종류면 알림)
+                const isNewEntry = !encyclopedia[encyclopediaKey];
                 if (!encyclopedia[encyclopediaKey]) {
                     encyclopedia[encyclopediaKey] = 0;
                 }
                 encyclopedia[encyclopediaKey]++;
+                
+                if (isNewEntry) {
+                    if (evolutionData.type && evolutionData.type.startsWith('event_')) {
+                        showNotification(`🎉 새로운 이벤트 정령 "${evolutionData.name}" 도감 등록!`);
+                    } else {
+                        showNotification(`🎉 새로운 정령 "${evolutionData.name}" 도감 등록!`);
+                    }
+                }
                 
                 // 도감 상세 정보 저장 (복구용)
                 if (!encyclopediaDetails[encyclopediaKey]) {
