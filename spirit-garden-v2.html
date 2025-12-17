@@ -5393,23 +5393,6 @@
                         `;
                     }).join('')}
                 </div>
-                ${legendaryMaterials.length > 0 ? `
-                    <div style="font-weight: 600; margin: 15px 0 10px 0; color: #ffd700;">🌌 전설 재료 (합성용)</div>
-                    <div class="food-grid">
-                        ${legendaryMaterials.map(([type, count]) => {
-                            const item = SYNTH_ITEMS[type];
-                            return `
-                                <button class="option-btn" style="border: 2px solid #ffd700;" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
-                                    <span class="option-icon">${item.icon}</span>
-                                    <div class="option-info">
-                                        <div class="option-name">${item.name} ×${count}</div>
-                                        <div class="option-effect" style="color: #888;">효과 없음 (합성 재료)</div>
-                                    </div>
-                                </button>
-                            `;
-                        }).join('')}
-                    </div>
-                ` : ''}
                 ${etcFoods.length > 0 ? `
                     <div style="font-weight: 600; margin: 15px 0 10px 0; color: var(--text);">📦 기타</div>
                     <div class="food-grid">
@@ -5461,6 +5444,13 @@
             const foodIndex = inventory.food.indexOf(foodType);
             if (foodIndex === -1) {
                 showNotification('먹이가 없습니다');
+                return;
+            }
+
+            // 전설 재료(달치즈, 황금사과)는 먹일 수 없음 (합성 전용)
+            if (foodType === 'moon_cheese' || foodType === 'golden_apple') {
+                const itemName = foodType === 'moon_cheese' ? '달치즈' : '황금사과';
+                showNotification(`❌ ${itemName}은(는) 합성 재료로만 사용할 수 있습니다`);
                 return;
             }
 
