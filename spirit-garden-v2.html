@@ -4256,10 +4256,10 @@
                     food: ['fire', 'fire', 'fire', 'water', 'water', 'water', 'wind', 'wind', 'wind', 'earth', 'earth', 'earth']
                 };
                 
-                // 잘못된 음악 키 제거 (quest, lullaby 등 → classic, jazz 등)
+                // 잘못된 음악 키 제거 (존재하지 않는 레코드만)
                 if (inventory.music) {
-                    const validMusicKeys = ['classic', 'jazz', 'rock', 'pop', 'ballad', 'edm'];
-                    // 이벤트 음악도 유효한 키에 추가
+                    // MUSIC_TYPES에 있는 모든 레코드 + 이벤트 음악
+                    const validMusicKeys = Object.keys(MUSIC_TYPES);
                     const eventMusicKeys = Object.keys(EVENT_ITEMS).filter(key => EVENT_ITEMS[key].type === 'music');
                     const allValidMusicKeys = [...validMusicKeys, ...eventMusicKeys];
                     inventory.music = inventory.music.filter(m => allValidMusicKeys.includes(m));
