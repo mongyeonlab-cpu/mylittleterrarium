@@ -4971,15 +4971,17 @@
             let maxAttr = 'normal';
             let maxValue = 0;
             
+            // 먹이 속성 + 테라리움 속성 합산
             for (let attr in spirit.hiddenAttributes) {
-                if (spirit.hiddenAttributes[attr] > maxValue) {
-                    maxValue = spirit.hiddenAttributes[attr];
+                const totalValue = spirit.hiddenAttributes[attr] + (terrarium[attr] || 0);
+                if (totalValue > maxValue) {
+                    maxValue = totalValue;
                     maxAttr = attr;
                 }
             }
             
-            // 최고 속성값이 50 미만이면 normal (백의 정령)
-            if (maxValue < 50) {
+            // 최고 속성값이 10 미만이면 normal (외견 설명과 동일 기준)
+            if (maxValue < 10) {
                 return 'normal';
             }
             
