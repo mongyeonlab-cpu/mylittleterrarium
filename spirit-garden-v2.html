@@ -1080,6 +1080,16 @@
                 display: none !important;
             }
             
+            /* 모바일에서 상단 서브탭 바 숨기기 */
+            body.mobile-layout #subTabBar {
+                display: none !important;
+            }
+            
+            /* 모바일에서 섹션 내부 서브탭 보이기 */
+            body.mobile-layout .mobile-sub-tabs {
+                display: flex !important;
+            }
+            
             /* 모바일에서 기존 인벤토리 패널 숨기기 */
             body.mobile-layout .inventory-panel {
                 display: none !important;
@@ -1355,6 +1365,27 @@
                 bottom: 90px !important;
             }
         }
+        
+        /* 서브탭 스타일 */
+        .sub-tab {
+            padding: 8px 20px;
+            margin: 0 8px;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sub-tab:hover {
+            color: var(--text);
+        }
+        .sub-tab.active {
+            color: #f39c12;
+            font-weight: 600;
+            border-bottom: 2px solid #f39c12;
+        }
     </style>
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
@@ -1450,6 +1481,23 @@
         <!-- 일시정지 / 조명 버튼 -->
         <button id="pauseBtn" onclick="togglePause()" style="padding: 8px 12px; background: #ff9800; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem; margin-left: auto;">⏸️</button>
         <button id="lightBtn" onclick="toggleLight()" style="padding: 8px 12px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem;"><span id="lightIcon">☀️</span></button>
+    </div>
+    
+    <!-- 서브탭 바 (상점/일지 탭 선택 시 표시) -->
+    <div id="subTabBar" style="display: none; background: transparent; padding: 0; margin-top: -25px; margin-bottom: 20px; text-align: center;">
+        <!-- 상점 서브탭 -->
+        <div id="shopSubTabs" style="display: none;">
+            <button class="sub-tab active" onclick="switchShopTab('sell')" data-tab="sell">판매</button>
+            <button class="sub-tab" onclick="switchShopTab('buy')" data-tab="buy">구매</button>
+        </div>
+        <!-- 일지 서브탭 -->
+        <div id="journalSubTabs" style="display: none;">
+            <button class="sub-tab active" onclick="switchJournalTab('encyclopedia')" data-tab="encyclopedia">도감</button>
+            <button class="sub-tab" onclick="switchJournalTab('album')" data-tab="album">앨범</button>
+            <button class="sub-tab" onclick="switchJournalTab('achievement')" data-tab="achievement">업적</button>
+            <button class="sub-tab" onclick="switchJournalTab('memo')" data-tab="memo">메모</button>
+            <button class="sub-tab" onclick="switchJournalTab('help')" data-tab="help">도움말</button>
+        </div>
     </div>
 
     <div id="gardenSection" class="section active">
@@ -1604,8 +1652,8 @@
     
     <div id="journalSection" class="section">
         
-        <!-- 서브탭 인덱스 -->
-        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; padding-top: 10px;">
+        <!-- 서브탭 인덱스 (데스크톱에서는 상단 서브탭 바로 이동, 모바일에서는 여기 표시) -->
+        <div id="journalOldSubTabs" class="mobile-sub-tabs" style="display: none; justify-content: center; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; padding-top: 10px;">
             <button id="journalTabEncyclopedia" onclick="switchJournalTab('encyclopedia')" style="padding: 10px 20px; background: #9b59b6; color: white; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">📚 도감</button>
             <button id="journalTabAlbum" onclick="switchJournalTab('album')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">💝 앨범</button>
             <button id="journalTabAchievement" onclick="switchJournalTab('achievement')" style="padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">🏅 업적</button>
@@ -1852,8 +1900,8 @@
                 </div>
             </div>
             
-            <!-- 상점 탭 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
+            <!-- 상점 탭 (데스크톱에서는 상단 서브탭 바로 이동, 모바일에서는 여기 표시) -->
+            <div id="shopOldSubTabs" class="mobile-sub-tabs" style="display: none; gap: 10px; margin-bottom: 20px; justify-content: center;">
                 <button id="shopTabSell" onclick="switchShopTab('sell')" style="padding: 12px 30px; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--fire); color: white;">💸 판매</button>
                 <button id="shopTabBuy" onclick="switchShopTab('buy')" style="padding: 12px 30px; font-size: 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--card); color: var(--text);">🛒 구매</button>
             </div>
@@ -4533,6 +4581,9 @@
                 selectedBtn.style.border = 'none';
             }
             
+            // 상단 서브탭 바 업데이트
+            updateJournalSubTabUI();
+            
             // 탭별 렌더링 호출
             if (tab === 'encyclopedia') {
                 renderEncyclopedia();
@@ -4545,6 +4596,19 @@
             } else if (tab === 'help') {
                 renderTutorialReplayList();
             }
+        }
+        
+        // 일지 서브탭 바 UI 업데이트
+        function updateJournalSubTabUI() {
+            const journalSubTabs = document.getElementById('journalSubTabs');
+            if (!journalSubTabs) return;
+            
+            journalSubTabs.querySelectorAll('.sub-tab').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === currentJournalTab) {
+                    btn.classList.add('active');
+                }
+            });
         }
         
         // 일지 탭 렌더링
@@ -5392,8 +5456,8 @@
                     ${medicineSection}
                     ${normalFoods.map(([type, count]) => {
                         const isRare = type === 'light' || type === 'dark';
-                        const gain = isRare ? 6 : 3;
-                        const growth = isRare ? 3 : 2;
+                        const gain = isRare ? 3 : 1;
+                        const growth = 2;
                         return `
                             <button class="option-btn" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
                                 <span class="option-icon">${ENV_ICONS[type]}</span>
@@ -5622,8 +5686,8 @@
             }
 
             const isRare = foodType === 'light' || foodType === 'dark';
-            const attrGain = isRare ? 6 : 3;  // 희귀 +6, 일반 +3
-            const growthGain = isRare ? 3 : 2;
+            const attrGain = isRare ? 3 : 1;  // 희귀 +3, 일반 +1
+            const growthGain = 2;  // 모두 +2
 
             // 정령의 숨겨진 속성 증가
             if (!spirit.hiddenAttributes) {
@@ -9318,6 +9382,22 @@
                 buyTabBtn.style.color = 'white';
                 buyTabBtn.style.border = 'none';
             }
+            
+            // 상단 서브탭 바 업데이트
+            updateShopSubTabUI();
+        }
+        
+        // 상점 서브탭 바 UI 업데이트
+        function updateShopSubTabUI() {
+            const shopSubTabs = document.getElementById('shopSubTabs');
+            if (!shopSubTabs) return;
+            
+            shopSubTabs.querySelectorAll('.sub-tab').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === currentShopTab) {
+                    btn.classList.add('active');
+                }
+            });
         }
 
         function renderSellList() {
@@ -9352,7 +9432,7 @@
                         const count = foodCounts[type];
                         const isRare = type === 'light' || type === 'dark';
                         const price = isRare ? SHOP_PRICES.sell.food_rare : SHOP_PRICES.sell.food_common;
-                        const effectText = isRare ? `${ENV_ICONS[type]} 속성 +6, 성장 +3` : `${ENV_ICONS[type]} 속성 +3, 성장 +2`;
+                        const effectText = isRare ? `${ENV_ICONS[type]} 속성 +3, 성장 +2` : `${ENV_ICONS[type]} 속성 +1, 성장 +2`;
                         const rarityLabel = isRare ? ' <span style="font-size: 0.75rem; color: #9b59b6;">희귀</span>' : '';
                         const isLocked = lockedItems.food.includes(type);
                         
@@ -10113,7 +10193,7 @@
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 700; font-size: 0.9rem;">${FOOD_NAMES[type]} <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +3, 성장 +2</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +1, 성장 +2</div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${SHOP_PRICES.buy.food_common}💰</div>
                                 </div>
                             </div>
@@ -10133,7 +10213,7 @@
                                 <span style="font-size: 1.5rem;">${ENV_ICONS[type]}</span>
                                 <div style="flex: 1; min-width: 0;">
                                     <div style="font-weight: 700; font-size: 0.9rem;">${FOOD_NAMES[type]} <span style="font-size: 0.7rem; color: #9b59b6;">희귀</span> <span style="font-size: 0.7rem; color: var(--text-muted);">(${ownedCount})</span></div>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +6, 성장 +3</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${ENV_ICONS[type]} 속성 +3, 성장 +2</div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">가격: ${SHOP_PRICES.buy.food_rare}💰</div>
                                 </div>
                             </div>
@@ -13549,6 +13629,14 @@
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                 
+                // 서브탭 바 숨기기
+                const subTabBar = document.getElementById('subTabBar');
+                const shopSubTabs = document.getElementById('shopSubTabs');
+                const journalSubTabs = document.getElementById('journalSubTabs');
+                if (subTabBar) subTabBar.style.display = 'none';
+                if (shopSubTabs) shopSubTabs.style.display = 'none';
+                if (journalSubTabs) journalSubTabs.style.display = 'none';
+                
                 // 안전하게 탭 활성화 (null 체크)
                 const activateTab = (selector) => {
                     const tabEl = document.querySelector(selector);
@@ -13567,6 +13655,15 @@
                 } else if (tab === 'lab') {
                     activateTab('.desktop-tabs .tab:nth-child(3)');
                     document.getElementById('labSection')?.classList.add('active');
+                    
+                    // 드롭다운 UI를 전역변수와 동기화
+                    const categorySelect = document.getElementById('recipeFilterSelect');
+                    const attrSelect = document.getElementById('recipeAttrFilter');
+                    const qualitySelect = document.getElementById('recipeQualityFilter');
+                    if (categorySelect) categorySelect.value = labCategoryFilter;
+                    if (attrSelect) attrSelect.value = labAttrFilter;
+                    if (qualitySelect) qualitySelect.value = labQualityFilter;
+                    
                     renderRecipeList(labCategoryFilter, labAttrFilter, labQualityFilter);
                     updateLabUI();
                     checkRecipe();
@@ -13575,6 +13672,12 @@
                 } else if (tab === 'shop') {
                     activateTab('.desktop-tabs .tab:nth-child(4)');
                     document.getElementById('shopSection')?.classList.add('active');
+                    
+                    // 서브탭 바 표시
+                    if (subTabBar) subTabBar.style.display = 'block';
+                    if (shopSubTabs) shopSubTabs.style.display = 'block';
+                    updateShopSubTabUI();
+                    
                     try {
                         renderShop();
                     } catch (e) {
@@ -13604,15 +13707,30 @@
                     // 도감은 일지 탭의 서브탭으로 이동
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
+                    
+                    // 서브탭 바 표시
+                    if (subTabBar) subTabBar.style.display = 'block';
+                    if (journalSubTabs) journalSubTabs.style.display = 'block';
+                    
                     switchJournalTab('encyclopedia');
                 } else if (tab === 'album') {
                     // 앨범은 일지 탭의 서브탭으로 이동
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
+                    
+                    // 서브탭 바 표시
+                    if (subTabBar) subTabBar.style.display = 'block';
+                    if (journalSubTabs) journalSubTabs.style.display = 'block';
+                    
                     switchJournalTab('album');
                 } else if (tab === 'journal') {
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
+                    
+                    // 서브탭 바 표시
+                    if (subTabBar) subTabBar.style.display = 'block';
+                    if (journalSubTabs) journalSubTabs.style.display = 'block';
+                    
                     // 현재 서브탭 유지 또는 기본 도감 표시
                     switchJournalTab(currentJournalTab || 'encyclopedia');
                     checkAchievements();
@@ -18318,7 +18436,7 @@
                     targetSelector = '#lightBtn';
                     break;
                 case 'openAlbum':
-                    targetSelector = '#journalTabAlbum';
+                    targetSelector = '#journalSubTabs .sub-tab[data-tab="album"]';
                     break;
                 case 'openJournal':
                     targetSelector = '.tab:nth-child(6)';
