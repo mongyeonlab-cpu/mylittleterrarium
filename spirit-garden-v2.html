@@ -1099,11 +1099,15 @@
                 background: var(--card);
                 border-top: 1px solid var(--border);
                 z-index: 999;
-                display: flex;
                 justify-content: center;
                 gap: 8px;
                 padding: 8px 16px;
                 padding-bottom: calc(8px + env(safe-area-inset-bottom) * 0.3);
+            }
+            
+            /* 모바일에서만 서브탭 바 표시 (visible 클래스로 제어) */
+            body.mobile-layout #mobileSubTabBar.visible {
+                display: flex !important;
             }
             
             .mobile-sub-tab {
@@ -1426,6 +1430,14 @@
         .mobile-sub-tabs {
             display: none !important;
         }
+        
+        /* 모바일 서브탭 바 - 데스크톱에서 숨기기 (ID 선택자로 우선순위 높임) */
+        #mobileSubTabBar {
+            display: none !important;
+        }
+        .mobile-sub-tab-bar {
+            display: none !important;
+        }
     </style>
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
@@ -1541,7 +1553,7 @@
     </div>
     
     <!-- 서브탭 바 (상점/일지 탭 선택 시 표시) -->
-    <div id="subTabBar" style="display: none; background: transparent; padding: 0; margin-top: -25px; margin-bottom: 20px; text-align: left;">
+    <div id="subTabBar" style="display: none; background: transparent; padding: 0; margin-top: -25px; margin-bottom: 20px; text-align: center;">
         <!-- 상점 서브탭 -->
         <div id="shopSubTabs" style="display: none; flex-wrap: nowrap; gap: 0;">
             <button class="sub-tab active" onclick="switchShopTab('sell')" data-tab="sell">판매</button>
@@ -13724,7 +13736,7 @@
                 const mobileSubTabBar = document.getElementById('mobileSubTabBar');
                 const mobileShopSubTabs = document.getElementById('mobileShopSubTabs');
                 const mobileJournalSubTabs = document.getElementById('mobileJournalSubTabs');
-                if (mobileSubTabBar) mobileSubTabBar.style.display = 'none';
+                if (mobileSubTabBar) mobileSubTabBar.classList.remove('visible');
                 if (mobileShopSubTabs) mobileShopSubTabs.style.display = 'none';
                 if (mobileJournalSubTabs) mobileJournalSubTabs.style.display = 'none';
                 
@@ -13764,23 +13776,15 @@
                     activateTab('.desktop-tabs .tab:nth-child(4)');
                     document.getElementById('shopSection')?.classList.add('active');
                     
-                    // 데스크톱 서브탭 바 표시 및 위치 조정
+                    // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        // 상점 탭 위치에 맞춰 서브탭 위치 조정 (화면 크기 고려)
-                        const shopTab = document.querySelector('.desktop-tabs .tab:nth-child(4)');
-                        if (shopTab) {
-                            const tabLeft = shopTab.offsetLeft;
-                            const subTabWidth = 150; // 서브탭 예상 너비
-                            const windowWidth = window.innerWidth;
-                            const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                            subTabBar.style.paddingLeft = maxPadding + 'px';
-                        }
+                        subTabBar.style.textAlign = 'center';
                     }
                     if (shopSubTabs) shopSubTabs.style.display = 'flex';
                     
                     // 모바일 서브탭 바 표시
-                    if (mobileSubTabBar) mobileSubTabBar.style.display = 'flex';
+                    if (mobileSubTabBar && document.body.classList.contains('mobile-layout')) mobileSubTabBar.classList.add('visible');
                     if (mobileShopSubTabs) mobileShopSubTabs.style.display = 'flex';
                     
                     updateShopSubTabUI();
@@ -13815,22 +13819,15 @@
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
                     
-                    // 데스크톱 서브탭 바 표시 및 위치 조정 (화면 크기 고려)
+                    // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        const journalTab = document.querySelector('.desktop-tabs .tab:nth-child(6)');
-                        if (journalTab) {
-                            const tabLeft = journalTab.offsetLeft;
-                            const subTabWidth = 350; // 일지 서브탭 예상 너비 (5개)
-                            const windowWidth = window.innerWidth;
-                            const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                            subTabBar.style.paddingLeft = maxPadding + 'px';
-                        }
+                        subTabBar.style.textAlign = 'center';
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
                     // 모바일 서브탭 바 표시
-                    if (mobileSubTabBar) mobileSubTabBar.style.display = 'flex';
+                    if (mobileSubTabBar && document.body.classList.contains('mobile-layout')) mobileSubTabBar.classList.add('visible');
                     if (mobileJournalSubTabs) mobileJournalSubTabs.style.display = 'flex';
                     
                     switchJournalTab('encyclopedia');
@@ -13839,22 +13836,15 @@
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
                     
-                    // 데스크톱 서브탭 바 표시 및 위치 조정 (화면 크기 고려)
+                    // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        const journalTab = document.querySelector('.desktop-tabs .tab:nth-child(6)');
-                        if (journalTab) {
-                            const tabLeft = journalTab.offsetLeft;
-                            const subTabWidth = 350;
-                            const windowWidth = window.innerWidth;
-                            const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                            subTabBar.style.paddingLeft = maxPadding + 'px';
-                        }
+                        subTabBar.style.textAlign = 'center';
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
                     // 모바일 서브탭 바 표시
-                    if (mobileSubTabBar) mobileSubTabBar.style.display = 'flex';
+                    if (mobileSubTabBar && document.body.classList.contains('mobile-layout')) mobileSubTabBar.classList.add('visible');
                     if (mobileJournalSubTabs) mobileJournalSubTabs.style.display = 'flex';
                     
                     switchJournalTab('album');
@@ -13862,22 +13852,15 @@
                     activateTab('.desktop-tabs .tab:nth-child(6)');
                     document.getElementById('journalSection')?.classList.add('active');
                     
-                    // 데스크톱 서브탭 바 표시 및 위치 조정 (화면 크기 고려)
+                    // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        const journalTab = document.querySelector('.desktop-tabs .tab:nth-child(6)');
-                        if (journalTab) {
-                            const tabLeft = journalTab.offsetLeft;
-                            const subTabWidth = 350;
-                            const windowWidth = window.innerWidth;
-                            const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                            subTabBar.style.paddingLeft = maxPadding + 'px';
-                        }
+                        subTabBar.style.textAlign = 'center';
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
                     // 모바일 서브탭 바 표시
-                    if (mobileSubTabBar) mobileSubTabBar.style.display = 'flex';
+                    if (mobileSubTabBar && document.body.classList.contains('mobile-layout')) mobileSubTabBar.classList.add('visible');
                     if (mobileJournalSubTabs) mobileJournalSubTabs.style.display = 'flex';
                     
                     // 현재 서브탭 유지 또는 기본 도감 표시
@@ -19779,42 +19762,21 @@
             
             checkMobile();
             window.addEventListener('resize', checkMobile);
-            window.addEventListener('resize', updateSubTabPosition);
             
             // 슬라이더 스크롤 이벤트 초기화
             initSpiritSliderScroll();
         }
         
-        // 서브탭 위치 업데이트 (창 크기 변경 시)
+        // 서브탭 위치 업데이트 (더 이상 사용 안 함 - 왼쪽 고정)
         function updateSubTabPosition() {
-            const subTabBar = document.getElementById('subTabBar');
-            if (!subTabBar || subTabBar.style.display === 'none') return;
-            
-            if (currentTab === 'shop') {
-                const shopTab = document.querySelector('.desktop-tabs .tab:nth-child(4)');
-                if (shopTab) {
-                    const tabLeft = shopTab.offsetLeft;
-                    const subTabWidth = 150;
-                    const windowWidth = window.innerWidth;
-                    const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                    subTabBar.style.paddingLeft = maxPadding + 'px';
-                }
-            } else if (currentTab === 'journal' || currentTab === 'encyclopedia' || currentTab === 'album') {
-                const journalTab = document.querySelector('.desktop-tabs .tab:nth-child(6)');
-                if (journalTab) {
-                    const tabLeft = journalTab.offsetLeft;
-                    const subTabWidth = 350;
-                    const windowWidth = window.innerWidth;
-                    const maxPadding = Math.max(0, Math.min(tabLeft, windowWidth - subTabWidth - 50));
-                    subTabBar.style.paddingLeft = maxPadding + 'px';
-                }
-            }
+            // 서브탭 위치가 왼쪽에 고정되어 있으므로 더 이상 동적 조정 불필요
         }
         
         function applyMobileLayout(isMobile) {
             const mobileHeader = document.getElementById('mobileHeader');
             const mobileGather = document.getElementById('mobileGatherSection');
             const mobileTabs = document.getElementById('mobileTabs');
+            const mobileSubTabBar = document.getElementById('mobileSubTabBar');
             const desktopHeaders = document.querySelectorAll('.desktop-header');
             const desktopTabs = document.querySelector('.desktop-tabs');
             
@@ -19842,6 +19804,8 @@
                 if (mobileHeader) mobileHeader.style.display = 'none';
                 if (mobileGather) mobileGather.style.display = 'none';
                 if (mobileTabs) mobileTabs.style.display = 'none';
+                // 데스크톱에서 모바일 서브탭 바 숨기기
+                if (mobileSubTabBar) mobileSubTabBar.classList.remove('visible');
                 desktopHeaders.forEach(el => el.style.display = '');
                 if (desktopTabs) desktopTabs.style.display = '';
                 
