@@ -2195,6 +2195,9 @@
         let isLockMode = false; // 잠금 모드 상태
         let terrariumInvFilter = 'all'; // 테라리움 인벤토리 필터 (all, fire, water, wind, earth, light, dark, event)
         let terrariumQualityFilter = 'all'; // 테라리움 품질 필터 (all, common, rare, epic, legendary)
+        let labCategoryFilter = 'all'; // 연구실 카테고리 필터 (all, food, decoration, music)
+        let labAttrFilter = 'all'; // 연구실 속성 필터
+        let labQualityFilter = 'all'; // 연구실 품질 필터
         let currentGatherLocation = 'garden'; // 현재 채집 장소 (garden, lake, forest)
         let lightToggleHistory = []; // 조명 변경 기록 (타임스탬프 배열)
         let isPaused = false; // 게임 일시정지 상태
@@ -2925,7 +2928,7 @@
             pop_ballad: { name: '팝 발라드', icon: '💝', effect: '매력 +10, 체력 +5', stats: { charm: 10, strength: 5 }, tier: 3 },
             electro_rock: { name: '일렉트로 록', icon: '⚡🎸', effect: '체력 +10, 지력 +5', stats: { strength: 10, intelligence: 5 }, tier: 3 },
             crossover: { name: '크로스오버', icon: '🎩', effect: '지력 +10, 매력 +5', stats: { intelligence: 10, charm: 5 }, tier: 3 },
-            jazz_ballad: { name: '재즈 발라드', icon: '🌙', effect: '매력 +10, 체력 +5', stats: { charm: 10, strength: 5 }, tier: 3 },
+            jazz_ballad: { name: '재즈 발라드', icon: '🌙', effect: '체력 +10, 매력 +5', stats: { strength: 10, charm: 5 }, tier: 3 },
             
             // 4단계: 전설 장르 (프리미엄 합성으로 획득)
             maestro: { name: '마에스트로', icon: '👑🎵', effect: '지력 +10, 매력 +10', stats: { intelligence: 10, charm: 10 }, tier: 4 },
@@ -4373,6 +4376,15 @@
                     if (!spirit.isDead && !spirit.isCompleted) {
                         spirit.lastFed = now;
                     }
+                    
+                    // hiddenAttributes 400 캡 마이그레이션 (v2.3.0+)
+                    if (spirit.hiddenAttributes) {
+                        Object.keys(spirit.hiddenAttributes).forEach(attr => {
+                            if (spirit.hiddenAttributes[attr] > 400) {
+                                spirit.hiddenAttributes[attr] = 400;
+                            }
+                        });
+                    }
                 });
 
                 // 조명 상태 적용
@@ -4959,11 +4971,11 @@
             // 알 ~ 번데기만 외형 묘사 있음
             if (!APPEARANCE_DESCRIPTIONS[stage]) return null;
             
-            // 현재 속성 계산 (먹이 70% + 테라리움 30%)
+            // 현재 속성 계산 (먹이 + 테라리움, 최대 500)
             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrarium[attr] * 0.3);
+                finalAttrs[attr] = Math.min(500, foodAttrs[attr] + (terrarium[attr] || 0));
             }
             
             // 속성을 내림차순으로 정렬
@@ -5128,11 +5140,11 @@
             }
             // 애벌레2, 애벌레3, 번데기: 품질 합계 + 속성 유사도
             else {
-                // 정령의 현재 속성 계산
+                // 정령의 현재 속성 계산 (먹이 + 테라리움, 최대 500)
                 const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                 const spiritAttrs = {};
                 for (let attr in foodAttrs) {
-                    spiritAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrarium[attr] * 0.3);
+                    spiritAttrs[attr] = Math.min(500, foodAttrs[attr] + (terrarium[attr] || 0));
                 }
                 
                 // 정령의 주 속성 찾기 (가장 높은 속성)
@@ -5380,7 +5392,7 @@
                     ${medicineSection}
                     ${normalFoods.map(([type, count]) => {
                         const isRare = type === 'light' || type === 'dark';
-                        const gain = isRare ? 2 : 1;
+                        const gain = isRare ? 6 : 3;
                         const growth = isRare ? 3 : 2;
                         return `
                             <button class="option-btn" onclick="feedSpiritFromInventory(${currentSpiritId}, '${type}')">
@@ -5529,17 +5541,17 @@
                 if (synthItem.attr === 'all') {
                     // 전체 속성 증가
                     Object.keys(spirit.hiddenAttributes).forEach(attr => {
-                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + synthItem.attrGain);
+                        spirit.hiddenAttributes[attr] = Math.min(400, spirit.hiddenAttributes[attr] + synthItem.attrGain);
                     });
                 } else if (synthItem.attr === 'dual' && synthItem.dualAttr) {
                     // 혼합 속성 증가 (두 속성 모두)
                     synthItem.dualAttr.forEach(attr => {
-                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + synthItem.attrGain);
+                        spirit.hiddenAttributes[attr] = Math.min(400, spirit.hiddenAttributes[attr] + synthItem.attrGain);
                     });
                 } else if (synthItem.attr === 'special') {
                     // 특수 먹이 (속성 증가 없음)
                 } else {
-                    spirit.hiddenAttributes[synthItem.attr] = Math.min(500, spirit.hiddenAttributes[synthItem.attr] + synthItem.attrGain);
+                    spirit.hiddenAttributes[synthItem.attr] = Math.min(400, spirit.hiddenAttributes[synthItem.attr] + synthItem.attrGain);
                 }
                 
                 // 애정도 증가
@@ -5619,7 +5631,7 @@
                     fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0
                 };
             }
-            spirit.hiddenAttributes[foodType] = Math.min(500, spirit.hiddenAttributes[foodType] + attrGain);
+            spirit.hiddenAttributes[foodType] = Math.min(400, spirit.hiddenAttributes[foodType] + attrGain);
 
             // 질병 상태가 아닐 때만 성장
             if (!spirit.isSick) {
@@ -6908,14 +6920,14 @@
                 }
             }
 
-            // 속성 분석 (먹이 50% + 테라리움 50%)
+            // 속성 분석 (먹이 + 테라리움, 최대 500)
             const foodAttrs = spirit.hiddenAttributes || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
-            // 최종 속성 = (먹이 속성 × 0.7) + (테라리움 속성 × 0.3)
+            // 최종 속성 = 먹이 속성 + 테라리움 속성 (최대 500)
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
+                finalAttrs[attr] = Math.min(500, foodAttrs[attr] + (terrariumAttrs[attr] || 0));
             }
             
             const sortedAttrs = Object.entries(finalAttrs)
@@ -7035,9 +7047,9 @@
             const isKingAttributes = Object.values(finalAttrs).every(val => val >= 500);
             
             // 티타니아/오베론 조건 체크
-            // 모든 스탯 70 이상 + 모든 속성 100 근접 (90 이상)
+            // 모든 스탯 70 이상 + 모든 속성 130 이상
             const isPerfectStats = params.intelligence >= 70 && params.strength >= 70 && params.charm >= 70;
-            const isPerfectAttributes = Object.values(finalAttrs).every(val => val >= 90);
+            const isPerfectAttributes = Object.values(finalAttrs).every(val => val >= 250);
             
             // 타이틀 없는 정령 여부
             const hasNoTitle = evolutionKey === 'nostat';
@@ -8229,10 +8241,10 @@
                     };
                 }
 
-                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 500)
+                // 테라리움의 각 속성값만큼 정령의 속성 증가 (최대 400)
                 Object.keys(terrarium).forEach(attr => {
                     if (terrarium[attr] > 0) {
-                        spirit.hiddenAttributes[attr] = Math.min(500, spirit.hiddenAttributes[attr] + terrarium[attr]);
+                        spirit.hiddenAttributes[attr] = Math.min(400, spirit.hiddenAttributes[attr] + terrarium[attr]);
                     }
                 });
                 
@@ -8911,7 +8923,7 @@
                                 const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
                                 const attrs = {};
                                 for (let attr in foodAttrs) {
-                                    attrs[attr] = (foodAttrs[attr] * 0.7) + (terrariumAttrs[attr] * 0.3);
+                                    attrs[attr] = Math.min(500, foodAttrs[attr] + (terrariumAttrs[attr] || 0));
                                 }
                                 const attrIcons = { fire: '🔥', water: '💧', wind: '🌬️', earth: '🌱', light: '✨', dark: '🌙' };
                                 const attrValues = Object.values(attrs);
@@ -8929,7 +8941,7 @@
                                             ${Object.entries(attrs).map(([key, val]) => {
                                                 const isMax = val === maxAttr && maxAttr > 0;
                                                 const isLow = isImbalanced && val < 10;
-                                                const isPerfect = val >= 90;
+                                                const isPerfect = val >= 250;
                                                 return `
                                                     <div style="font-size: 0.75rem; ${isPerfect ? 'color: #ff6f00; font-weight: 700;' : isLow ? 'color: #f44336; font-weight: 700;' : isMax ? 'color: #4caf50; font-weight: 700;' : ''}">
                                                         <div>${attrIcons[key]}</div>
@@ -13555,7 +13567,7 @@
                 } else if (tab === 'lab') {
                     activateTab('.desktop-tabs .tab:nth-child(3)');
                     document.getElementById('labSection')?.classList.add('active');
-                    renderRecipeList();
+                    renderRecipeList(labCategoryFilter, labAttrFilter, labQualityFilter);
                     updateLabUI();
                     checkRecipe();
                     // 연구실 튜토리얼: 연구실 탭 열기 액션 체크
@@ -15032,6 +15044,12 @@
             const categoryFilter = document.getElementById('recipeFilterSelect')?.value || 'all';
             const attrFilter = document.getElementById('recipeAttrFilter')?.value || 'all';
             const qualityFilter = document.getElementById('recipeQualityFilter')?.value || 'all';
+            
+            // 전역 변수에 저장 (탭 전환 시 유지용)
+            labCategoryFilter = categoryFilter;
+            labAttrFilter = attrFilter;
+            labQualityFilter = qualityFilter;
+            
             renderRecipeList(categoryFilter, attrFilter, qualityFilter);
         }
         
@@ -15044,7 +15062,7 @@
         // 게임 데이터 내보내기
         function exportGameData() {
             const gameData = {
-                version: '2.2.0',
+                version: '2.3.0',
                 exportDate: new Date().toISOString(),
                 spirits: spirits,
                 collection: collection,
@@ -15359,6 +15377,15 @@
                 if (!spirit.isDead && !spirit.isCompleted) {
                     spirit.lastFed = now;
                 }
+                
+                // hiddenAttributes 400 캡 마이그레이션 (v2.3.0+)
+                if (spirit.hiddenAttributes) {
+                    Object.keys(spirit.hiddenAttributes).forEach(attr => {
+                        if (spirit.hiddenAttributes[attr] > 400) {
+                            spirit.hiddenAttributes[attr] = 400;
+                        }
+                    });
+                }
             });
             
             saveGame();
@@ -15391,7 +15418,7 @@
                 dark: 0
             };
 
-            // 1단계: 모든 미니어처의 속성 합계 계산 (페널티 없이)
+            // 모든 미니어처의 속성 합계 계산
             installedDecorations.forEach(deco => {
                 // 문자열 또는 객체 모두 지원
                 const decoKey = typeof deco === 'string' ? deco : deco.type;
@@ -15403,19 +15430,18 @@
                     const attr = decoData.attr;
                     const power = decoData.power;
                     
-                    // 복합 속성 미니어처 처리
                     if (attr === 'dual' && decoData.dualAttr) {
-                        // 두 속성 모두 증가
+                        // 복합 속성: 두 속성 모두 증가
                         decoData.dualAttr.forEach(dualAttr => {
                             terrarium[dualAttr] += power;
                         });
                     } else if (attr === 'all') {
-                        // 모든 속성 증가
+                        // 전속성: 모든 속성 증가
                         ['fire', 'water', 'wind', 'earth', 'light', 'dark'].forEach(allAttr => {
                             terrarium[allAttr] += power;
                         });
                     } else {
-                        // 해당 속성 증가
+                        // 단일 속성
                         terrarium[attr] += power;
                     }
                 }
@@ -15430,28 +15456,9 @@
                 }
             });
             
-            // 2단계: 상극 속성끼리 상호 페널티 적용 (순서 무관)
-            const oppositePairs = [
-                ['fire', 'water'],
-                ['wind', 'earth'],
-                ['light', 'dark']
-            ];
-            
-            oppositePairs.forEach(([attr1, attr2]) => {
-                const val1 = terrarium[attr1];
-                const val2 = terrarium[attr2];
-                
-                // 서로의 절반만큼 감소
-                const penalty1 = Math.floor(val2 / 2);
-                const penalty2 = Math.floor(val1 / 2);
-                
-                terrarium[attr1] = Math.max(0, val1 - penalty1);
-                terrarium[attr2] = Math.max(0, val2 - penalty2);
-            });
-            
-            // 3단계: 최대값 50으로 제한
+            // 3단계: 최대값 100으로 제한
             Object.keys(terrarium).forEach(attr => {
-                terrarium[attr] = Math.min(50, terrarium[attr]);
+                terrarium[attr] = Math.min(100, terrarium[attr]);
             });
         }
 
@@ -15693,11 +15700,11 @@
         }
 
         function renderTerrariumManagement() {
-            // 환경 바 업데이트 (최대 50)
+            // 환경 바 업데이트 (최대 100)
             Object.entries(terrarium).forEach(([attr, value]) => {
                 const bar = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Bar`);
                 const valueSpan = document.getElementById(`terr${attr.charAt(0).toUpperCase() + attr.slice(1)}Value`);
-                if (bar) bar.style.width = `${(value / 50) * 100}%`;
+                if (bar) bar.style.width = `${(value / 100) * 100}%`;
                 if (valueSpan) valueSpan.textContent = value;
             });
             
@@ -19112,10 +19119,10 @@
             // 테라리움 속성
             const terrariumAttrs = terrarium || { fire: 0, water: 0, wind: 0, earth: 0, light: 0, dark: 0 };
             
-            // 최종 속성 계산 (먹이 70% + 테라리움 30%)
+            // 최종 속성 계산 (먹이 + 테라리움, 최대 500)
             const finalAttrs = {};
             for (let attr in foodAttrs) {
-                finalAttrs[attr] = (foodAttrs[attr] * 0.7) + ((terrariumAttrs[attr] || 0) * 0.3);
+                finalAttrs[attr] = Math.min(500, foodAttrs[attr] + (terrariumAttrs[attr] || 0));
             }
             
             const attrValues = Object.values(finalAttrs);
