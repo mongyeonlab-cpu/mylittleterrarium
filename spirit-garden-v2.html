@@ -3951,12 +3951,18 @@
             const bestFriend = getBestFriend(spirit);
             if (bestFriend) {
                 keywords.push({ text: `짝꿍 : ${bestFriend.name}`, color: '#e91e63', desc: `${bestFriend.name}와(과) 짝꿍 관계입니다.` });
+            } else if (spirit.bond && spirit.bond.type === 'bestfriend' && spirit.bond.partnerLeft && spirit.partnerLeftName) {
+                // 짝꿍이 떠났지만 키워드는 유지
+                keywords.push({ text: `짝꿍 : ${spirit.partnerLeftName}`, color: '#e91e63', desc: `${spirit.partnerLeftName}와(과) 짝꿍 관계입니다.` });
             }
             
             // 연모 관계
             const lover = getLover(spirit);
             if (lover) {
                 keywords.push({ text: `연모 : ${lover.name}`, color: '#e91e63', desc: `${lover.name}에게 연모의 감정을 느끼고 있습니다. 둘 다 성장을 마치면 연결 알이 생길 수 있습니다.` });
+            } else if (spirit.bond && spirit.bond.type === 'lover' && spirit.bond.partnerLeft && spirit.partnerLeftName) {
+                // 연모 대상이 떠났지만 키워드는 유지
+                keywords.push({ text: `연모 : ${spirit.partnerLeftName}`, color: '#e91e63', desc: `${spirit.partnerLeftName}에게 연모의 감정을 느끼고 있습니다.` });
             }
             
             // 앙숙 관계 (호감도 0 미만)
@@ -7175,7 +7181,7 @@
                     spirit.partnerLeftBy = reason;
                     spirit.partnerLeftName = departingName;
                     spirit.partnerLeftAt = Date.now();
-                    delete spirit.partnerId; // 관계 정리
+                    // partnerId는 유지 (키워드 표시용)
                 }
                 
                 // 연모 관계 체크
@@ -7183,7 +7189,7 @@
                     spirit.crushLeftBy = reason;
                     spirit.crushLeftName = departingName;
                     spirit.crushLeftAt = Date.now();
-                    delete spirit.crushId; // 관계 정리
+                    // crushId는 유지 (키워드 표시용)
                 }
                 
                 // bond 객체에서 lover 관계 체크
@@ -7191,7 +7197,16 @@
                     spirit.partnerLeftBy = reason;
                     spirit.partnerLeftName = departingName;
                     spirit.partnerLeftAt = Date.now();
-                    delete spirit.bond; // 관계 정리
+                    // bond는 유지하되 떠났음을 표시
+                    spirit.bond.partnerLeft = true;
+                }
+                
+                // bond 객체에서 bestfriend 관계 체크
+                if (spirit.bond && spirit.bond.type === 'bestfriend' && spirit.bond.partnerId === departingId) {
+                    spirit.partnerLeftBy = reason;
+                    spirit.partnerLeftName = departingName;
+                    spirit.partnerLeftAt = Date.now();
+                    spirit.bond.partnerLeft = true;
                 }
             });
         }
