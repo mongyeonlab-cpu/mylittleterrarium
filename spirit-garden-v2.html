@@ -1553,14 +1553,14 @@
     </div>
     
     <!-- 서브탭 바 (상점/일지 탭 선택 시 표시) -->
-    <div id="subTabBar" style="display: none; background: transparent; padding: 0; margin-top: -25px; margin-bottom: 20px; text-align: center;">
+    <div id="subTabBar" style="display: none; background: transparent; padding: 0; margin-top: -25px; margin-bottom: 20px;">
         <!-- 상점 서브탭 -->
-        <div id="shopSubTabs" style="display: none; flex-wrap: nowrap; gap: 0;">
+        <div id="shopSubTabs" style="display: none; flex-wrap: nowrap; gap: 0; justify-content: center;">
             <button class="sub-tab active" onclick="switchShopTab('sell')" data-tab="sell">판매</button>
             <button class="sub-tab" onclick="switchShopTab('buy')" data-tab="buy">구매</button>
         </div>
         <!-- 일지 서브탭 -->
-        <div id="journalSubTabs" style="display: none; flex-wrap: nowrap; gap: 0;">
+        <div id="journalSubTabs" style="display: none; flex-wrap: nowrap; gap: 0; justify-content: center;">
             <button class="sub-tab active" onclick="switchJournalTab('encyclopedia')" data-tab="encyclopedia">도감</button>
             <button class="sub-tab" onclick="switchJournalTab('album')" data-tab="album">앨범</button>
             <button class="sub-tab" onclick="switchJournalTab('achievement')" data-tab="achievement">업적</button>
@@ -1903,6 +1903,42 @@
                     <button onclick="redeemEventCode()" style="padding: 12px 20px; background: #333; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
                         사용
                     </button>
+                </div>
+            </div>
+            
+            <!-- 커스텀 정령 -->
+            <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.3rem; margin-bottom: 20px; color: var(--text);">✨ 커스텀 정령</h3>
+                
+                <p style="font-size: 0.9rem; color: #888; margin-bottom: 16px;">다른 유저가 만든 커스텀 정령 코드를 입력하면 특별한 정령 알을 받을 수 있습니다!</p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="customSpiritCodeInput" placeholder="SGCUSTOM-로 시작하는 코드 입력..." style="flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; font-size: 0.85rem;">
+                    <button onclick="redeemCustomSpiritCode()" style="padding: 12px 20px; background: #7b68ee; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                        가져오기
+                    </button>
+                </div>
+                
+                <!-- JSON 파일 업로드 -->
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; padding: 12px; background: var(--bg); border: 2px dashed var(--border); border-radius: 6px; text-align: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#7b68ee'" onmouseout="this.style.borderColor='var(--border)'">
+                        <input type="file" id="customSpiritFileInput" accept=".json" onchange="loadCustomSpiritFromFile(event)" style="display: none;">
+                        📁 JSON 파일로 가져오기 (이미지 포함 정령용)
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 8px;">
+                    <a href="spirit-creator.html" target="_blank" style="flex: 1; display: block; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; text-align: center; text-decoration: none; color: var(--text); font-weight: 600;">
+                        🎨 커스텀 정령 만들기
+                    </a>
+                    <button onclick="showCustomSpiritLibrary()" style="flex: 1; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text);">
+                        📚 내 커스텀 정령
+                    </button>
+                </div>
+                
+                <div style="margin-top: 16px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 0.85rem; color: #888;">
+                    💡 이미지가 포함된 정령은 JSON 파일로 공유하는 것을 권장합니다.<br>
+                    이모지만 사용하는 정령은 코드로도 공유할 수 있습니다.
                 </div>
             </div>
             
@@ -2835,6 +2871,61 @@
                     '{name1}과(와) {name2}이(가) 즐겁게 대화를 나눕니다.',
                     '{name1}이(가) {name2}의 이야기를 경청하고 있습니다.'
                 ]
+            },
+            // 짝꿍/연모 이별 대사
+            partnerLeft: {
+                // 짝꿍이 성장 완료로 떠났을 때 (그리움)
+                completed: [
+                    '{name}이(가) 하늘을 올려다보며 누군가를 떠올립니다.',
+                    '{name}이(가) {partnerName}이(가) 앉았던 자리를 바라봅니다.',
+                    '{name}이(가) 문득 멍하니 먼 곳을 응시합니다.',
+                    '{name}이(가) {partnerName}이(가) 있던 자리에서 길게 웁니다.',
+                    '{name}이(가) {partnerName}과(와)의 추억을 떠올리며 미소 짓습니다.',
+                    '{name}이(가) 저녁노을을 바라보며 {partnerName}을(를) 생각합니다.',
+                    '{name}이(가) {partnerName}이(가) 잘 있을지 궁금해합니다.',
+                    '{name}이(가) {partnerName}과(와) 함께 놀던 기억에 잠깁니다.',
+                    '{name}이(가) 잠시 멈춰 서서 {partnerName}을(를) 그리워합니다.',
+                    '{name}이(가) {partnerName}의 빈자리가 아직 익숙하지 않은 듯합니다.'
+                ],
+                // 짝꿍이 보내기로 떠났을 때 (슬픔/혼란)
+                sentAway: [
+                    '{name}이(가) {partnerName}이(가) 어디로 갔는지 두리번거립니다.',
+                    '{name}이(가) {partnerName}을(를) 찾아 헤맵니다.',
+                    '{name}이(가) 혼란스러운 눈으로 주변을 살핍니다.',
+                    '{name}이(가) {partnerName}이(가) 왜 떠났는지 이해하지 못합니다.',
+                    '{name}이(가) 슬픈 눈으로 길게 웁니다.',
+                    '{name}이(가) {partnerName}이(가) 있던 자리에서 떠나지 못합니다.',
+                    '{name}이(가) 갑자기 사라진 {partnerName}이(가) 걱정되는 듯합니다.',
+                    '{name}이(가) {partnerName}... 하고 중얼거립니다.',
+                    '{name}이(가) 어쩔 줄 몰라하며 제자리를 맴돕니다.',
+                    '{name}이(가) 축 처진 모습으로 {partnerName}을(를) 기다립니다.'
+                ]
+            },
+            crushLeft: {
+                // 연모 대상이 성장 완료로 떠났을 때 (그리움/아련함)
+                completed: [
+                    '{name}이(가) {crushName}이(가) 떠난 방향을 바라봅니다.',
+                    '{name}이(가) {crushName}에게 전하지 못한 마음을 떠올립니다.',
+                    '{name}이(가) 조명의 빛을 올려다보며 {crushName}을(를) 생각합니다.',
+                    '{name}이(가) {crushName}이(가) 행복하길 바라는 듯합니다.',
+                    '{name}이(가) {crushName}과(와)의 짧았던 시간을 그리워합니다.',
+                    '{name}이(가) 문득 {crushName}의 모습을 떠올립니다.',
+                    '{name}이(가) {crushName}에게 고백하지 못한 것을 아쉬워하는 것 같습니다.',
+                    '{name}이(가) 바람에 {crushName}의 향기가 실려 온 것 같다고 느낍니다.',
+                    '{name}이(가) {crushName}을(를) 마음 깊이 간직하고 있는 듯합니다.'
+                ],
+                // 연모 대상이 보내기로 떠났을 때 (슬픔/상실감)
+                sentAway: [
+                    '{name}이(가) {crushName}이(가) 왜 떠났는지 모르겠다는 듯 멍해 있습니다.',
+                    '{name}이(가) {crushName}을(를) 찾아 불안하게 두리번거립니다.',
+                    '{name}이(가) 말도 없이 사라진 {crushName}이(가) 원망스러운 것 같습니다.',
+                    '{name}이(가) 밤마다 조용히 울고 있습니다.',
+                    '{name}이(가) {crushName}이(가) 없는 테라리움이 낯설어 보입니다.',
+                    '{name}이(가) 갑작스러운 이별에 충격받은 듯합니다.',
+                    '{name}이(가) {crushName}의 빈자리를 계속 쳐다봅니다.',
+                    '{name}이(가) 혼란스러운 마음을 주체하지 못하는 것 같습니다.',
+                    '{name}이(가) 다시 볼 수 있을지 불안해하는 듯합니다.'
+                ]
             }
         };
 
@@ -2873,6 +2964,12 @@
         
         // 속성을 고려한 스테이지 아이콘 가져오기
         function getStageIcon(stage, spirit) {
+            // 커스텀 정령 체크
+            if (spirit && spirit.isCustomSpirit && spirit.customTypeId) {
+                const customIcon = getCustomStageIcon(spirit);
+                if (customIcon) return customIcon;
+            }
+            
             // 기본 아이콘
             let icon = STAGE_ICONS[stage];
             
@@ -4242,6 +4339,409 @@
             const rewardNames = event.rewards.map(r => `${r.icon} ${r.name}`).join(', ');
             showNotification(`🎁 이벤트 보상 획득! ${rewardNames}`);
         }
+        
+        
+        // ========== 커스텀 정령 시스템 v3.0 ==========
+        let customSpiritTypes = {}; // 저장된 커스텀 정령 타입들
+
+        // 커스텀 정령 데이터 로드
+        function loadCustomSpirits() {
+            const saved = localStorage.getItem('spiritGarden_customSpirits');
+            if (saved) {
+                try {
+                    customSpiritTypes = JSON.parse(saved);
+                    console.log('커스텀 정령 로드 완료:', Object.keys(customSpiritTypes).length + '개');
+                } catch (e) {
+                    console.error('커스텀 정령 로드 오류:', e);
+                    customSpiritTypes = {};
+                }
+            }
+        }
+
+        // 커스텀 정령 데이터 저장
+        function saveCustomSpirits() {
+            localStorage.setItem('spiritGarden_customSpirits', JSON.stringify(customSpiritTypes));
+        }
+
+        // 커스텀 정령 코드 해석
+        function decodeCustomSpiritCode(code) {
+            try {
+                if (!code.startsWith('SGCUSTOM-')) return null;
+                const base64 = code.substring(9);
+                const json = decodeURIComponent(escape(atob(base64)));
+                const data = JSON.parse(json);
+                
+                if (!data.name || !data.stages) {
+                    return null;
+                }
+                
+                return data;
+            } catch (e) {
+                console.error('커스텀 정령 코드 해석 오류:', e);
+                return null;
+            }
+        }
+
+        // 커스텀 정령 코드 사용
+        function redeemCustomSpiritCode() {
+            const input = document.getElementById('customSpiritCodeInput');
+            const code = input.value.trim();
+            
+            if (!code) {
+                showNotification('코드를 입력해주세요!');
+                return;
+            }
+            
+            const customData = decodeCustomSpiritCode(code);
+            
+            if (!customData) {
+                showNotification('올바르지 않은 커스텀 정령 코드입니다.');
+                return;
+            }
+            
+            registerAndCreateCustomSpirit(customData);
+            input.value = '';
+        }
+
+        // JSON 파일에서 커스텀 정령 불러오기
+        function loadCustomSpiritFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const customData = JSON.parse(e.target.result);
+                    
+                    if (!customData.name || !customData.stages) {
+                        showNotification('올바른 커스텀 정령 파일이 아닙니다.');
+                        return;
+                    }
+                    
+                    registerAndCreateCustomSpirit(customData);
+                } catch (err) {
+                    showNotification('파일을 읽는 중 오류가 발생했습니다.');
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // 커스텀 정령 등록 및 생성
+        function registerAndCreateCustomSpirit(customData) {
+            if (!customData.id) {
+                customData.id = 'custom_' + Date.now();
+            }
+            
+            const existingKey = Object.keys(customSpiritTypes).find(
+                key => customSpiritTypes[key].name === customData.name && 
+                       customSpiritTypes[key].creator === customData.creator
+            );
+            
+            if (existingKey) {
+                const spirit = createCustomSpirit(existingKey);
+                if (spirit) {
+                    spirits.push(spirit);
+                    saveGame();
+                    renderSpirits();
+                    showNotification(`🥚 ${customData.name}의 알이 태어났습니다!`);
+                }
+            } else {
+                customSpiritTypes[customData.id] = customData;
+                saveCustomSpirits();
+                
+                const spirit = createCustomSpirit(customData.id);
+                if (spirit) {
+                    spirits.push(spirit);
+                    saveGame();
+                    renderSpirits();
+                    
+                    const hasImage = customData.iconType === 'image' || 
+                        (customData.stages.egg && customData.stages.egg.startsWith && customData.stages.egg.startsWith('data:'));
+                    const icon = hasImage ? '🖼️' : '✨';
+                    showNotification(`${icon} 새 커스텀 정령 "${customData.name}" 등록! 알이 태어났습니다!`);
+                }
+            }
+        }
+
+        // 커스텀 정령 알 생성
+        function createCustomSpirit(customTypeId) {
+            const customType = customSpiritTypes[customTypeId];
+            if (!customType) return null;
+            
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            
+            const spirit = {
+                id: Date.now(),
+                name: customType.name,
+                originalName: customType.name,
+                growth: 0,
+                parameters: {
+                    intelligence: 0,
+                    strength: 0,
+                    charm: 0,
+                    affection: 0
+                },
+                hiddenAttributes: {
+                    fire: customType.attribute === 'fire' ? 10 : 0,
+                    water: customType.attribute === 'water' ? 10 : 0,
+                    wind: customType.attribute === 'wind' ? 10 : 0,
+                    earth: customType.attribute === 'earth' ? 10 : 0,
+                    light: customType.attribute === 'light' ? 10 : 0,
+                    dark: customType.attribute === 'dark' ? 10 : 0
+                },
+                satisfaction: 'mid',
+                lastFed: null,
+                lastMusic: null,
+                lastPat: null,
+                lastDecorate: null,
+                lastInteraction: Date.now(),
+                status: '커스텀 정령의 알이 빛나고 있습니다...',
+                birthTime: Date.now(),
+                logs: [
+                    { time: timestamp, message: `✨ 커스텀 정령 "${customType.name}"의 알이 태어났습니다! (by ${customType.creator || 'Unknown'})` }
+                ],
+                lightTime: 0,
+                darkTime: 0,
+                musicListened: 0,
+                feedCount: 0,
+                isCustomSpirit: true,
+                customTypeId: customTypeId
+            };
+            
+            return spirit;
+        }
+
+        // 커스텀 정령의 스테이지 아이콘 가져오기
+        function getCustomStageIcon(spirit) {
+            if (!spirit.isCustomSpirit || !spirit.customTypeId) return null;
+            
+            const customType = customSpiritTypes[spirit.customTypeId];
+            if (!customType || !customType.stages) return null;
+            
+            const stage = getStage(spirit.growth);
+            let stageIcon = customType.stages[stage] || customType.stages.adult || '✨';
+            
+            // Base64 이미지인 경우 img 태그로 변환
+            if (stageIcon && typeof stageIcon === 'string' && stageIcon.startsWith('data:')) {
+                if (stage === 'adult') {
+                    return `<img src="${stageIcon}" style="width:270px;height:370px;object-fit:contain;vertical-align:middle;">`;
+                }
+                return `<img src="${stageIcon}" style="width:150px;height:150px;object-fit:contain;vertical-align:middle;">`;
+            }
+            
+            return stageIcon;
+        }
+
+        // 커스텀 정령의 대사 가져오기
+        function getCustomDialogue(spirit, type = 'idle', targetSpirit = null) {
+            if (!spirit.isCustomSpirit || !spirit.customTypeId) return null;
+            
+            const customType = customSpiritTypes[spirit.customTypeId];
+            if (!customType || !customType.dialogues) return null;
+            
+            const dialogues = customType.dialogues[type];
+            if (!dialogues || dialogues.length === 0) return null;
+            
+            let dialogue = dialogues[Math.floor(Math.random() * dialogues.length)];
+            
+            dialogue = dialogue.replace(/{name}/g, spirit.name);
+            
+            if (targetSpirit) {
+                dialogue = dialogue.replace(/{partner}/g, targetSpirit.name);
+                dialogue = dialogue.replace(/{crush}/g, targetSpirit.name);
+                dialogue = dialogue.replace(/{rival}/g, targetSpirit.name);
+            }
+            
+            return dialogue;
+        }
+
+        // 커스텀 정령의 관계 기반 대사 가져오기
+        function getCustomRelationshipDialogue(spirit) {
+            if (!spirit.isCustomSpirit || !spirit.customTypeId) return null;
+            
+            const customType = customSpiritTypes[spirit.customTypeId];
+            if (!customType || !customType.dialogues) return null;
+            
+            // 짝꿍 체크
+            if (spirit.partnerId) {
+                const partner = spirits.find(s => s.id === spirit.partnerId);
+                if (partner && customType.dialogues.partner && customType.dialogues.partner.length > 0) {
+                    return getCustomDialogue(spirit, 'partner', partner);
+                }
+            }
+            
+            // 연모 체크
+            if (spirit.crushId) {
+                const crush = spirits.find(s => s.id === spirit.crushId);
+                if (crush && customType.dialogues.crush && customType.dialogues.crush.length > 0) {
+                    return getCustomDialogue(spirit, 'crush', crush);
+                }
+            }
+            
+            // 앙숙 체크
+            if (spirit.rivalId) {
+                const rival = spirits.find(s => s.id === spirit.rivalId);
+                if (rival && customType.dialogues.rival && customType.dialogues.rival.length > 0) {
+                    return getCustomDialogue(spirit, 'rival', rival);
+                }
+            }
+            
+            return null;
+        }
+
+        // 커스텀 정령 라이브러리 표시
+        function showCustomSpiritLibrary() {
+            const keys = Object.keys(customSpiritTypes);
+            
+            if (keys.length === 0) {
+                showNotification('등록된 커스텀 정령이 없습니다.');
+                return;
+            }
+            
+            let html = `
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <p style="margin-bottom: 16px; color: var(--text-muted);">등록된 커스텀 정령: ${keys.length}개</p>
+            `;
+            
+            keys.forEach(key => {
+                const custom = customSpiritTypes[key];
+                const adultIcon = custom.stages.adult || '✨';
+                const isImage = adultIcon && typeof adultIcon === 'string' && adultIcon.startsWith('data:');
+                
+                const iconHtml = isImage 
+                    ? `<img src="${adultIcon}" style="width: 50px; height: 68px; object-fit: contain;">`
+                    : `<span style="font-size: 2.5rem;">${adultIcon}</span>`;
+                
+                const adultTypeLabel = custom.adultType === 'butterfly' ? '☀️나비' : 
+                                      custom.adultType === 'moth' ? '🌙나방' : '🌌통합';
+                
+                html += `
+                    <div style="background: var(--bg); padding: 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 60px; height: 80px; display: flex; align-items: center; justify-content: center; background: var(--card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border);">
+                                ${iconHtml}
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 1.1rem;">${custom.name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">by ${custom.creator || 'Unknown'}</div>
+                                <div style="font-size: 0.75rem; color: #aaa; margin-top: 2px;">
+                                    ${isImage ? '🖼️ 이미지' : '😊 이모지'} · ${adultTypeLabel}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button onclick="spawnCustomSpirit('${key}')" style="padding: 8px 14px; background: #7b68ee; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                                🥚 알 받기
+                            </button>
+                            <button onclick="exportCustomSpirit('${key}')" style="padding: 8px 14px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                                📤 내보내기
+                            </button>
+                            <button onclick="deleteCustomSpirit('${key}')" style="padding: 8px 14px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+                                🗑️ 삭제
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            showCustomSpiritModal('📚 내 커스텀 정령', html);
+        }
+
+        // 커스텀 정령 알 받기
+        function spawnCustomSpirit(customTypeId) {
+            const spirit = createCustomSpirit(customTypeId);
+            if (spirit) {
+                spirits.push(spirit);
+                saveGame();
+                renderSpirits();
+                closeCustomSpiritModal();
+                showNotification(`🥚 ${customSpiritTypes[customTypeId].name}의 알이 태어났습니다!`);
+            }
+        }
+
+        // 커스텀 정령 내보내기
+        function exportCustomSpirit(customTypeId) {
+            const customType = customSpiritTypes[customTypeId];
+            if (!customType) return;
+            
+            const jsonStr = JSON.stringify(customType, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `custom_spirit_${customType.name.replace(/\s+/g, '_')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('커스텀 정령이 내보내졌습니다!');
+        }
+
+        // 커스텀 정령 삭제
+        function deleteCustomSpirit(customTypeId) {
+            const customType = customSpiritTypes[customTypeId];
+            if (!customType) return;
+            
+            if (confirm(`"${customType.name}" 커스텀 정령을 삭제하시겠습니까?\n(이미 육성 중인 정령에는 영향이 없습니다)`)) {
+                delete customSpiritTypes[customTypeId];
+                saveCustomSpirits();
+                showCustomSpiritLibrary();
+                showNotification('커스텀 정령이 삭제되었습니다.');
+            }
+        }
+
+        // 커스텀 정령 모달 표시
+        function showCustomSpiritModal(title, content) {
+            const existing = document.getElementById('customSpiritModal');
+            if (existing) existing.remove();
+            
+            const modal = document.createElement('div');
+            modal.id = 'customSpiritModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.7);
+                z-index: 100000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: var(--card); border: 2px solid var(--border); border-radius: 12px; padding: 30px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.5rem; color: var(--text); margin: 0;">${title}</h2>
+                        <button onclick="closeCustomSpiritModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); padding: 5px;">✕</button>
+                    </div>
+                    <div>${content}</div>
+                </div>
+            `;
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) closeCustomSpiritModal();
+            };
+            
+            document.body.appendChild(modal);
+        }
+
+        // 커스텀 정령 모달 닫기
+        function closeCustomSpiritModal() {
+            const modal = document.getElementById('customSpiritModal');
+            if (modal) modal.remove();
+        }
+        // ========== 커스텀 정령 시스템 끝 ==========
         
         // 합성 관련 변수
         let fusionSlot1Spirit = null;
@@ -6660,10 +7160,48 @@
             const modal = document.getElementById('breedDeleteModal');
             if (modal) modal.remove();
         }
+        
+        // 정령이 떠날 때 관계된 정령들에게 알려주는 함수
+        function notifyRelatedSpiritsOfDeparture(departingSpirit, reason) {
+            // reason: 'completed' (성장 완료) 또는 'sentAway' (보내기)
+            const departingId = departingSpirit.id;
+            const departingName = departingSpirit.name;
+            
+            spirits.forEach(spirit => {
+                if (spirit.id === departingId) return; // 떠나는 정령 자신은 제외
+                
+                // 짝꿍 관계 체크
+                if (spirit.partnerId === departingId) {
+                    spirit.partnerLeftBy = reason;
+                    spirit.partnerLeftName = departingName;
+                    spirit.partnerLeftAt = Date.now();
+                    delete spirit.partnerId; // 관계 정리
+                }
+                
+                // 연모 관계 체크
+                if (spirit.crushId === departingId) {
+                    spirit.crushLeftBy = reason;
+                    spirit.crushLeftName = departingName;
+                    spirit.crushLeftAt = Date.now();
+                    delete spirit.crushId; // 관계 정리
+                }
+                
+                // bond 객체에서 lover 관계 체크
+                if (spirit.bond && spirit.bond.type === 'lover' && spirit.bond.partnerId === departingId) {
+                    spirit.partnerLeftBy = reason;
+                    spirit.partnerLeftName = departingName;
+                    spirit.partnerLeftAt = Date.now();
+                    delete spirit.bond; // 관계 정리
+                }
+            });
+        }
 
         function deleteSpirit(spiritId, returnBreedCode = false) {
             const spirit = spirits.find(s => s.id === spiritId);
             if (!spirit) return;
+            
+            // 관계된 정령들에게 이별 알림 (보내기)
+            notifyRelatedSpiritsOfDeparture(spirit, 'sentAway');
             
             // 연결 코드 반환 처리
             if (returnBreedCode && spirit.breedCode) {
@@ -7024,6 +7562,9 @@
                         
                         // 업적 체크
                         checkAchievements();
+                        
+                        // 관계된 정령들에게 이별 알림 (성장 완료)
+                        notifyRelatedSpiritsOfDeparture(spirit, 'completed');
                         
                         // 정령 제거
                         spirits = spirits.filter(s => s.id !== spiritId);
@@ -7476,6 +8017,9 @@
                 
                 // 업적 체크
                 checkAchievements();
+                
+                // 관계된 정령들에게 이별 알림 (성장 완료)
+                notifyRelatedSpiritsOfDeparture(spirit, 'completed');
                 
                 // 정령 제거
                 spirits = spirits.filter(s => s.id !== spiritId);
@@ -13779,7 +14323,7 @@
                     // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        subTabBar.style.textAlign = 'center';
+                        
                     }
                     if (shopSubTabs) shopSubTabs.style.display = 'flex';
                     
@@ -13822,7 +14366,7 @@
                     // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        subTabBar.style.textAlign = 'center';
+                        
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
@@ -13839,7 +14383,7 @@
                     // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        subTabBar.style.textAlign = 'center';
+                        
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
@@ -13855,7 +14399,7 @@
                     // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
                         subTabBar.style.display = 'block';
-                        subTabBar.style.textAlign = 'center';
+                        
                     }
                     if (journalSubTabs) journalSubTabs.style.display = 'flex';
                     
@@ -16447,11 +16991,57 @@
         function getRandomMessage(spirit) {
             if (spirit.isDead || spirit.isCompleted) return spirit.status;
             
+            // 커스텀 정령 대사 체크 (v3)
+            if (spirit.isCustomSpirit && spirit.customTypeId) {
+                // 1. 관계 기반 대사 우선 체크 (짝꿍/연모/앙숙) - 30% 확률
+                const relationshipDialogue = getCustomRelationshipDialogue(spirit);
+                if (relationshipDialogue && Math.random() < 0.3) {
+                    return relationshipDialogue;
+                }
+                
+                // 2. 만족도에 따른 대사 타입 결정
+                let dialogueType = 'idle';
+                if (spirit.satisfaction === 'happy') dialogueType = 'happy';
+                else if (spirit.satisfaction === 'sad') dialogueType = 'hungry';
+                else if (spirit.parameters && spirit.parameters.affection > 80) dialogueType = 'special';
+                
+                // 커스텀 대사가 있으면 사용 (50% 확률), 없으면 기본 대사
+                const customDialogue = getCustomDialogue(spirit, dialogueType);
+                if (customDialogue && Math.random() < 0.5) return customDialogue;
+            }
+            
             const affection = spirit.parameters.affection || 0;
             const now = Date.now();
             const timeSinceLastFed = spirit.lastFed ? (now - spirit.lastFed) / 1000 : Infinity;
             const timeSinceLastMusic = spirit.lastMusic ? (now - spirit.lastMusic) / 1000 : Infinity;
             const stage = getStage(spirit.growth);
+            
+            // 짝꿍/연모 이별 대사 체크 (이별 후 3일간, 40% 확률)
+            const THREE_DAYS = 3 * 24 * 60 * 60 * 1000; // 3일
+            
+            // 짝꿍 이별 대사
+            if (spirit.partnerLeftAt && (now - spirit.partnerLeftAt) < THREE_DAYS && Math.random() < 0.4) {
+                const reason = spirit.partnerLeftBy || 'completed';
+                const messages = RANDOM_MESSAGES.partnerLeft[reason];
+                if (messages && messages.length > 0) {
+                    let msg = messages[Math.floor(Math.random() * messages.length)];
+                    msg = msg.replace(/{name}/g, spirit.name);
+                    msg = msg.replace(/{partnerName}/g, spirit.partnerLeftName || '그 정령');
+                    return msg;
+                }
+            }
+            
+            // 연모 이별 대사
+            if (spirit.crushLeftAt && (now - spirit.crushLeftAt) < THREE_DAYS && Math.random() < 0.4) {
+                const reason = spirit.crushLeftBy || 'completed';
+                const messages = RANDOM_MESSAGES.crushLeft[reason];
+                if (messages && messages.length > 0) {
+                    let msg = messages[Math.floor(Math.random() * messages.length)];
+                    msg = msg.replace(/{name}/g, spirit.name);
+                    msg = msg.replace(/{crushName}/g, spirit.crushLeftName || '그 정령');
+                    return msg;
+                }
+            }
             
             // 알/번데기 상태인지 확인
             const isEgg = stage === 'egg';
@@ -19713,6 +20303,7 @@
         try {
             console.log('게임 초기화 시작...');
             loadGame();
+            loadCustomSpirits(); // 커스텀 정령 데이터 로드
             renderSpirits();
             renderInventory();
             renderShop();
