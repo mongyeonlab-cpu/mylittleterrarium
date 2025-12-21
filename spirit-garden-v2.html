@@ -100,10 +100,22 @@
             display: block;
         }
 
-        .main-layout {
+        /* 전역 레이아웃 - 인벤토리 + 섹션 */
+        .global-layout {
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .sections-wrapper {
+            min-width: 0;
+        }
+
+        .main-layout {
+            display: block;
             margin-bottom: 30px;
         }
 
@@ -1133,6 +1145,12 @@
                 display: none !important;
             }
             
+            /* 모바일에서 global-layout 1컬럼 */
+            body.mobile-layout .global-layout {
+                display: block;
+                padding: 0;
+            }
+            
             /* 모바일 고정 채집 섹션 */
             .mobile-fixed-gather {
                 position: fixed;
@@ -1569,71 +1587,75 @@
         </div>
     </div>
 
+    <!-- 전역 레이아웃: 인벤토리 + 섹션들 -->
+    <div class="global-layout">
+        <!-- 공용 인벤토리 패널 (데스크톱) -->
+        <div class="inventory-panel">
+            <div style="margin-bottom: 16px;">
+                <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">칭호 선택</label>
+                <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
+                    <option value="none">자동채집 (확률 절반)</option>
+                    <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
+                    <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
+                    <option value="musician">음악가 (레코드 확률 2배)</option>
+                    <option value="collector">수집가 (테라리움 물품 확률 2배)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="gatherLocationSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">채집 장소</label>
+                <select id="gatherLocationSelect" onchange="changeGatherLocation()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
+                    <option value="garden">🌸 정원 (모든 속성)</option>
+                    <option value="lake">🌊 호수 (물·바람)</option>
+                    <option value="forest">🌲 숲 (땅·불)</option>
+                </select>
+            </div>
+
+            <button class="walk-btn" onclick="goGather()" style="margin-bottom: 20px;">채집하기</button>
+
+            <div class="inventory-title" onclick="toggleInventoryCollapse()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>내 소지품</span>
+                <span id="inventoryToggleIcon" style="font-size: 0.8rem; color: #888;">▼</span>
+            </div>
+            
+            <div id="inventoryContent">
+                <div class="inventory-section">
+                    <div class="inventory-label">🍎 먹이</div>
+                    <div class="inventory-items" id="foodInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+
+                <div class="inventory-section">
+                    <div class="inventory-label">🎼 레코드</div>
+                    <div class="inventory-items" id="musicInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+
+                <div class="inventory-section">
+                    <div class="inventory-label">🌳 미니어처</div>
+                    <div class="inventory-items" id="decorInventory">
+                        <div class="inventory-item">없음</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 섹션들 wrapper -->
+        <div class="sections-wrapper">
+
     <div id="gardenSection" class="section active">
         <div class="main-layout">
-            <div class="inventory-panel">
-                <div style="margin-bottom: 16px;">
-                    <label for="titleSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">칭호 선택</label>
-                    <select id="titleSelect" onchange="changeTitle()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
-                        <option value="none">자동채집 (확률 절반)</option>
-                        <option value="hawk_eye">매의 눈 (모든 채집물 확률 1.5배)</option>
-                        <option value="gatherer">채집꾼 (먹이 확률 2배)</option>
-                        <option value="musician">음악가 (레코드 확률 2배)</option>
-                        <option value="collector">수집가 (테라리움 물품 확률 2배)</option>
-                    </select>
-                </div>
-
-                <div style="margin-bottom: 16px;">
-                    <label for="gatherLocationSelect" style="display: block; font-size: 0.9rem; margin-bottom: 6px; color: var(--text); font-weight: 600;">채집 장소</label>
-                    <select id="gatherLocationSelect" onchange="changeGatherLocation()" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 0.9rem; cursor: pointer;">
-                        <option value="garden">🌸 정원 (모든 속성)</option>
-                        <option value="lake">🌊 호수 (물·바람)</option>
-                        <option value="forest">🌲 숲 (땅·불)</option>
-                    </select>
-                </div>
-
-                <button class="walk-btn" onclick="goGather()" style="margin-bottom: 20px;">채집하기</button>
-
-                <div class="inventory-title" onclick="toggleInventoryCollapse()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <span>내 소지품</span>
-                    <span id="inventoryToggleIcon" style="font-size: 0.8rem; color: #888;">▼</span>
-                </div>
-                
-                <div id="inventoryContent">
-                    <div class="inventory-section">
-                        <div class="inventory-label">🍎 먹이</div>
-                        <div class="inventory-items" id="foodInventory">
-                            <div class="inventory-item">없음</div>
-                        </div>
-                    </div>
-
-                    <div class="inventory-section">
-                        <div class="inventory-label">🎼 레코드</div>
-                        <div class="inventory-items" id="musicInventory">
-                            <div class="inventory-item">없음</div>
-                        </div>
-                    </div>
-
-                    <div class="inventory-section">
-                        <div class="inventory-label">🌳 미니어처</div>
-                        <div class="inventory-items" id="decorInventory">
-                            <div class="inventory-item">없음</div>
-                        </div>
-                    </div>
-                </div>
+            <!-- 모바일 Swiper 페이지네이션 -->
+            <div class="swiper-pagination-container" id="swiperPaginationContainer">
+                <div class="swiper-pagination" id="spiritsPagination"></div>
             </div>
-
-            <div>
-                <!-- 모바일 Swiper 페이지네이션 -->
-                <div class="swiper-pagination-container" id="swiperPaginationContainer">
-                    <div class="swiper-pagination" id="spiritsPagination"></div>
-                </div>
-                <!-- PC: 기존 그리드 / 모바일: Swiper -->
-                <div class="swiper spirits-swiper" id="spiritsSwiper">
-                    <div class="swiper-wrapper spirits-grid" id="spiritsGrid"></div>
-                </div>
-                <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
+            <!-- PC: 기존 그리드 / 모바일: Swiper -->
+            <div class="swiper spirits-swiper" id="spiritsSwiper">
+                <div class="swiper-wrapper spirits-grid" id="spiritsGrid"></div>
             </div>
+            <button class="new-spirit-btn" onclick="createNewSpirit()">+ 새로운 알 받기</button>
         </div>
     </div>
 
@@ -2253,6 +2275,9 @@
             </div>
         </div>
     </div>
+
+        </div><!-- sections-wrapper 끝 -->
+    </div><!-- global-layout 끝 -->
 
     <!-- Name Modal -->
     <div class="modal" id="nameModal">
