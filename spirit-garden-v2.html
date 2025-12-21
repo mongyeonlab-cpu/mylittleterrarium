@@ -20651,7 +20651,8 @@
             
             if (isMobileMode) {
                 const mobileGather = document.getElementById('mobileGatherSection');
-                if (tabName === 'garden') {
+                // 모든 탭에서 채집 섹션 표시 (settings 탭 제외)
+                if (tabName !== 'settings') {
                     if (mobileGather) mobileGather.style.display = 'flex';
                     document.body.classList.add('mobile-layout');
                     if (mobileGatherExpanded) {
