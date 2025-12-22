@@ -4058,8 +4058,22 @@
                 }, 
                 desc: '차가운 지혜를 품은 물의 정령.' 
             },
-            wind: { name: '질풍의 정령', icon: '🌬️', desc: '자유로운 바람을 담은 질풍의 정령.' },
-            earth: { name: '대지의 정령', icon: '🌱', desc: '견고한 대지의 힘을 지닌 정령.' },
+            wind: { 
+                name: '질풍의 정령', 
+                icon: { 
+                    butterfly: '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%EB%B0%94%EB%9E%8C_%EA%B8%B0%EB%B3%B8_%EB%82%98%EB%B9%84.png" style="width:270px;height:370px;vertical-align:middle;">', 
+                    moth: '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%EB%B0%94%EB%9E%8C_%EA%B8%B0%EB%B3%B8_%EB%82%98%EB%B0%A9.png" style="width:270px;height:370px;vertical-align:middle;">' 
+                }, 
+                desc: '자유로운 바람을 담은 질풍의 정령.' 
+            },
+            earth: { 
+                name: '대지의 정령', 
+                icon: { 
+                    butterfly: '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%EB%95%85_%EA%B8%B0%EB%B3%B8_%EB%82%98%EB%B9%84.png" style="width:270px;height:370px;vertical-align:middle;">', 
+                    moth: '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%EB%95%85_%EA%B8%B0%EB%B3%B8_%EB%82%98%EB%B0%A9.png" style="width:270px;height:370px;vertical-align:middle;">' 
+                }, 
+                desc: '견고한 대지의 힘을 지닌 정령.' 
+            },
             light: { name: '광명의 정령', icon: '✨', desc: '찬란한 빛으로 가득한 광명의 정령.' },
             dark: { name: '암흑의 정령', icon: '🌙', desc: '신비로운 어둠을 담은 암흑의 정령.' },
             
@@ -7791,7 +7805,7 @@
                 // 완벽한 정령 - 티타니아/오베론
                 if (wingType === 'butterfly') {
                     finalName = '티타니아';
-                    finalIcon = '🦋✨';
+                    finalIcon = '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%ED%8B%B0%ED%83%80%EB%8B%88%EC%95%84.png" style="width:270px;height:370px;vertical-align:middle;">';
                     finalDesc = '모든 힘을 완벽히 갖춘 나비의 여왕. 빛과 생명을 관장하는 전설적 존재.';
                 } else {
                     finalName = '오베론';
@@ -11790,7 +11804,7 @@
                     type: 'titania',
                     attributeType: 'light',
                     name: '티타니아',
-                    icon: '🦋✨',
+                    icon: '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%ED%8B%B0%ED%83%80%EB%8B%88%EC%95%84.png" style="width:270px;height:370px;vertical-align:middle;">',
                     desc: '(복구된 정령)',
                     wingType: 'butterfly',
                     parameters: { intelligence: 100, strength: 100, charm: 100, affection: 100 }
@@ -13668,9 +13682,10 @@
             // 티타니아
             const titaniaCount = getEncyclopediaCount('titania');
             const titaniaUnlocked = titaniaCount > 0;
+            const titaniaIcon = titaniaUnlocked ? '<img src="https://raw.githubusercontent.com/mongyeonlab-cpu/mylittleterrarium/main/images/%EC%A0%95%EB%A0%B9_%ED%8B%B0%ED%83%80%EB%8B%88%EC%95%84.png" style="width:180px;height:247px;object-fit:contain;">' : '?';
             html += `
                 <div class="${titaniaUnlocked ? 'encyclopedia-card unlocked' : 'encyclopedia-card locked'}" style="min-height: 120px; border: 2px solid gold;">
-                    <div class="encyclopedia-icon" style="font-size: 3rem;">${titaniaUnlocked ? '🦋✨' : '?'}</div>
+                    <div class="encyclopedia-icon" style="font-size: 3rem;">${titaniaIcon}</div>
                     <div class="encyclopedia-name" style="font-size: 1rem; font-weight: 700;">${titaniaUnlocked ? '티타니아' : '???????'}</div>
                     <div class="encyclopedia-count" style="font-size: 0.8rem;">${titaniaUnlocked ? `${titaniaCount}회` : '미달성'}</div>
                     <div style="font-size: 0.7rem; color: ${titaniaUnlocked ? 'gold' : '#888'}; margin-top: 5px;">${titaniaUnlocked ? ENCYCLOPEDIA_HINTS['titania'] : '나비를 거느리는 정령들의 군주.'}</div>
