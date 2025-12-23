@@ -1819,10 +1819,8 @@
         
         <!-- 메모 탭 -->
         <div id="journalMemoTab" style="display: none; max-width: 700px; margin: 0 auto;">
-            <div style="background: var(--card); padding: 60px 24px; border: 1px solid var(--border); border-radius: 12px; text-align: center;">
-                <div style="font-size: 4rem; margin-bottom: 20px;">🚧</div>
-                <p style="font-size: 1.2rem; color: var(--text-muted); font-family: 'Gowun Batang', serif;">준비중...</p>
-                <p style="font-size: 0.9rem; color: #888; margin-top: 12px;">스토리 추가 예정</p>
+            <div id="memoList" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- 동적으로 렌더링됨 -->
             </div>
         </div>
         
@@ -4099,6 +4097,85 @@
             multi: { name: '혼돈의 정령', icon: '🌪️', desc: '속성의 편차가 큰 혼돈의 정령.' }
         };
         
+        // 메모 데이터
+        const MEMO_DATA = [
+            {
+                id: 'memo_intro',
+                condition: 'none', // 항상 열림
+                title: '연구소 첫 날',
+                hint: '시작',
+                content: `드디어 학원 수료를 마치고 정식으로 연구소에 배정되었다. 연구소에 있는 유일한 선배는 다행히 다정한 분인것같다. …앞으로 이곳에서 정령을 키워나간다니,`,
+                choices: [
+                    { text: '내가 잘 해나갈 수 있을지 걱정된다.', key: 'worry', suffix: '내가 그렇게 말하자 선배는 그런 조심스러운 성격이라면 예민한 정령들의 유충을 잘 키워낼 수 있을거라고 해줬다.' },
+                    { text: '빨리 정령을 만나고 싶다.', key: 'excited', suffix: '내가 그렇게 말하자 선배는 자신감 넘치는 후배가 들어왔다며 크게 웃었다.' }
+                ]
+            },
+            {
+                id: 'memo_shop_first',
+                condition: 'shopFirstVisit',
+                title: '상점 첫 방문',
+                hint: '상점에 방문하다.',
+                content: `오늘 처음으로 연구소 옆에 붙어있는 상점에 가봤다. …나보다도 어려보이는 남자아이가 카운터를 지키고 있어서 놀랐는데 선배 말로는 상점 주인이라고 한다. 어떻게?`
+            },
+            {
+                id: 'memo_shop_sleeping',
+                condition: 'shopSleepingSeen',
+                title: '졸고 있는 상점 주인',
+                hint: '자고 있는 상점 주인.',
+                content: `오늘 상점에 들렀는데 상점 주인이 카운터에 엎드려 자고 있었다. 불러도 안일어나길래 옆에 코인을 두고 나왔는데… 저럴거면 무인상점이랑 다를게 뭘까?`
+            },
+            {
+                id: 'memo_first_ending',
+                condition: 'firstSpiritEnding',
+                title: '첫 번째 이별',
+                hint: '첫 정령을 떠나보내다.',
+                content: `첫 정령을 키워냈다. 다 자란 정령에게선 유충일때의 모습은 찾아볼 수 없었다. 선배의 지도를 따라 다 자란 정령을 떠나보냈을 때의 내 기분은,`,
+                choices: [
+                    { text: '시원하면서도 섭섭했다.', key: 'bittersweet' },
+                    { text: '왠지 눈물이 날 것 같았다.', key: 'tearful' }
+                ],
+                suffix: `그런 내 모습을 보며 선배는 지금 이 감정을 앞으로도 계속 기억하고 떠올리라고 해주었다.`
+            },
+            {
+                id: 'memo_first_sick',
+                condition: 'firstSpiritSick',
+                title: '아픈 정령',
+                hint: '정령이 병에 걸리다.',
+                content: `정령이 병에 걸렸다. 안절부절하고 있던 내게 선배는 차분히 방법을 알려주었다. 다행히 약초를 먹은 정령의 유충은 금방 기운을 되찾았다.\n\n내가 무언가 잘못된 방법으로 육성하고 있던걸까? 한참 고민을 하던 내게 선배는 인간들도 어린 아기들은 자주 아프지 않느냐며, 정령들도 마찬가지라고 했다. 그리고 그들은 원래 거친 자연에서 살았던 존재들이니 그렇게 걱정할 정도로 약하지 않다면서.\n\n…그 이야기를 듣고나서야 안심해서 정령의 질병에 관련된 서적들을 다시 책꽂이에 꽂아넣을 수 있었다. 아마 난 굉장히 불안했었나 보다.`
+            },
+            {
+                id: 'memo_five_endings',
+                condition: 'fiveSpiritEndings',
+                title: '익숙해지다',
+                hint: '다섯 번째 이별.',
+                content: `오늘도 성장을 마친 정령을 떠나보냈다. …나도 이 일에 슬슬 익숙해진걸까?`
+            },
+            {
+                id: 'memo_first_partner',
+                condition: 'firstPartner',
+                title: '짝꿍',
+                hint: '짝꿍 정령.',
+                content: `{spirit1}와(과) {spirit2}은(는) 항상 붙어다니는것 같다고 선배에게 얘기했더니, 선배는 정령들에게도 친구사이라는게 있는 것 같다며 자신은 그들을 '짝꿍'이라고 부른다고 했다.\n\n귀여운 명칭을 붙이셨네요, 라고 하니 조금 부끄러워하셨다.`,
+                dynamicNames: true
+            },
+            {
+                id: 'memo_first_crush',
+                condition: 'firstCrush',
+                title: '연모',
+                hint: '사랑에 빠진 정령들.',
+                content: `{spirit1}와(과) {spirit2}이(가) 뽀뽀하는 걸 봤다!\n\n선배는 친구 사이가 있으면 연인 사이도 있는거 아니겠느냐며 가끔 그런 정령들은 성장해서 떠난 뒤에 연구소로 알을 가져다두는 경우도 있다고 한다. 자연에서 살던 개체들이 아니라 키우는 방법을 잘 몰라서 그런 것 같다고…\n\n…하여튼 조그마한 것들이 별 짓을 다하는구나.`,
+                dynamicNames: true
+            },
+            {
+                id: 'memo_first_loveegg',
+                condition: 'firstLoveEgg',
+                title: '알의 도착',
+                hint: '알을 선물 받다.',
+                content: `{spirit1}와(과) {spirit2}이(가) 정말 알을 가져왔다.\n\n그 알을 테라리움 안에 넣으면서 이게 친정부모님의 심정인가? 하는 엉뚱한 생각을 잠시 했다.`,
+                dynamicNames: true
+            }
+        ];
+        
         // 합성 전용 정령
         const FUSION_TYPES = {
             // 같은 속성 상위 버전
@@ -5156,6 +5233,7 @@
             // 새로운 업적 달성 시 알림
             newAchievements.forEach(achievement => {
                 showNotification(`🏆 업적 달성! "${achievement.title}"`);
+                addUnreadAchievement(achievement.id);
             });
             
             if (newAchievements.length > 0) {
@@ -5207,6 +5285,12 @@
                 checkTutorialAction('openAlbum');
             } else if (tab === 'achievement') {
                 renderJournal();
+                // 업적 탭 방문 시 미확인 업적 확인 처리
+                markAchievementsAsRead();
+            } else if (tab === 'memo') {
+                renderMemoTab();
+                // 메모 탭 방문 시 미확인 메모 확인 처리
+                markMemosAsRead();
             } else if (tab === 'help') {
                 renderTutorialReplayList();
             }
@@ -8101,6 +8185,15 @@
                     const notifyIcon = evolutionData.icon.includes('<img') ? '🦋' : evolutionData.icon;
                     showNotification(`${notifyIcon} ${spirit.name}이(가) ${evolutionData.name}(으)로 앨범에 등록되었습니다 (+25💰)`);
                     
+                    // 메모 해금: 첫 정령 엔딩
+                    if (collection.length === 1) {
+                        unlockMemo('memo_first_ending');
+                    }
+                    // 메모 해금: 5마리 엔딩
+                    if (collection.length === 5) {
+                        unlockMemo('memo_five_endings');
+                    }
+                    
                     // 연모 알 이벤트 체크
                     checkLoveEggEvent(spirit);
                     
@@ -8150,6 +8243,8 @@
                     () => {
                         // 알 생성
                         createLoveEgg(partnerInAlbum, justAdded);
+                        // 첫 연모 알 메모 해금
+                        unlockMemo('memo_first_loveegg', { spirit1: partnerInAlbum.originalName, spirit2: justAdded.originalName });
                     },
                     '받을게요 💕',
                     '괜찮아요',
@@ -9128,6 +9223,9 @@
                             showNotification(`💕 ${spirit1.name}와(과) ${spirit2.name}이(가) 짝꿍이 되었습니다!`);
                             addLog(spirit1, `💕 ${spirit2.name}와(과) 짝꿍이 되었습니다!`);
                             addLog(spirit2, `💕 ${spirit1.name}와(과) 짝꿍이 되었습니다!`);
+                            
+                            // 첫 짝꿍 메모 해금
+                            unlockMemo('memo_first_partner', { spirit1: spirit1.name, spirit2: spirit2.name });
                         }
                     }
                     
@@ -9143,6 +9241,9 @@
                             showNotification(`💗 ${spirit1.name}와(과) ${spirit2.name} 사이에 연모이 싹텄습니다!`);
                             addLog(spirit1, `💗 ${spirit2.name}에게 연모을 느끼고 있습니다...`);
                             addLog(spirit2, `💗 ${spirit1.name}에게 연모을 느끼고 있습니다...`);
+                            
+                            // 첫 연모 메모 해금
+                            unlockMemo('memo_first_crush', { spirit1: spirit1.name, spirit2: spirit2.name });
                         }
                     }
                 }
@@ -9198,6 +9299,8 @@
                 spirit.sickTime = Date.now();
                 spirit.status = `${spirit.name}이(가) 병균에 감염되었습니다... 🦠`;
                 addLog(spirit, '🦠 테라리움에 침입한 병균에 감염되었습니다!');
+                // 첫 병걸림 메모 해금
+                unlockMemo('memo_first_sick');
             });
             
             saveGame();
@@ -9320,6 +9423,9 @@
                 spirit.status = `${spirit.name}이(가) 아파 보입니다... 🤒`;
                 addLog(spirit, reason);
                 showNotification(`${spirit.name}이(가) 병에 걸렸습니다!`);
+                
+                // 첫 병걸림 메모 해금
+                unlockMemo('memo_first_sick');
                 
                 // 첫 질병 시 튜토리얼 시작
                 if (!localStorage.getItem('spiritGarden_sickTutorialSeen')) {
@@ -10003,6 +10109,11 @@
             }
             
             dialogueEl.textContent = dialogue;
+            
+            // 졸고있는 대사를 봤을 때 메모 해금
+            if (dialogue === '<계산대에 엎드려 자고있다.>') {
+                unlockMemo('memo_shop_sleeping');
+            }
             
             // 선물 받았을 때 알림
             if (gaveGift) {
@@ -13567,6 +13678,367 @@
             preview.style.display = 'block';
         }
 
+        // ===== 메모 시스템 =====
+        
+        // 메모 unlock 상태 가져오기
+        function getMemoData() {
+            try {
+                const data = localStorage.getItem('spiritGarden_memos');
+                return data ? JSON.parse(data) : { unlocked: {}, choices: {}, dynamicData: {} };
+            } catch (e) {
+                return { unlocked: {}, choices: {}, dynamicData: {} };
+            }
+        }
+        
+        // 메모 상태 저장
+        function saveMemoData(data) {
+            localStorage.setItem('spiritGarden_memos', JSON.stringify(data));
+        }
+        
+        // 미확인 메모/업적 관리
+        function getUnreadItems() {
+            try {
+                const data = localStorage.getItem('spiritGarden_unreadItems');
+                return data ? JSON.parse(data) : { memos: [], achievements: [] };
+            } catch (e) {
+                return { memos: [], achievements: [] };
+            }
+        }
+        
+        function saveUnreadItems(data) {
+            localStorage.setItem('spiritGarden_unreadItems', JSON.stringify(data));
+        }
+        
+        function addUnreadMemo(memoId) {
+            const unread = getUnreadItems();
+            if (!unread.memos.includes(memoId)) {
+                unread.memos.push(memoId);
+                saveUnreadItems(unread);
+                updateJournalBadge();
+            }
+        }
+        
+        function addUnreadAchievement(achievementId) {
+            const unread = getUnreadItems();
+            if (!unread.achievements.includes(achievementId)) {
+                unread.achievements.push(achievementId);
+                saveUnreadItems(unread);
+                updateJournalBadge();
+            }
+        }
+        
+        function markMemosAsRead() {
+            const unread = getUnreadItems();
+            unread.memos = [];
+            saveUnreadItems(unread);
+            updateJournalBadge();
+        }
+        
+        function markAchievementsAsRead() {
+            const unread = getUnreadItems();
+            unread.achievements = [];
+            saveUnreadItems(unread);
+            updateJournalBadge();
+        }
+        
+        function getUnreadCount() {
+            const unread = getUnreadItems();
+            return unread.memos.length + unread.achievements.length;
+        }
+        
+        function updateJournalBadge() {
+            const count = getUnreadCount();
+            
+            // 데스크톱 일지 탭 배지
+            const desktopJournalTab = document.querySelector('.desktop-tabs .tab:nth-child(6)');
+            if (desktopJournalTab) {
+                let badge = desktopJournalTab.querySelector('.journal-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'journal-badge';
+                        badge.style.cssText = 'position:absolute;top:-5px;right:-5px;background:#e74c3c;color:white;font-size:0.7rem;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;';
+                        desktopJournalTab.style.position = 'relative';
+                        desktopJournalTab.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+            
+            // 모바일 일지 탭 배지
+            const mobileJournalTab = document.querySelector('#mobileTabs .tab:nth-child(6)');
+            if (mobileJournalTab) {
+                let badge = mobileJournalTab.querySelector('.journal-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'journal-badge';
+                        badge.style.cssText = 'position:absolute;top:-3px;right:-3px;background:#e74c3c;color:white;font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:8px;min-width:14px;text-align:center;';
+                        mobileJournalTab.style.position = 'relative';
+                        mobileJournalTab.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+            
+            // 일지 내 서브탭 배지 (업적)
+            updateAchievementSubBadge();
+            // 일지 내 서브탭 배지 (메모)
+            updateMemoSubBadge();
+        }
+        
+        function updateAchievementSubBadge() {
+            const unread = getUnreadItems();
+            const count = unread.achievements.length;
+            
+            // 데스크톱 업적 서브탭
+            const desktopBtn = document.querySelector('#journalSubTabs .sub-tab[data-tab="achievement"]');
+            if (desktopBtn) {
+                let badge = desktopBtn.querySelector('.sub-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'sub-badge';
+                        badge.style.cssText = 'background:#e74c3c;color:white;font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;';
+                        desktopBtn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+            
+            // 모바일 업적 서브탭
+            const mobileBtn = document.querySelector('#mobileJournalSubTabs .mobile-sub-tab[data-tab="achievement"]');
+            if (mobileBtn) {
+                let badge = mobileBtn.querySelector('.sub-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'sub-badge';
+                        badge.style.cssText = 'background:#e74c3c;color:white;font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:6px;margin-left:3px;';
+                        mobileBtn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+        }
+        
+        function updateMemoSubBadge() {
+            const unread = getUnreadItems();
+            const count = unread.memos.length;
+            
+            // 데스크톱 메모 서브탭
+            const desktopBtn = document.querySelector('#journalSubTabs .sub-tab[data-tab="memo"]');
+            if (desktopBtn) {
+                let badge = desktopBtn.querySelector('.sub-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'sub-badge';
+                        badge.style.cssText = 'background:#e74c3c;color:white;font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;';
+                        desktopBtn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+            
+            // 모바일 메모 서브탭
+            const mobileBtn = document.querySelector('#mobileJournalSubTabs .mobile-sub-tab[data-tab="memo"]');
+            if (mobileBtn) {
+                let badge = mobileBtn.querySelector('.sub-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'sub-badge';
+                        badge.style.cssText = 'background:#e74c3c;color:white;font-size:0.6rem;font-weight:700;padding:1px 4px;border-radius:6px;margin-left:3px;';
+                        mobileBtn.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+        }
+        
+        // 메모 unlock
+        function unlockMemo(memoId, extraData = {}) {
+            const memoData = getMemoData();
+            if (!memoData.unlocked[memoId]) {
+                memoData.unlocked[memoId] = Date.now();
+                if (extraData.spirit1 || extraData.spirit2) {
+                    memoData.dynamicData[memoId] = extraData;
+                }
+                saveMemoData(memoData);
+                console.log('메모 해금:', memoId, extraData);
+                
+                // 알림 표시 및 미확인 목록에 추가 (condition이 'none'인 메모는 제외)
+                const memo = MEMO_DATA.find(m => m.id === memoId);
+                if (memo && memo.condition !== 'none') {
+                    showNotification(`📝 새 메모: "${memo.title}"`);
+                    addUnreadMemo(memoId);
+                }
+            }
+        }
+        
+        // 앨범 기반 메모 자동 해금 (기존 플레이어용, 알림 없이 조용히 해금)
+        function checkAlbumBasedMemos() {
+            const albumCount = collection.length;
+            const memoData = getMemoData();
+            let changed = false;
+            
+            // 앨범 1마리 이상 → 첫 번째 이별 메모
+            if (albumCount >= 1 && !memoData.unlocked['memo_first_ending']) {
+                memoData.unlocked['memo_first_ending'] = Date.now();
+                addUnreadMemo('memo_first_ending');
+                changed = true;
+                console.log('앨범 기반 메모 해금: memo_first_ending');
+            }
+            
+            // 앨범 5마리 이상 → 익숙해지다 메모
+            if (albumCount >= 5 && !memoData.unlocked['memo_five_endings']) {
+                memoData.unlocked['memo_five_endings'] = Date.now();
+                addUnreadMemo('memo_five_endings');
+                changed = true;
+                console.log('앨범 기반 메모 해금: memo_five_endings');
+            }
+            
+            if (changed) {
+                saveMemoData(memoData);
+            }
+        }
+        
+        // 메모 선택지 선택
+        function selectMemoChoice(memoId, choiceKey) {
+            const memoData = getMemoData();
+            memoData.choices[memoId] = choiceKey;
+            saveMemoData(memoData);
+            renderMemoTab();
+        }
+        
+        // 메모탭 렌더링
+        function renderMemoTab() {
+            const container = document.getElementById('memoList');
+            if (!container) return;
+            
+            const memoData = getMemoData();
+            
+            // 기본 메모는 항상 해금
+            if (!memoData.unlocked['memo_intro']) {
+                memoData.unlocked['memo_intro'] = Date.now();
+                saveMemoData(memoData);
+            }
+            
+            let html = '';
+            let unlockedCount = 0;
+            
+            MEMO_DATA.forEach((memo, index) => {
+                const isUnlocked = memo.condition === 'none' || memoData.unlocked[memo.id];
+                
+                if (isUnlocked) {
+                    unlockedCount++;
+                    const selectedChoice = memoData.choices[memo.id];
+                    const dynamicNames = memoData.dynamicData[memo.id] || {};
+                    
+                    // 동적 이름 치환
+                    let content = memo.content;
+                    if (memo.dynamicNames && dynamicNames.spirit1) {
+                        content = content.replace(/{spirit1}/g, dynamicNames.spirit1);
+                        content = content.replace(/{spirit2}/g, dynamicNames.spirit2 || '???');
+                    }
+                    
+                    // 줄바꿈 처리
+                    content = content.replace(/\n/g, '<br>');
+                    
+                    // 선택된 choice의 suffix 또는 memo.suffix 가져오기
+                    let suffixText = '';
+                    if (selectedChoice) {
+                        const selectedChoiceObj = memo.choices?.find(c => c.key === selectedChoice);
+                        if (selectedChoiceObj && selectedChoiceObj.suffix) {
+                            suffixText = selectedChoiceObj.suffix;
+                        } else if (memo.suffix) {
+                            suffixText = memo.suffix;
+                        }
+                    }
+                    
+                    // 날짜 형식: XXXX.월.일
+                    const memoDate = new Date(memoData.unlocked[memo.id]);
+                    const dateStr = `XXXX. ${memoDate.getMonth() + 1}. ${memoDate.getDate()}.`;
+                    
+                    html += `
+                        <div style="background: var(--card); padding: 24px; border: 1px solid var(--border); border-radius: 12px; position: relative;">
+                            <div style="position: absolute; top: 12px; right: 16px; font-size: 0.75rem; color: #888;">
+                                ${dateStr}
+                            </div>
+                            <h4 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; margin-bottom: 16px; color: var(--text);">
+                                ${memo.title}
+                            </h4>
+                            <p style="font-family: 'Gowun Batang', serif; font-size: 0.95rem; line-height: 1.8; color: var(--text);">${content}</p>
+                            ${memo.choices ? renderMemoChoices(memo, selectedChoice) : ''}
+                            ${suffixText ? `<p style="font-family: 'Gowun Batang', serif; font-size: 0.95rem; line-height: 1.8; color: var(--text); margin-top: 16px;">${suffixText}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    // 잠긴 메모
+                    html += `
+                        <div style="background: var(--bg); padding: 24px; border: 1px dashed var(--border); border-radius: 12px; opacity: 0.6;">
+                            <h4 style="font-family: 'Nanum Myeongjo', serif; font-size: 1.1rem; margin-bottom: 12px; color: #888;">
+                                🔒 ???
+                            </h4>
+                            <p style="font-family: 'Gowun Batang', serif; font-size: 0.9rem; color: #888; font-style: italic;">${memo.hint || '아직 기록되지 않은 이야기입니다...'}</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            // 진행도 표시
+            const totalMemos = MEMO_DATA.length;
+            html = `
+                <div style="background: var(--card); padding: 16px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; text-align: center;">
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">기록된 메모: </span>
+                    <span style="font-weight: 700; color: var(--text);">${unlockedCount} / ${totalMemos}</span>
+                </div>
+            ` + html;
+            
+            container.innerHTML = html;
+        }
+        
+        // 메모 선택지 렌더링
+        function renderMemoChoices(memo, selectedChoice) {
+            if (!memo.choices) return '';
+            
+            return `
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                    ${memo.choices.map(choice => {
+                        const isSelected = selectedChoice === choice.key;
+                        if (selectedChoice && !isSelected) {
+                            // 다른 선택지가 선택된 경우 이 선택지는 숨김
+                            return '';
+                        }
+                        return `
+                            <button onclick="${isSelected ? '' : `selectMemoChoice('${memo.id}', '${choice.key}')`}" 
+                                style="padding: 12px 16px; background: ${isSelected ? 'linear-gradient(135deg, #9b59b6, #8e44ad)' : 'var(--bg)'}; 
+                                color: ${isSelected ? 'white' : 'var(--text)'}; 
+                                border: 1px solid ${isSelected ? 'transparent' : 'var(--border)'}; 
+                                border-radius: 8px; font-family: 'Gowun Batang', serif; font-size: 0.9rem; 
+                                cursor: ${isSelected ? 'default' : 'pointer'}; text-align: left;
+                                ${isSelected ? '' : 'transition: all 0.2s;'}">
+                                ${isSelected ? '▶ ' : ''}${choice.text}
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
         function toggleEncyclopediaGroup(groupId) {
             encyclopediaFoldState[groupId] = !encyclopediaFoldState[groupId];
             renderEncyclopedia();
@@ -14374,6 +14846,9 @@
                 } else if (tab === 'shop') {
                     activateTab('.desktop-tabs .tab:nth-child(4)');
                     document.getElementById('shopSection')?.classList.add('active');
+                    
+                    // 상점 첫 방문 메모 해금
+                    unlockMemo('memo_shop_first');
                     
                     // 데스크톱 서브탭 바 표시 (왼쪽 고정)
                     if (subTabBar) {
@@ -20369,6 +20844,8 @@
             startAutoGather(); // 자동 채집 시작
             checkAndShowOpening(); // 오프닝 체크
             checkAchievements(); // 업적 체크 (기존 데이터용)
+            checkAlbumBasedMemos(); // 앨범 기반 메모 해금 체크
+            updateJournalBadge(); // 미확인 업적/메모 배지 업데이트
             
             // 연구실 튜토리얼 체크 (약간의 딜레이로 다른 튜토리얼과 충돌 방지)
             setTimeout(() => {
