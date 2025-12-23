@@ -12170,6 +12170,8 @@
                 if (result.count > 0) {
                     showNotification(`✅ ${result.count}마리 복구 완료!\n${result.names.slice(0, 3).join(', ')}${result.names.length > 3 ? ' 외 ' + (result.names.length - 3) + '종' : ''}`);
                     renderCollection();
+                    checkAlbumBasedMemos(); // 앨범 기반 메모 해금 체크
+                    updateJournalBadge(); // 배지 업데이트
                 } else {
                     showNotification('복구할 정령이 없습니다.');
                 }
@@ -12300,6 +12302,8 @@
             closeBackupModal();
             renderCollection();
             renderEncyclopedia();
+            checkAlbumBasedMemos(); // 앨범 기반 메모 해금 체크
+            updateJournalBadge(); // 배지 업데이트
             showNotification(`✅ ${date} 시점으로 앨범을 복구했습니다!`);
         }
         
@@ -12363,6 +12367,8 @@
                     closeBackupModal();
                     renderCollection();
                     renderEncyclopedia();
+                    checkAlbumBasedMemos(); // 앨범 기반 메모 해금 체크
+                    updateJournalBadge(); // 배지 업데이트
                     showNotification(`✅ 백업 파일에서 앨범을 복구했습니다!`);
                 } catch (err) {
                     console.error('백업 복구 오류:', err);
@@ -13923,7 +13929,19 @@
         function checkAlbumBasedMemos() {
             const albumCount = collection.length;
             const memoData = getMemoData();
+            const unreadData = getUnreadItems();
             let changed = false;
+            
+            // 연구소 첫 날 메모 (항상 해금, 미확인 상태로 표시)
+            if (!memoData.unlocked['memo_intro']) {
+                memoData.unlocked['memo_intro'] = Date.now();
+                addUnreadMemo('memo_intro');
+                changed = true;
+                console.log('기본 메모 해금: memo_intro');
+            } else if (!unreadData.memos.includes('memo_intro') && !memoData.choices['memo_intro']) {
+                // 이미 해금됐지만 선택지를 고르지 않았으면 미확인으로 표시
+                addUnreadMemo('memo_intro');
+            }
             
             // 앨범 1마리 이상 → 첫 번째 이별 메모
             if (albumCount >= 1 && !memoData.unlocked['memo_first_ending']) {
@@ -13933,7 +13951,7 @@
                 console.log('앨범 기반 메모 해금: memo_first_ending');
             }
             
-            // 앨범 5마리 이상 → 익숙해지다 메모
+            // 앨범 5마리 이상 → 아직은 애송이 메모
             if (albumCount >= 5 && !memoData.unlocked['memo_five_endings']) {
                 memoData.unlocked['memo_five_endings'] = Date.now();
                 addUnreadMemo('memo_five_endings');
@@ -16416,7 +16434,7 @@
         // 게임 데이터 내보내기
         function exportGameData() {
             const gameData = {
-                version: '2.3.0',
+                version: '2.3.1',
                 exportDate: new Date().toISOString(),
                 spirits: spirits,
                 collection: collection,
@@ -16442,7 +16460,10 @@
                 achievements: achievements,
                 claimedAchievementRewards: claimedAchievementRewards,
                 lastGatherTime: lastGatherTime,
-                currentGatherLocation: currentGatherLocation
+                currentGatherLocation: currentGatherLocation,
+                // 메모 시스템 데이터 (v2.3.1+)
+                memoData: getMemoData(),
+                unreadItems: getUnreadItems()
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
             };
             
@@ -16712,6 +16733,14 @@
             achievements = gameData.achievements || {};
             claimedAchievementRewards = gameData.claimedAchievementRewards || [];
             
+            // 메모 시스템 데이터 복원 (v2.3.1+)
+            if (gameData.memoData) {
+                saveMemoData(gameData.memoData);
+            }
+            if (gameData.unreadItems) {
+                saveUnreadItems(gameData.unreadItems);
+            }
+            
             // 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
             labSlot1 = null;
             labSlot2 = null;
@@ -16752,6 +16781,8 @@
             updateSettingsInfo();
             renderRecipeList(); // 레시피 목록도 갱신
             checkAchievements(); // 업적 체크 (기존 백업 데이터에 업적이 없을 경우 재계산)
+            checkAlbumBasedMemos(); // 앨범 기반 메모 해금 체크
+            updateJournalBadge(); // 미확인 메모/업적 배지 업데이트
             
             // 현재 일지 탭이 열려있으면 해당 서브탭도 갱신
             if (document.getElementById('journalSection')?.classList.contains('active')) {
