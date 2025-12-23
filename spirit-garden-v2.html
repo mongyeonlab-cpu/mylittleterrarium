@@ -8446,23 +8446,47 @@
             // attributeType을 확인해야 함 (type은 스탯 레벨임)
             // 이벤트 정령이 아닌 경우에만 적용
             else if (item.attributeType && ATTRIBUTE_NAMES[item.attributeType]) {
-                const attrData = ATTRIBUTE_NAMES[item.attributeType];
-                if (attrData && attrData.icon) {
-                    // wingType 결정
-                    let wingType = item.wingType;
-                    if (!wingType) {
-                        if (item.lightTime !== undefined && item.darkTime !== undefined) {
-                            wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
-                        } else {
-                            wingType = 'butterfly';
-                        }
+                // 스탯 계열 정령 (intelligent, strong, beautiful)은 아직 전용 그래픽이 없으므로 이모티콘 사용
+                const statTypes = ['intelligent', 'strong', 'beautiful'];
+                if (item.type && statTypes.includes(item.type)) {
+                    // 스탯 타입 정령은 이모티콘 사용
+                    const statData = EVOLUTION_TYPES[item.type];
+                    const attrData = ATTRIBUTE_NAMES[item.attributeType];
+                    if (statData && attrData) {
+                        // 속성별 이모티콘 매핑
+                        const attrEmojiMap = {
+                            'fire': '🔥', 'water': '💧', 'wind': '🌬️', 'earth': '🌱',
+                            'light': '✨', 'dark': '🌙', 'normal': '⚪',
+                            'balanced': '⚖️', 'multi': '🌪️',
+                            'fire-water': '💨', 'fire-wind': '🌪️', 'earth-fire': '🌋',
+                            'fire-light': '☀️', 'dark-fire': '💨', 'water-wind': '☁️',
+                            'earth-water': '🪨', 'light-water': '🌈', 'dark-water': '🌫️',
+                            'earth-wind': '🏜️', 'light-wind': '🌌', 'dark-wind': '🌀',
+                            'earth-light': '💎', 'dark-earth': '🌑', 'dark-light': '🔮'
+                        };
+                        const finalAttrEmoji = attrEmojiMap[item.attributeType] || '❓';
+                        itemIcon = `${statData.icon}${finalAttrEmoji}`;
                     }
-                    
-                    // 이미지가 있는 경우 (butterfly/moth 구분)
-                    if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
-                        itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
-                    } else {
-                        itemIcon = attrData.icon;
+                } else {
+                    // nostat이나 sage는 이미지 사용
+                    const attrData = ATTRIBUTE_NAMES[item.attributeType];
+                    if (attrData && attrData.icon) {
+                        // wingType 결정
+                        let wingType = item.wingType;
+                        if (!wingType) {
+                            if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                                wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                            } else {
+                                wingType = 'butterfly';
+                            }
+                        }
+                        
+                        // 이미지가 있는 경우 (butterfly/moth 구분)
+                        if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
+                            itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
+                        } else {
+                            itemIcon = attrData.icon;
+                        }
                     }
                 }
             }
@@ -14754,23 +14778,51 @@
                 // attributeType을 확인해야 함 (type은 스탯 레벨임)
                 // 이벤트 정령이 아닌 경우에만 적용
                 else if (item.attributeType && ATTRIBUTE_NAMES[item.attributeType]) {
-                    const attrData = ATTRIBUTE_NAMES[item.attributeType];
-                    if (attrData && attrData.icon) {
-                        // wingType 결정
-                        let wingType = item.wingType;
-                        if (!wingType) {
-                            if (item.lightTime !== undefined && item.darkTime !== undefined) {
-                                wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
-                            } else {
-                                wingType = 'butterfly';
-                            }
+                    // 스탯 계열 정령 (intelligent, strong, beautiful)은 아직 전용 그래픽이 없으므로 이모티콘 사용
+                    const statTypes = ['intelligent', 'strong', 'beautiful'];
+                    if (item.type && statTypes.includes(item.type)) {
+                        // 스탯 타입 정령은 이모티콘 사용
+                        const statData = EVOLUTION_TYPES[item.type];
+                        const attrData = ATTRIBUTE_NAMES[item.attributeType];
+                        if (statData && attrData) {
+                            // 속성 이모티콘 결정
+                            const attrEmoji = typeof attrData.icon === 'object' ? 
+                                (attrData.icon.butterfly ? '🔥' : '❓') : // 이미지인 경우 기본 이모티콘
+                                attrData.icon; // 이모티콘인 경우 그대로 사용
+                            // 속성별 이모티콘 매핑
+                            const attrEmojiMap = {
+                                'fire': '🔥', 'water': '💧', 'wind': '🌬️', 'earth': '🌱',
+                                'light': '✨', 'dark': '🌙', 'normal': '⚪',
+                                'balanced': '⚖️', 'multi': '🌪️',
+                                'fire-water': '💨', 'fire-wind': '🌪️', 'earth-fire': '🌋',
+                                'fire-light': '☀️', 'dark-fire': '💨', 'water-wind': '☁️',
+                                'earth-water': '🪨', 'light-water': '🌈', 'dark-water': '🌫️',
+                                'earth-wind': '🏜️', 'light-wind': '🌌', 'dark-wind': '🌀',
+                                'earth-light': '💎', 'dark-earth': '🌑', 'dark-light': '🔮'
+                            };
+                            const finalAttrEmoji = attrEmojiMap[item.attributeType] || '❓';
+                            itemIcon = `${statData.icon}${finalAttrEmoji}`;
                         }
-                        
-                        // 이미지가 있는 경우 (butterfly/moth 구분)
-                        if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
-                            itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
-                        } else {
-                            itemIcon = attrData.icon;
+                    } else {
+                        // nostat이나 sage는 이미지 사용
+                        const attrData = ATTRIBUTE_NAMES[item.attributeType];
+                        if (attrData && attrData.icon) {
+                            // wingType 결정
+                            let wingType = item.wingType;
+                            if (!wingType) {
+                                if (item.lightTime !== undefined && item.darkTime !== undefined) {
+                                    wingType = item.lightTime > item.darkTime ? 'butterfly' : 'moth';
+                                } else {
+                                    wingType = 'butterfly';
+                                }
+                            }
+                            
+                            // 이미지가 있는 경우 (butterfly/moth 구분)
+                            if (typeof attrData.icon === 'object' && attrData.icon.butterfly) {
+                                itemIcon = attrData.icon[wingType] || attrData.icon.butterfly;
+                            } else {
+                                itemIcon = attrData.icon;
+                            }
                         }
                     }
                 }
@@ -16463,7 +16515,9 @@
                 currentGatherLocation: currentGatherLocation,
                 // 메모 시스템 데이터 (v2.3.1+)
                 memoData: getMemoData(),
-                unreadItems: getUnreadItems()
+                unreadItems: getUnreadItems(),
+                // 커스텀 정령 데이터 (v2.3.1+)
+                customSpiritTypes: customSpiritTypes
                 // labSlot은 저장하지 않음 (새 시스템에서는 합성 전까지 인벤토리 차감 안 함)
             };
             
@@ -16739,6 +16793,12 @@
             }
             if (gameData.unreadItems) {
                 saveUnreadItems(gameData.unreadItems);
+            }
+            
+            // 커스텀 정령 데이터 복원 (v2.3.1+)
+            if (gameData.customSpiritTypes) {
+                customSpiritTypes = gameData.customSpiritTypes;
+                saveCustomSpirits();
             }
             
             // 슬롯 비우기 (현재 시스템은 슬롯에 올려도 인벤토리에서 차감 안 함)
@@ -17043,6 +17103,9 @@
             hasVisitedShop = false;
             darkModeLocked = false;
             lightModeLocked = false;
+            encyclopediaDetails = {}; // 도감 상세 정보
+            totalEggsCreated = 0; // 알 생성 카운터
+            customSpiritTypes = {}; // 커스텀 정령 타입
             
             // localStorage 삭제
             localStorage.removeItem('spiritGardenV2');
@@ -17052,6 +17115,14 @@
             localStorage.removeItem('spiritGarden_labTutorialSeen'); // 연구실 튜토리얼도 다시 보이게
             localStorage.removeItem('spiritGarden_sickTutorialSeen'); // 질병 튜토리얼도 다시 보이게
             localStorage.removeItem('spiritGarden_imbalanceTutorialSeen'); // 불균형 튜토리얼도 다시 보이게
+            localStorage.removeItem('spiritGarden_tutorialCompleted'); // 튜토리얼 보상 수령 상태
+            localStorage.removeItem('spiritGarden_tutorial2Completed'); // 튜토리얼2 보상 수령 상태
+            localStorage.removeItem('spiritGarden_sickTutorialCompleted'); // 질병 튜토리얼 보상 수령 상태
+            localStorage.removeItem('spiritGarden_labTutorialCompleted'); // 연구실 튜토리얼 보상 수령 상태
+            localStorage.removeItem('spiritGarden_memos'); // 메모 데이터
+            localStorage.removeItem('spiritGarden_unreadItems'); // 미확인 메모/업적
+            localStorage.removeItem('spiritGarden_customSpirits'); // 커스텀 정령 데이터
+            localStorage.removeItem('spiritGarden_cardExpanded'); // 카드 펼침 상태
             
             // UI 업데이트
             renderSpirits();
@@ -17062,6 +17133,7 @@
             renderEncyclopedia();
             renderCollection();
             renderRecipeList(); // 연구실 레시피 목록도 초기화
+            updateJournalBadge(); // 미확인 메모/업적 배지 초기화
             
             const titleSelect = document.getElementById('titleSelect');
             if (titleSelect) {
