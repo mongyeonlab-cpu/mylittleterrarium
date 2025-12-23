@@ -10139,9 +10139,12 @@
             
             dialogueEl.textContent = dialogue;
             
-            // 졸고있는 대사를 봤을 때 메모 해금
+            // 졸고있는 대사를 봤을 때 메모 해금 (상점 첫 방문 메모가 먼저 해금되어야 함)
             if (dialogue === '<계산대에 엎드려 자고있다.>') {
-                unlockMemo('memo_shop_sleeping');
+                const memoData = getMemoData();
+                if (memoData.unlocked['memo_shop_first']) {
+                    unlockMemo('memo_shop_sleeping');
+                }
             }
             
             // 선물 받았을 때 알림
